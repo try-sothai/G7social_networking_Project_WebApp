@@ -4,12 +4,12 @@ session_start();
 if(isset($_POST['send_otp'])){
     $phone = trim($_POST['phone']);
     if(!empty($phone)){
-        // បង្កើតលេខកូដ OTP សន្មត ៦ ខ្ទង់
+     
         $otp = rand(100000, 999999);
         $_SESSION['phone'] = $phone;
         $_SESSION['otp'] = $otp;
 
-        // ប្តូរទៅកាន់ទំព័រផ្ទៀងផ្ទាត់ (ប្រាកដថាឈ្មោះ file ត្រឹមត្រូវតាមអ្វីដែលអ្នកប្រើ)
+    
         header("Location: login_interotp.php");
         exit();
     }
