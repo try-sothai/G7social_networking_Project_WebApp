@@ -1,0 +1,166 @@
+
+/* Events Container Styling */
+.events-container {
+    padding-top: 20px;
+    max-width: 100%;
+}
+
+.events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 20px 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Tabs */
+.events-tabs {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 25px;
+}
+
+.tab {
+    padding: 12px 30px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-muted);
+    position: relative;
+}
+
+.tab.active {
+    color: var(--accent-color);
+}
+
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-color);
+}
+
+/* Event Cards */
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.event-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s;
+}
+
+.event-card:hover {
+    transform: translateY(-2px);
+}
+
+.event-image {
+    width: 280px;
+    min-width: 280px;
+}
+
+.event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.event-details {
+    padding: 20px;
+    flex: 1;
+}
+
+.event-info-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.tag {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.tag.health { 
+    background: #dbeafe; 
+    color: #1e40af; 
+}
+.tag.market { 
+    background: #fef3c7; 
+    color: #92400e; 
+}
+
+.event-date-text {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.event-details h3 {
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+}
+
+.event-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.event-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.event-meta i {
+    margin-right: 5px;
+}
+
+.event-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-status {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-status.going {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #10b981;
+}
+
+.btn-status.interested:hover {
+    background: #f8fafc;
+}

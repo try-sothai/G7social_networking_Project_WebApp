@@ -1,0 +1,348 @@
+
+/* --- Chat Layout --- */
+.chat-container {
+    display: flex;
+    height: calc(100vh - 120px);
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 20px;
+}
+
+.chat-sidebar {
+    width: 350px;
+    border-right: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-search {
+    padding: 20px;
+}
+
+.chat-search input {
+    width: 100%;
+    padding: 12px 15px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    outline: none;
+}
+
+.contact-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: 0.2s;
+    gap: 15px;
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    gap: 12px;
+}
+.contact-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.contact-item:hover {
+    background: #f8fafc;
+}
+
+.contact-item.active {
+    background: rgba(99, 102, 241, 0.05);
+    border-right: 3px solid var(--accent-color);
+}
+
+.avatar-wrapper {
+    position: relative;
+}
+
+.avatar-wrapper img {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.status-dot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background: #22c55e;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-info .name-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.name-row span { 
+    font-weight: 700; 
+    font-size: 15px; 
+}
+.name-row small { 
+    color: var(--text-muted); 
+    font-size: 12px; 
+}
+
+.contact-info p {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.unread-badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.chat-header {
+    padding: 18px 25px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    
+}
+
+.chat-header img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.header-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.header-status {
+    font-size: 12px;
+    color: #22c55e;
+}
+
+/* Message Area */
+.message-content {
+    flex: 1;
+    width: 100%;
+    padding: 25px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #fcfcfd;
+}
+
+
+/* ផ្ទាំងបង្ហាញសារ (Right Side) */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+    border-left: 1px solid #eef2f7;
+}
+ 
+
+.bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+}
+
+.sent .bubble {
+    background: #6366f1;
+    color: white;
+    border-bottom-right-radius: 2px;
+}
+
+.received .bubble {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-bottom-left-radius: 2px;
+}
+ .chat-messages{
+    flex:1;
+    padding:25px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.message-wrapper{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    max-width:70%;
+}
+
+.message-wrapper.me{
+    align-self:flex-end;
+    flex-direction:row-reverse;
+    align-self: flex-end; 
+    display: flex;
+    flex-direction: row;  
+    justify-content: flex-end; 
+    gap: 10px;
+    max-width: 80%;
+}
+
+.message-wrapper.them{
+    align-self:flex-start;
+    flex-direction: row;
+}
+
+.msg-avatar{
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.msg-content{
+    display:flex;
+    flex-direction:column;
+}
+
+.msg-bubble{
+    padding:12px 18px;
+    border-radius:18px;
+    font-size:14px;
+    line-height:1.4;
+    word-break:break-word;
+}
+
+.me .msg-bubble{
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    border-bottom-right-radius: 4px;
+    
+}
+
+.them .msg-bubble{
+    background:white;
+    border:1px solid #e2e8f0;
+    color:#1e293b;
+    border-bottom-left-radius:6px;
+}
+
+.msg-time{
+    font-size:11px;
+    margin-top:4px;
+    color:#94a3b8;
+}
+
+.me .msg-time{
+    text-align:right;
+}
+.chat-input-area {
+    padding: 18px 25px;
+    background: white;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.input-wrapper {
+    flex: 1;
+}
+
+.input-wrapper textarea {
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 25px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+
+    
+}
+.action-btn {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+.action-btn:hover {
+    transform: scale(1.1);
+    color: #2563eb;
+}
+.send-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#4f46e5,#6366f1);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.call-btn {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call-btn:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: scale(1.1);
+}
+
+
+.call-btn .fa-ellipsis-vertical {
+    color: #64748b;
+}
+.send-btn:hover {
+    transform: scale(1.08);
+}
