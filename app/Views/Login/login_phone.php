@@ -9,7 +9,6 @@ if(isset($_POST['send_otp'])){
         $_SESSION['phone'] = $phone;
         $_SESSION['otp'] = $otp;
 
-    
         header("Location: login_interotp.php");
         exit();
     }
