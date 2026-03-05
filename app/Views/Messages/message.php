@@ -54,7 +54,8 @@ $current_user_id = $_SESSION['user_id'] ?? 6;
                 </div>
                 <div class="user-profile">
                     <span style="font-weight: 700;">Dara S.</span>
-                    <img src="https://i.pravatar.cc/150?u=me" alt="Profile">
+                    <a href="../Profile/profile.php">
+                    <img src="https://i.pravatar.cc/150?u=me" alt="Profile"></a>
                 </div>
             </div>
         </header>
