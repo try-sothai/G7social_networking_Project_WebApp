@@ -49,7 +49,6 @@ try {
     <link rel="stylesheet" href="../../../public/css/Profile/profile.css">
 </head>
 <body>
-
     <div class="sidebar">
         <div class="logo-section">
             <i class="fa-solid fa-cube"></i>
