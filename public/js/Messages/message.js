@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatActive = document.getElementById('chat-active');
     const chatWelcome = document.getElementById('chat-welcome');
     let activeReceiverID = null;
-    const API_PATH = '/g7social_networking/app/Controllers/Messages/ChatController.php';
+    const API_PATH = '../../../app/Controllers/Messages/ChatController.php';
     function fetchUsers() {
         fetch(`${API_PATH}?action=fetch_users`)
             .then(res => res.json())

@@ -81,7 +81,7 @@ $current_user_id = $_SESSION['user_id'] ?? 6;
     </div>
 
     <script>
-    const CHAT_API = window.location.origin + '/g7social_networking/app/Controllers/Messages/ChatController.php';
+    const API_PATH = '../../../app/Controllers/Messages/ChatController.php';
     const CURRENT_USER_ID = <?php echo $_SESSION['user_id'] ?? 0; ?>;
 </script>
     <script src="../../../public/js/Messages/message.js"></script> 
