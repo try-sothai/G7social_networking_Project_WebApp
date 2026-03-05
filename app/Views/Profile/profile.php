@@ -1,3 +1,42 @@
+<?php 
+session_start();
+
+require_once '../../../config/db_config.php';
+
+// ប្រសិនបើមិនទាន់ Login ឱ្យវាត្រឡប់ទៅទំព័រ Login វិញ
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../Login/login_gmail.php");
+    exit();
+}
+
+$current_user_id = $_SESSION['user_id'];
+
+try {
+    // ១. ទាញព័ត៌មាន User (ប្រើ Prepared Statement ដើម្បីសុវត្ថិភាព)
+    $stmt = $conn->prepare("SELECT * FROM users WHERE UserID = :id");
+    $stmt->execute(['id' => $current_user_id]);
+    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // ២. រាប់ចំនួន Posts
+    $stmt_posts = $conn->prepare("SELECT COUNT(*) as total FROM posts WHERE UserID = :id");
+    $stmt_posts->execute(['id' => $current_user_id]);
+    $posts = $stmt_posts->fetch(PDO::FETCH_ASSOC)['total'];
+
+    // ៣. រាប់ចំនួន Followers
+    $stmt_followers = $conn->prepare("SELECT COUNT(*) as total FROM friends WHERE ReceiverID = :id AND Status = 'accepted'");
+    $stmt_followers->execute(['id' => $current_user_id]);
+    $followers = $stmt_followers->fetch(PDO::FETCH_ASSOC)['total'];
+
+    // ៤. រាប់ចំនួន Following
+    $stmt_following = $conn->prepare("SELECT COUNT(*) as total FROM friends WHERE RequesterID = :id AND Status = 'accepted'");
+    $stmt_following->execute(['id' => $current_user_id]);
+    $following = $stmt_following->fetch(PDO::FETCH_ASSOC)['total'];
+
+} catch(PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="km">
 <head>
@@ -46,46 +85,50 @@
                     <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
                 </div>
                 <div class="user-profile">
-                    <span style="font-weight: 700;">Dara S.</span>
+                    <span style="font-weight: 700;"><?php echo htmlspecialchars($user_data['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                    <img src="https://i.pravatar.cc/150?u=me" alt="Profile"></a>
+                        <img src="<?php echo !empty($user_data['ProfilePic']) ? $user_data['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_data['UserID']; ?>" alt="Profile">
+                    </a>
                 </div>
             </div>
         </header>
+
         <div class="profile-dashboard-wrapper">
-    <div class="profile-card">
-        <div class="profile-header-main">
-            <div class="avatar-container">
-                <img src="https://i.pravatar.cc/150?u=me" alt="User Avatar" class="profile-img-large">
-            </div>
-            
-            <div class="profile-details">
-                <div class="name-row">
-                    <h2>Google User</h2>
-                    <button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button>
-                </div>
-                <p class="user-email">user@google.com</p>
-                
-                <div class="profile-stats">
-                    <div class="stat-item"><strong>42</strong> <span>Posts</span></div>
-                    <div class="stat-item"><strong>1.2K</strong> <span>Followers</span></div>
-                    <div class="stat-item"><strong>856</strong> <span>Following</span></div>
+            <div class="profile-card">
+                <div class="profile-header-main">
+                    <div class="avatar-container">
+                        <img src="<?php echo !empty($user_data['ProfilePic']) ? $user_data['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_data['UserID']; ?>" alt="User Avatar" class="profile-img-large">
+                    </div>
+                    
+                    <div class="profile-details">
+                        <div class="name-row">
+                            <h2><?php echo htmlspecialchars($user_data['Username']); ?></h2>
+                            <button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+                        </div>
+                        <p class="user-email"><?php echo htmlspecialchars($user_data['Email']); ?></p>
+                        
+                        <div class="profile-stats">
+                            <div class="stat-item"><strong><?php echo $posts; ?></strong> <span>Posts</span></div>
+                            <div class="stat-item"><strong><?php echo $followers; ?></strong> <span>Followers</span></div>
+                            <div class="stat-item"><strong><?php echo $following; ?></strong> <span>Following</span></div>
+                        </div>
+
+                        <p class="profile-bio"><?php echo !empty($user_data['Bio']) ? htmlspecialchars($user_data['Bio']) : 'ស្វាគមន៍មកកាន់ LocalConnect! 🎉'; ?></p>
+                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($user_data['Phone']) ? htmlspecialchars($user_data['Phone']) : 'មិនមានទីតាំង'; ?></p>
+
+                        <div class="interest-tags">
+                            <span class="interest-tag">Music</span>
+                            <span class="interest-tag">Technology</span>
+                            <span class="interest-tag">Travel</span>
+                        </div>
+                    </div>
                 </div>
 
-                <p class="profile-bio">Hey there! I am using LocalConnect 🎉</p>
-                <p class="profile-location"><i class="fa-solid fa-location-dot"></i> Downtown, San Francisco</p>
-
-                <div class="interest-tags">
-                    <span class="interest-tag">Music</span>
-                    <span class="interest-tag">Technology</span>
-                    <span class="interest-tag">Travel</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="profile-footer-actions">
+                <div class="profile-footer-actions">
                     <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
-                    <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
+                    <a href="../Login/logout.php" style="text-decoration: none;">
+                        <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
+                    </a>
                 </div>
             </div>
 
@@ -100,7 +143,6 @@
                 <div class="post-placeholder">Post 3</div>
             </div>
         </div>       
-        </div>
     </div>
 </body>
 </html>
