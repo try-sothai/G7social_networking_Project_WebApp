@@ -112,8 +112,8 @@ try {
                             <div class="stat-item"><strong><?php echo $following; ?></strong> <span>Following</span></div>
                         </div>
 
-                        <p class="profile-bio"><?php echo !empty($user_data['Bio']) ? htmlspecialchars($user_data['Bio']) : 'ស្វាគមន៍មកកាន់ LocalConnect! 🎉'; ?></p>
-                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($user_data['Phone']) ? htmlspecialchars($user_data['Phone']) : 'មិនមានទីតាំង'; ?></p>
+                        <p class="profile-bio"><?php echo !empty($user_data['Bio']) ? htmlspecialchars($user_data['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
+                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($user_data['Phone']) ? htmlspecialchars($user_data['Phone']) : 'No location available'; ?></p>
 
                         <div class="interest-tags">
                             <span class="interest-tag">Music</span>
@@ -125,7 +125,7 @@ try {
 
                 <div class="profile-footer-actions">
                     <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
-                    <a href="../Login/logout.php" style="text-decoration: none;">
+                    <a href="../Login/login_gmail.php" style="text-decoration: none;">
                         <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
                     </a>
                 </div>
