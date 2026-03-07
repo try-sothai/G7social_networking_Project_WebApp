@@ -3,38 +3,21 @@ session_start();
 
 require_once '../../../config/db_config.php';
 
-// ប្រសិនបើមិនទាន់ Login ឱ្យវាត្រឡប់ទៅទំព័រ Login វិញ
+require_once '../../Models/Profile/ProfileModel.php';
+// សុវត្ថិភាព
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../Login/login_gmail.php");
+    header("Location: ../../Login/login_gmail.php");
     exit();
 }
 
-$current_user_id = $_SESSION['user_id'];
-
-try {
-    // ១. ទាញព័ត៌មាន User (ប្រើ Prepared Statement ដើម្បីសុវត្ថិភាព)
-    $stmt = $conn->prepare("SELECT * FROM users WHERE UserID = :id");
-    $stmt->execute(['id' => $current_user_id]);
-    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // ២. រាប់ចំនួន Posts
-    $stmt_posts = $conn->prepare("SELECT COUNT(*) as total FROM posts WHERE UserID = :id");
-    $stmt_posts->execute(['id' => $current_user_id]);
-    $posts = $stmt_posts->fetch(PDO::FETCH_ASSOC)['total'];
-
-    // ៣. រាប់ចំនួន Followers
-    $stmt_followers = $conn->prepare("SELECT COUNT(*) as total FROM friends WHERE ReceiverID = :id AND Status = 'accepted'");
-    $stmt_followers->execute(['id' => $current_user_id]);
-    $followers = $stmt_followers->fetch(PDO::FETCH_ASSOC)['total'];
-
-    // ៤. រាប់ចំនួន Following
-    $stmt_following = $conn->prepare("SELECT COUNT(*) as total FROM friends WHERE RequesterID = :id AND Status = 'accepted'");
-    $stmt_following->execute(['id' => $current_user_id]);
-    $following = $stmt_following->fetch(PDO::FETCH_ASSOC)['total'];
-
-} catch(PDOException $e) {
-    echo "Error: " . $e->getMessage();
-}
+$model = new ProfileModel($conn);
+$user_id = $_SESSION['user_id'];
+// ទាញយកទិន្នន័យ
+$u_d = $model->getUserData($user_id);
+$stats = $model->getProfileStats($user_id);
+$posts = $stats['posts'];
+$followers = $stats['followers'];
+$following = $stats['following'];
 ?>
 
 <!DOCTYPE html>
@@ -84,9 +67,9 @@ try {
                     <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
                 </div>
                 <div class="user-profile">
-                    <span style="font-weight: 700;"><?php echo htmlspecialchars($user_data['Username']); ?></span>
+                    <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="<?php echo !empty($user_data['ProfilePic']) ? $user_data['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_data['UserID']; ?>" alt="Profile">
+                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -96,24 +79,24 @@ try {
             <div class="profile-card">
                 <div class="profile-header-main">
                     <div class="avatar-container">
-                        <img src="<?php echo !empty($user_data['ProfilePic']) ? $user_data['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_data['UserID']; ?>" alt="User Avatar" class="profile-img-large">
+                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="User Avatar" class="profile-img-large">
                     </div>
                     
                     <div class="profile-details">
                         <div class="name-row">
-                            <h2><?php echo htmlspecialchars($user_data['Username']); ?></h2>
+                            <h2><?php echo htmlspecialchars($u_d['Username']); ?></h2>
                             <button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button>
                         </div>
-                        <p class="user-email"><?php echo htmlspecialchars($user_data['Email']); ?></p>
                         
-                        <div class="profile-stats">
-                            <div class="stat-item"><strong><?php echo $posts; ?></strong> <span>Posts</span></div>
-                            <div class="stat-item"><strong><?php echo $followers; ?></strong> <span>Followers</span></div>
-                            <div class="stat-item"><strong><?php echo $following; ?></strong> <span>Following</span></div>
-                        </div>
 
-                        <p class="profile-bio"><?php echo !empty($user_data['Bio']) ? htmlspecialchars($user_data['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
-                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($user_data['Phone']) ? htmlspecialchars($user_data['Phone']) : 'No location available'; ?></p>
+                        <p><?php echo htmlspecialchars($u_d['Email']); ?></p>
+
+                        <div class="stat-item"><strong><?php echo $stats['posts'] ?? 0; ?></strong> <span>Posts</span></div>
+                        <div class="stat-item"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
+                        <div class="stat-item"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
+
+                        <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
+                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Phone']) ? htmlspecialchars($u_d['Phone']) : 'No location available'; ?></p>
 
                         <div class="interest-tags">
                             <span class="interest-tag">Music</span>
