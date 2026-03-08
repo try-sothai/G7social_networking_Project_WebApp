@@ -57,7 +57,7 @@ if(isset($_POST['login'])) {
         </a>
     </div>
 
-    <form action="" method="POST">
+     <form action="" method="POST">
         <div class="form-group">
             <label>Email</label>
             <input type="Email" name="Email" placeholder="Enter your Email address" required>
