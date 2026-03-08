@@ -4,8 +4,9 @@ require_once '../../../config/db_config.php'; // call db_config.php to connect t
 
 if(isset($_POST['login'])) {
     $Email = trim($_POST['Email']);
+    $Password = trim($_POST['Password']);
 
-    if(!empty($Email)){
+    if(!empty($Email) && !empty($Password)){
         try {
             // write SQL statement to check if the Email exists in the database
             $stmt = $conn->prepare("SELECT * FROM users WHERE Email = :Email LIMIT 1");
@@ -61,7 +62,11 @@ if(isset($_POST['login'])) {
         <div class="form-group">
             <label>Email</label>
             <input type="Email" name="Email" placeholder="Enter your Email address" required>
-        </div>     
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="Password" placeholder="Enter your Password" required>
+        </div>   
         <button type="submit" name="login" class="btn-login">Log In</button>
     </form>
 
