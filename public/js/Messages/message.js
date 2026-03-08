@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="${user.ProfilePic || 'https://via.placeholder.com/50'}" class="contact-avatar">
                         <div class="contact-info">
                             <span class="contact-name">${user.Username}</span>
-                            <span class="contact-status">Active now</span>
+                            
                         </div>
                     </div>
                 `).join('');

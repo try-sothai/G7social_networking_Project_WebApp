@@ -9,8 +9,9 @@ if (isset($_POST['signup'])) {
     // ១. ទទួលទិន្នន័យពី Form (ប្រើអក្សរតូចធំឱ្យត្រូវតាម name="..." ក្នុង input)
     $username_val = trim(htmlspecialchars($_POST['Username'])); 
     $email_val    = trim(htmlspecialchars($_POST['Email']));
+    $pass_val     = trim(htmlspecialchars($_POST['Password']));
     
-    if (!empty($username_val) && !empty($email_val)) {
+    if (!empty($username_val) && !empty($email_val) && !empty($pass_val)) {
         try {
             // ២. ពិនិត្យមើល Email ស្ទួន (ប្រើ 'Email' តាមឈ្មោះ Column ក្នុង DB)
             $checkEmail = $conn->prepare("SELECT Email FROM users WHERE Email = :Email");
@@ -20,13 +21,17 @@ if (isset($_POST['signup'])) {
             if ($checkEmail->rowCount() > 0) {
                 $error = "This Email is already registered!";
             } else {
+                // $hashed_password = password_hash($pass_val, PASSWORD_DEFAULT);
                 // ៣. បញ្ចូលទិន្នន័យ (កែពី 'name' មកជា 'Username' ឱ្យត្រូវតាម Table Structure របស់អ្នក)
-                $stmt = $conn->prepare("INSERT INTO users (Username, Email) VALUES (:Username, :Email)");
+                $stmt = $conn->prepare("INSERT INTO users (Username, Email, Password) VALUES (:Username, :Email, :Password)");
                 $stmt->bindParam(':Username', $username_val);
                 $stmt->bindParam(':Email', $email_val);
                 
+                // $stmt->bindParam(':Password', $hashed_password);
+                $stmt->bindParam(':Password', $pass_val);
+                
                 // កែសម្រួលក្នុង sign_up_email.php ត្រង់ផ្នែក $stmt->execute()
-                if ($stmt->execute()) {
+                if ($stmt->execute()){
                     // ចាប់យក ID ដែលទើបតែបង្កើតថ្មីៗ
                     $new_user_id = $conn->lastInsertId(); 
                     
@@ -88,6 +93,10 @@ if (isset($_POST['signup'])) {
         <div class="form-group">
             <label>Email</label>
             <input type="email" name="Email" placeholder="Enter your Email" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="Password" placeholder="Enter your Password" required>
         </div>
 
         <button type="submit" name="signup" class="btn-signup">Sign Up</button>
