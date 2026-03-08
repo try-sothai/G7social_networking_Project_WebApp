@@ -4,7 +4,7 @@
     $current_user_id = 6;
     session_start();
     $current_user_id = $_SESSION['user_id'] ?? 6;
-    // ProfileModel
+    // ProfileModel ត្រូវបានប្រើសម្រាប់ទាញយកព័ត៌មានអ្នកប្រើ
     require_once '../../Models/Profile/ProfileModel.php';
     // សុវត្ថិភាព
     if (!isset($_SESSION['user_id'])) {
