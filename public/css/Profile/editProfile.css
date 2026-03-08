@@ -43,7 +43,7 @@
     margin: 20px 0;
 }
 
-.btn-settings, .btn-logout {
+.btn_st, .btn-logout {
     padding: 8px 15px;
     border-radius: 8px;
     border: 1px solid #ccc;

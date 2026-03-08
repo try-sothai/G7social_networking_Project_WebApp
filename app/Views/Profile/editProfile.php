@@ -2,7 +2,6 @@
 session_start();
 
 require_once '../../../config/db_config.php';
-
 require_once '../../Models/Profile/editProfileModel.php';
 // សុវត្ថិភាព
 if (!isset($_SESSION['user_id'])) {
@@ -115,7 +114,7 @@ $following = $stats['following'];
             <hr>
 
             <div class="profile-footer">
-                <button class="btn-settings"><i class="fa-solid fa-gear"></i> Settings</button>
+                <button class="btn_st"><i class="fa-solid fa-gear"></i> Settings</button>
                 <button class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
             </div>
 
