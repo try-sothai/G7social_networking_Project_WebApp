@@ -67,7 +67,7 @@
             <div class="friends-tabs">
                 <a href="AllFriends.php"><button class="tab-btn active">All Friends</button></a>
                 <a href="AddFriends.php"><button class="tab-btn">Add Friends</button></a>
-                <button class="tab-btn">Friend Request</button>
+                <a href="FriendsRequest.php"><button class="tab-btn">Friend Request</button></a>
             </div>
 
             <div class="friends-card">
