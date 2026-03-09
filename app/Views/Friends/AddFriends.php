@@ -25,7 +25,7 @@
     <title>LocalConnect V2 - Friends Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/friends/AddFriends.css">
+    <link rel="stylesheet" href="../../../public/css/Friends/AddFriends.css">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
     
 </head>
@@ -84,7 +84,7 @@
                     <div class="friend-item">
                         <div class="friend-info">
                             <img src="https://images.unsplash.com/photo-1543946207-39bd91e70ca7?w=100" alt="profile">
-                            <span class="friend-name">bbbbbb</span>
+                            <span class="friend-name">Titha</span>
                         </div>
                         <div class="friend-actions">
                             <button class="btn-add">AddFriend</button>
@@ -95,7 +95,7 @@
                     <div class="friend-item">
                         <div class="friend-info">
                             <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=100" alt="profile">
-                            <span class="friend-name">hhhhhh</span>
+                            <span class="friend-name">Yuri</span>
                         </div>
                         <div class="friend-actions">
                             <button class="btn-add">AddFriend</button>
@@ -106,7 +106,7 @@
                     <div class="friend-item">
                         <div class="friend-info">
                             <img src="https://images.unsplash.com/photo-1519378018457-4c29a3a2ecdf?w=100" alt="profile">
-                            <span class="friend-name">wwwww</span>
+                            <span class="friend-name">Hana</span>
                         </div>
                         <div class="friend-actions">
                             <button class="btn-add">AddFriend</button>
@@ -117,7 +117,7 @@
                     <div class="friend-item">
                         <div class="friend-info">
                             <img src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=100" alt="profile">
-                            <span class="friend-name">llllllllll</span>
+                            <span class="friend-name">Mara</span>
                         </div>
                         <div class="friend-actions">
                             <button class="btn-add">AddFriend</button>
