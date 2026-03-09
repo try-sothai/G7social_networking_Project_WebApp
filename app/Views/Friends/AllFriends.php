@@ -71,7 +71,7 @@
             </div>
 
             <div class="friends-card">
-                <div class="friends-grid">
+            <div class="friends-grid">
                     <div class="friend-profile">
                         <img src="https://i.pravatar.cc/150?u=1" alt="Ariya">
                         <span class="name">Ariya</span>
