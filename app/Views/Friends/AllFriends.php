@@ -24,8 +24,8 @@
     <title>LocalConnect V2 - All Friends</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/friends/AllFriends.css">
-    <link rel="stylesheet" href="../../../public/css/friends/AddFriends.css">
+    <link rel="stylesheet" href="../../../public/css/Friends/AllFriends.css">
+    <link rel="stylesheet" href="../../../public/css/Friends/AddFriends.css">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
 </head>
 <body>
