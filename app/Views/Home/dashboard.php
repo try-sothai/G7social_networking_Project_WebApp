@@ -13,7 +13,7 @@
     $model = new ProfileModel($conn);
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
-    // $stats = $model->getProfileStats($user_id);
+    $stats = $model->getProfileStats($user_id);
     
 ?>
 <!DOCTYPE html>
@@ -40,7 +40,7 @@
             <a href="../Groups/groups.php" class="nav-item"><i class="fa-solid fa-people-group"></i> Groups</a>
             <a href="../Events/events.php" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Events</a>
             <a href="../Friends/AllFriends.php" class="nav-item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>           
+            <a href="../Messages/message.php" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>         
         </nav>
 
         <button class="btn-create">
