@@ -6,7 +6,7 @@
     require_once '../../Models/Profile/ProfileModel.php';
     // សុវត្ថិភាព
     if (!isset($_SESSION['user_id'])) {
-        header("Location: ../../Login/login_gmail.php");
+        header("Location: ../Login/login_gmail.php");
         exit();
     }
 
