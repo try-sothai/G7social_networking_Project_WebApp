@@ -2,13 +2,14 @@
 session_start();
 
 require_once '../../../config/db_config.php';
-require_once '../../Models/Profile/editProfileModel.php';
+// require_once '../../Controllers/Profile/update_profile_pic.php';
+require_once '../../Models/Profile/ProfileModel.php';
+
 // សុវត្ថិភាព
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
     exit();
 }
-
 $model = new ProfileModel($conn);
 $user_id = $_SESSION['user_id'];
 // ទាញយកទិន្នន័យ

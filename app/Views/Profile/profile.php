@@ -25,7 +25,7 @@ $following = $stats['following'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalConnect V2 - Creative Dashboard</title>
+    <title>Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/home/dashboard.css">
@@ -85,7 +85,7 @@ $following = $stats['following'];
                     <div class="profile-details">
                         <div class="name-row">
                             <h2><?php echo htmlspecialchars($u_d['Username']); ?></h2>
-                            <button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+                            <a href="editProfile.php"><button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button></a>
                         </div>
                         
 
