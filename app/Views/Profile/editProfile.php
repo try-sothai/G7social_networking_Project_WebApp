@@ -1,23 +1,28 @@
-<?php 
+<?php
 session_start();
-
 require_once '../../../config/db_config.php';
-// require_once '../../Controllers/Profile/update_profile_pic.php';
-require_once '../../Models/Profile/ProfileModel.php';
+require_once '../../../app/Models/Profile/editProfileModel.php'; 
 
-// សុវត្ថិភាព
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
     exit();
 }
-$model = new ProfileModel($conn);
+
 $user_id = $_SESSION['user_id'];
-// ទាញយកទិន្នន័យ
+$model = new editProfileModel($conn);
+
+// ទាញយកទិន្នន័យទុកមុន
 $u_d = $model->getUserData($user_id);
 $stats = $model->getProfileStats($user_id);
-$posts = $stats['posts'];
-$followers = $stats['followers'];
-$following = $stats['following'];
+
+// ការពារការ error ប្រសិនបើទិន្នន័យទទេ
+$username = isset($u_d['Username']) ? $u_d['Username'] : 'User';
+$email = isset($u_d['Email']) ? $u_d['Email'] : '';
+$profilePic = !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_id;
+
+$posts = $stats['posts'] ?? 0;
+$followers = $stats['followers'] ?? 0;
+$following = $stats['following'] ?? 0;
 ?>
 
 <!DOCTYPE html>
