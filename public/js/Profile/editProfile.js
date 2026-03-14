@@ -2,7 +2,6 @@ document.getElementById('upload-photo').addEventListener('change', function(e) {
     let file = e.target.files[0];
     let formData = new FormData();
     formData.append('profile_pic', file);
-
     fetch('update_profile_pic.php', {
         method: 'POST',
         body: formData
