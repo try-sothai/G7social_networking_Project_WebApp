@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Friends/AllFriends.css">
-    <link rel="stylesheet" href="../../../public/css/Friends/AddFriends.css">
+    <!-- <link rel="stylesheet" href="../../../public/css/Friends/AddFriends.css"> -->
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
 </head>
 <body>
@@ -64,33 +64,64 @@
         </header>
 
         <div class="friends-container">
-            <div class="friends-tabs">
-                <a href="AllFriends.php"><button class="tab-btn active">All Friends</button></a>
-                <a href="AddFriends.php"><button class="tab-btn">Add Friends</button></a>
-                <a href="FriendsRequest.php"><button class="tab-btn">Friend Request</button></a>
-            </div>
+    <div class="left-content">
+        <div class="friends-tabs">
+            <a href="AllFriends.php"><button class="tab-btn active">All Friends</button></a>
+            <a href="AddFriends.php"><button class="tab-btn">Add Friends</button></a>
+            <a href="FriendsRequest.php"><button class="tab-btn">Friend Request</button></a>
+        </div>
 
-            <div class="friends-card">
+        <div class="friends-card">
             <div class="friends-grid">
-                    <div class="friend-profile">
-                        <img src="https://i.pravatar.cc/150?u=1" alt="Ariya">
-                        <span class="name">Ariya</span>
+                <div class="friend-profile">
+                    <img src="https://i.pravatar.cc/150?u=1" alt="Ariya">
+                    <span class="name">Ariya</span>
+                </div>
+                </div>
+        </div>
+    </div>
+
+    <aside class="right-sidebar">
+        <div class="sidebar-section">
+            <h3 class="section-title">Suggestions</h3>
+            <div class="suggestion-list">
+                <div class="suggestion-item">
+                    <img src="https://i.pravatar.cc/150?u=zoe" alt="Zoe">
+                    <div class="suggest-info">
+                        <span class="suggest-name">Zoe Walters</span>
+                        <span class="suggest-mutual">Mutual friend: Sarah</span>
                     </div>
-                    <div class="friend-profile">
-                        <img src="https://i.pravatar.cc/150?u=2" alt="Dodo">
-                        <span class="name">Dodo</span>
+                    <i class="fa-solid fa-user-plus suggest-add"></i>
+                </div>
+                <div class="suggestion-item">
+                    <img src="https://i.pravatar.cc/150?u=lina" alt="Lina">
+                    <div class="suggest-info">
+                        <span class="suggest-name">Lina Gupta</span>
+                        <span class="suggest-mutual">12 mutual friends</span>
                     </div>
-                    <div class="friend-profile">
-                        <img src="https://i.pravatar.cc/150?u=3" alt="Sophea">
-                        <span class="name">Sophea</span>
-                    </div>
-                    <div class="friend-profile">
-                        <img src="https://i.pravatar.cc/150?u=4" alt="Rithy">
-                        <span class="name">Rithy</span>
-                        </div>
+                    <i class="fa-solid fa-user-plus suggest-add"></i>
                 </div>
             </div>
         </div>
+
+        <div class="sidebar-section">
+            <h3 class="section-title">Upcoming Events</h3>
+            <div class="event-card-small">
+                <div class="event-date-box">
+                    <span class="event-month">OCT</span>
+                    <span class="event-day">14</span>
+                </div>
+                <div class="event-details">
+                    <span class="event-name">Tech Mixer 2024</span>
+                    <span class="event-location">San Francisco, CA</span>
+                </div>
+                <button class="btn-view-event">View Details</button>
+            </div>
+        </div>
+    </aside>
+</div>
+            
+        </div>   
     </div>
 </body>
 </html>
