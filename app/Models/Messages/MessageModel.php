@@ -1,9 +1,9 @@
 <?php
 class MessageModel { // Define a class named "MessageModel" to handle database interactions related to messaging functionality in the application
     private $db; // Declare a private property "$db" to hold the database connection object, which will be used for executing queries related to messages
-    public function __construct($conn) { // Define the constructor method for the "MessageModel" class, which takes a database connection object as a parameter and assigns it to the "$db" property for use in other methods of the class
-        $this->db = $conn; // Assign the provided database connection object to the "$db" property
-    } // End of the constructor method
+    public function __construct($conn) { 
+        $this->db = $conn;
+    }
 
     /* ===== INSERT MESSAGE ===== */
     public function sendMessage($senderId, $receiverId, $messageBody) {

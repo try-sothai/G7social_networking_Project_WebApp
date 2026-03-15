@@ -1,7 +1,4 @@
 
-/* --- Friends Section --- */
-
-
 .friends-tabs {
     background: #e2e8f0;
     padding: 8px;
@@ -37,6 +34,7 @@
     box-shadow: var(--card-shadow); 
     width: 100%; /* ប្តូរពី 800px មក 100% វិញដើម្បីឱ្យវា Auto តាម Layout */
     box-sizing: border-box;
+    margin-top: 20px;
 }
 
 .friends-list {
