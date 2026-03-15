@@ -15,7 +15,6 @@
     $model = new ProfileModel($conn);
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
-    $stats = $model->getProfileStats($user_id);
     
 ?>
 <!DOCTYPE html>

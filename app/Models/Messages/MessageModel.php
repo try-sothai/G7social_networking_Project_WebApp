@@ -22,16 +22,18 @@ class MessageModel { // Define a class named "MessageModel" to handle database i
 }
 
     /* ===== GET CHAT HISTORY ===== */
-    public function getChatHistory($user1, $user2) {
-
+    /* ===== GET CHAT HISTORY ===== */
+public function getChatHistory($user1, $user2) {
+    // យើង Join តារាង messages ជាមួយ users ដើម្បីយក ProfilePic របស់អ្នកផ្ញើ
     $stmt = $this->db->prepare("
-        SELECT MessageID, SenderID, ReceiverID, MessageBody, SentAt
-        FROM messages
+        SELECT m.MessageID, m.SenderID, m.ReceiverID, m.MessageBody, m.SentAt, u.ProfilePic
+        FROM messages m
+        JOIN users u ON m.SenderID = u.UserID
         WHERE 
-            (SenderID = :u1 AND ReceiverID = :u2)
+            (m.SenderID = :u1 AND m.ReceiverID = :u2)
             OR
-            (SenderID = :u2 AND ReceiverID = :u1)
-        ORDER BY SentAt ASC
+            (m.SenderID = :u2 AND m.ReceiverID = :u1)
+        ORDER BY m.SentAt ASC
     ");
 
     $stmt->execute([
@@ -40,5 +42,5 @@ class MessageModel { // Define a class named "MessageModel" to handle database i
     ]);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}// End of the "getChatHistory" method
+}
 } // End of the "MessageModel" class definition

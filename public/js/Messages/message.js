@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         userListContainer.innerHTML = `<p style="padding:20px; color:#f59e0b;">${users.error}</p>`;
                     }
                     return;
+
                 }
-                
                 userListContainer.innerHTML = users.map(user => `
                     <div class="contact-item" data-id="${user.UserID}" data-username="${user.Username}">
                         <img src="${user.ProfilePic || 'https://via.placeholder.com/50'}" class="contact-avatar">
@@ -87,35 +87,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadMessages() {
-        if (!activeReceiverID) return;
+    if (!activeReceiverID) return;
 
-        fetch(`${API_PATH}?action=fetch&receiver_id=${activeReceiverID}`)
-            .then(res => res.json())
-            .then(messages => {
-                const box = document.getElementById("chat-box");
-                if (!box) return;
+    fetch(`${API_PATH}?action=fetch&receiver_id=${activeReceiverID}`)
+        .then(res => res.json())
+        .then(messages => {
+            const box = document.getElementById("chat-box");
+            if (!box) return;
 
-                const receiverAvatar = document.querySelector(".header-avatar").src;
+            // រូបភាពរបស់មិត្តភក្តិ (អ្នកទទួល) - យកពី Header ស្រាប់
+            const receiverAvatar = document.querySelector(".header-avatar").src;
 
-                box.innerHTML = messages.map(m => {
-                    const isMe = m.SenderID == CURRENT_USER_ID; 
+            // កែសម្រួលត្រង់នេះក្នុង function loadMessages
+            box.innerHTML = messages.map(m => {
+                const isMe = m.SenderID == CURRENT_USER_ID; 
+                
+                // បន្ថែមលក្ខខណ្ឌត្រួតពិនិត្យ៖ បើវាជា "default.png" គឺឱ្យប្រើរូប Placeholder វិញ
+                let avatar = (m.ProfilePic && m.ProfilePic !== 'default.png') ? m.ProfilePic : 'https://via.placeholder.com/50';
 
-                    return `
-                        <div class="message-wrapper ${isMe ? 'me' : 'them'}">
-                            ${!isMe ? `<img src="${receiverAvatar}" class="msg-avatar">` : ''}
-                            <div class="msg-content">
-                                <div class="msg-bubble">${m.MessageBody}</div>
-                                <span class="msg-time">
-                                    ${new Date(m.SentAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                                </span>
-                            </div>
-                            ${isMe ? `<img src="https://i.pravatar.cc/150?u=me" class="msg-avatar">` : ''}
+                return `
+                    <div class="message-wrapper ${isMe ? 'me' : 'them'}">
+                        ${!isMe ? `<img src="${receiverAvatar}" class="msg-avatar">` : ''}
+                        <div class="msg-content">
+                            <div class="msg-bubble">${m.MessageBody}</div>
+                            <span class="msg-time">
+                                ${new Date(m.SentAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                            </span>
                         </div>
-                    `;
-                }).join("");
+                        ${isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
+                    </div>
+                `;
+            }).join("");
 
-                box.scrollTop = box.scrollHeight;
-            });
+            box.scrollTop = box.scrollHeight;
+        });
     }
 
     function sendMessage() {
