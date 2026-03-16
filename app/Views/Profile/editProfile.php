@@ -19,7 +19,6 @@ $stats = $model->getProfileStats($user_id);
 $username = isset($u_d['Username']) ? $u_d['Username'] : 'User';
 $email = isset($u_d['Email']) ? $u_d['Email'] : '';
 $profilePic = !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_id;
-
 $posts = $stats['posts'] ?? 0;
 $followers = $stats['followers'] ?? 0;
 $following = $stats['following'] ?? 0;
