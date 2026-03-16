@@ -210,7 +210,9 @@ header {
     cursor: pointer;
 }
 
-.story-card:hover { transform: translateY(-5px); }
+.story-card:hover { 
+    transform: translateY(-5px); 
+}
 
 .story-card.add-story {
     background: linear-gradient(to bottom, #eff6ff, #dbeafe);
