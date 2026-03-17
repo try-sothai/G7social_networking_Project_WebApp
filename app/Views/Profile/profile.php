@@ -69,7 +69,7 @@ $following = $stats['following'];
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="Profile">
+                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
                     </a>
                 </div>
             </div>

@@ -79,7 +79,7 @@ $following = $stats['following'];
         <div class="profile-container">
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <img id="profile-img" src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="Profile">
+                    <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
                     <label for="upload-photo" class="change-photo" style="cursor:pointer;">Change Photo</label>
                     <input type="file" id="upload-photo" style="display:none;" accept="image/*">
                 </div>
