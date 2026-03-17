@@ -1,27 +1,25 @@
 <?php
 session_start();
 require_once '../../../config/db_config.php';
-require_once '../../../app/Models/Profile/editProfileModel.php'; 
+require_once '../../Models/Profile/editProfileModel.php'; 
+require_once '../../Controllers/Profile/editProfileController.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
 $model = new editProfileModel($conn);
-
-// ទាញយកទិន្នន័យទុកមុន
+$user_id = $_SESSION['user_id'];
 $u_d = $model->getUserData($user_id);
 $stats = $model->getProfileStats($user_id);
-
-// ការពារការ error ប្រសិនបើទិន្នន័យទទេ
-$username = isset($u_d['Username']) ? $u_d['Username'] : 'User';
-$email = isset($u_d['Email']) ? $u_d['Email'] : '';
-$profilePic = !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $user_id;
-$posts = $stats['posts'] ?? 0;
-$followers = $stats['followers'] ?? 0;
-$following = $stats['following'] ?? 0;
+$username = $u_d['Username'];
+$email = $u_d['Email'];
+$bio = $u_d['Bio'];
+$profile_pic = $u_d['ProfilePic'];
+$posts = $stats['posts'];
+$followers = $stats['followers'];
+$following = $stats['following'];
 ?>
 
 <!DOCTYPE html>
@@ -73,7 +71,7 @@ $following = $stats['following'] ?? 0;
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
+                        <img src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -81,7 +79,7 @@ $following = $stats['following'] ?? 0;
         <div class="profile-container">
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <img id="profile-img" src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
+                    <img id="profile-img" src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="Profile">
                     <label for="upload-photo" class="change-photo" style="cursor:pointer;">Change Photo</label>
                     <input type="file" id="upload-photo" style="display:none;" accept="image/*">
                 </div>

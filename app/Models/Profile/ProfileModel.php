@@ -32,4 +32,14 @@ class ProfileModel {
 
         return $stats;
     }
+        public function updateProfile($userId, $username, $bio) {
+        $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio WHERE UserID = :id");
+        return $stmt->execute([
+            'username' => $username,
+            'bio' => $bio,
+            'id' => $userId
+        ]);
+    }
+    
 }
+?>

@@ -1,43 +1,36 @@
 <?php
-session_start();
+// @session_start(); // ប្រើ @ ដើម្បីការពារ Error ជាន់គ្នា
 require_once '../../../config/db_config.php';
+require_once '../../Models/Profile/editProfileModel.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['profile_pic'])) {
-    $user_id = $_SESSION['user_id'];
-    $upload_dir = '../../../public/img/';
-    
-    // ពិនិត្យប្រភេទឯកសារ (សុវត្ថិភាព)
-    $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
-    $file_type = mime_content_type($_FILES['profile_pic']['tmp_name']);
-    
-    if (!in_array($file_type, $allowed_types)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid file type.']);
-        exit;
-    }
+$model = new editProfileModel($conn);
+$user_id = $_SESSION['user_id'];
 
-    $file_extension = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
-    $file_name = $user_id . '_' . time() . '.' . $file_extension;
-    $target_file = $upload_dir . $file_name;
+// ១. បង្កើត variable ទុកឈ្មោះរូបភាព (យកឈ្មោះចាស់មកប្រើសិន បើគ្មានការ Upload ថ្មី)
+$profile_pic = $u_d['ProfilePic'] ?? null; 
 
-    // ទាញយកផ្លូវរូបភាពចាស់ដើម្បីលុបចេញ
-    $stmt = $conn->prepare("SELECT ProfilePic FROM users WHERE UserID = ?");
-    $stmt->execute([$user_id]);
-    $old_pic = $stmt->fetchColumn();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $bio = $_POST['bio'] ?? '';
 
-    if (move_uploaded_file($_FILES['profile_pic']['tmp_name'], $target_file)) {
-        // លុបរូបភាពចាស់ចេញ (ប្រសិនបើមាន)
-        if ($old_pic && file_exists($old_pic)) {
-            unlink($old_pic);
+    // ២. បើមានការ Upload រូបភាពថ្មី ត្រូវចាប់យកឈ្មោះរូបភាពថ្មីនោះ
+    if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
+        $file_name = time() . '_' . $_FILES['profile_pic']['name'];
+        if (move_uploaded_file($_FILES['profile_pic']['tmp_name'], "../../../public/img/" . $file_name)) {
+            $profile_pic = $file_name; // ប្តូរមកប្រើឈ្មោះរូបភាពថ្មី
         }
-
-        // Update ក្នុង Database
-        $sql = "UPDATE users SET ProfilePic = ? WHERE UserID = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$target_file, $user_id]);
-
-        echo json_encode(['success' => true, 'new_image_url' => $target_file]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Upload failed']);
     }
+
+    // ៣. ហៅ Model ដោយផ្ញើទៅ ៤ argument (UserID, Username, Bio, ProfilePic)
+    // ធ្វើបែបនេះនឹងបាត់ពណ៌ក្រហមក្នុង VS Code ភ្លាម!
+    $result = $model->updateProfile($user_id, $username, $bio, $profile_pic);
+
+    echo json_encode(['success' => $result]);
+    exit();
 }
+
+// ផ្នែកបង្ហាញទំព័រធម្មតា
+$u_d = $model->getUserData($user_id);
+$stats = $model->getProfileStats($user_id);
+require_once '../../Views/Profile/editProfile.php';
 ?>

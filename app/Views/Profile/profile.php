@@ -69,7 +69,7 @@ $following = $stats['following'];
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
+                        <img src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -79,7 +79,7 @@ $following = $stats['following'];
             <div class="profile-card">
                 <div class="profile-header-main">
                     <div class="avatar-container">
-                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="User Avatar" class="profile-img-large">
+                        <img src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="User Avatar" class="profile-img-large">
                     </div>
                     
                     <div class="profile-details">

@@ -9,19 +9,19 @@ document.querySelector('.btn-save').addEventListener('click', function() {
         formData.append('profile_pic', fileInput.files[0]);
     }
 
-    fetch('update_profile.php', {
+    // ក្នុង public/js/Profile/editProfile.js
+    fetch('../../../app/Controllers/Profile/editProfileController.php', { 
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
         if(data.success) {
-            alert("Profile updated successfully!");
-            if(data.image_url) {
-                document.getElementById('profile-img').src = data.image_url;
-            }
+            alert("កែប្រែបានជោគជ័យ!");
+            window.location.reload();
         } else {
-            alert("Update failed!");
+            alert("មិនអាចកែប្រែបានទេ!");
         }
     });
 });
+
