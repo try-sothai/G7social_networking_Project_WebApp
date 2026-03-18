@@ -82,9 +82,9 @@
 
         <div class="chat-container">
             <div class="chat-sidebar">
-                <div class="chat-search">
+                <!-- <div class="chat-search">
                     <input type="text" placeholder="Search messages...">
-                </div>
+                </div> -->
 
                 <div class="contact-list" id="user-list-container">
                     <div style="padding: 20px; text-align: center; color: #888;">Loading users...</div>
