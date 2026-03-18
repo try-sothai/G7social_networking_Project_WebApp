@@ -15,15 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
 
                 }
-                userListContainer.innerHTML = users.map(user => `
-                    <div class="contact-item" data-id="${user.UserID}" data-username="${user.Username}">
-                        <img src="${user.ProfilePic || 'https://via.placeholder.com/50'}" class="contact-avatar">
-                        <div class="contact-info">
-                            <span class="contact-name">${user.Username}</span>
-                            
+                // កែក្នុង fetchUsers()
+                userListContainer.innerHTML = users.map(user => {
+                    // ថែម Path ឱ្យរូបភាព User ម្នាក់ៗ
+                    const userImg = (user.ProfilePic) ? `../../../public/img/${user.ProfilePic}` : 'https://via.placeholder.com/50';
+                    
+                    return `
+                        <div class="contact-item" data-id="${user.UserID}" data-username="${user.Username}">
+                            <img src="${userImg}" class="contact-avatar">
+                            <div class="contact-info">
+                                <span class="contact-name">${user.Username}</span>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 
                 attachEvents();
             })
@@ -95,26 +100,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const box = document.getElementById("chat-box");
             if (!box) return;
 
-            // រូបភាពរបស់មិត្តភក្តិ (អ្នកទទួល) - យកពី Header ស្រាប់
             const receiverAvatar = document.querySelector(".header-avatar").src;
+            const myAvatar = document.querySelector(".user-profile img").src;
 
-            // កែសម្រួលត្រង់នេះក្នុង function loadMessages
             box.innerHTML = messages.map(m => {
                 const isMe = m.SenderID == CURRENT_USER_ID; 
                 
-                // បន្ថែមលក្ខខណ្ឌត្រួតពិនិត្យ៖ បើវាជា "default.png" គឺឱ្យប្រើរូប Placeholder វិញ
-                let avatar = (m.ProfilePic && m.ProfilePic !== 'default.png') ? m.ProfilePic : 'https://via.placeholder.com/50';
+                // --- ចំណុចត្រូវកែសម្រួល ---
+                let finalAvatar;
+                if (isMe) {
+                    finalAvatar = myAvatar;
+                } else {
+                    // បើជាសាររបស់គេ យើងឆែកមើលថាតើ m.ProfilePic មានឈ្មោះរូបភាពដែរឬទេ
+                    // ប្រសិនបើមាន យើងត្រូវថែមផ្លូវ (Path) ទៅកាន់ Folder រូបភាពឱ្យវា
+                    finalAvatar = (m.ProfilePic && m.ProfilePic !== 'default.png') 
+                                  ? `../../../public/img/${m.ProfilePic}` 
+                                  : receiverAvatar; 
+                }
+                // -----------------------
 
                 return `
                     <div class="message-wrapper ${isMe ? 'me' : 'them'}">
-                        ${!isMe ? `<img src="${receiverAvatar}" class="msg-avatar">` : ''}
+                        ${!isMe ? `<img src="${finalAvatar}" class="msg-avatar">` : ''}
                         <div class="msg-content">
                             <div class="msg-bubble">${m.MessageBody}</div>
                             <span class="msg-time">
                                 ${new Date(m.SentAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                             </span>
                         </div>
-                        ${isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
+                        ${isMe ? `<img src="${finalAvatar}" class="msg-avatar">` : ''}
                     </div>
                 `;
             }).join("");

@@ -9,12 +9,6 @@ class editProfileModel {
         $this->conn = $db;
     }
 
-    // public function getUserData($user_id) {
-    //     $sql = "SELECT Username, Bio, ProfilePic FROM users WHERE UserID = ?";
-    //     $stmt = $this->conn->prepare($sql);
-    //     $stmt->execute([$user_id]);
-    //     return $stmt->fetch(PDO::FETCH_ASSOC);
-    // }
     public function getUserData($user_id) {
     // បន្ថែម Email ទៅក្នុង SQL Query ខាងក្រោមនេះ
         $sql = "SELECT Username, Email, Bio, ProfilePic FROM users WHERE UserID = ?"; 

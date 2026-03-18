@@ -2,7 +2,7 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/editProfileModel.php'; 
-require_once '../../Controllers/Profile/editProfileController.php';
+// require_once '../../Controllers/Profile/editProfileController.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
@@ -70,8 +70,14 @@ $following = $stats['following'];
                 </div>
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img src="../../../public/img/<?php echo $u_d['ProfilePic'] ?? 'image.png'; ?>" alt="Profile">
+                    <a href="profile.php">
+                        <img src="<?php 
+                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
+                                echo '../../../public/img/' . $u_d['ProfilePic'];
+                            } else {
+                               
+                            }
+                        ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -79,7 +85,13 @@ $following = $stats['following'];
         <div class="profile-container">
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
+                    <img src="<?php 
+                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
+                                echo '../../../public/img/' . $u_d['ProfilePic'];
+                            } else {
+                                
+                            }
+                        ?>" alt="Profile">
                     <label for="upload-photo" class="change-photo" style="cursor:pointer;">Change Photo</label>
                     <input type="file" id="upload-photo" style="display:none;" accept="image/*">
                 </div>

@@ -1,3 +1,21 @@
+<?php
+    session_start();
+
+    require_once '../../../config/db_config.php';
+
+    require_once '../../Models/Profile/ProfileModel.php';
+    // សុវត្ថិភាព
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: ../Login/login_gmail.php");
+        exit();
+    }
+
+    $model = new ProfileModel($conn);
+    $user_id = $_SESSION['user_id'];
+    $u_d = $model->getUserData($user_id);
+    $stats = $model->getProfileStats($user_id);
+    
+?>
 <!DOCTYPE html>
 <html lang="km">
 <head>
@@ -48,7 +66,15 @@
                 <div class="user-profile">
                     <span style="font-weight: 700;">Dara S.</span>
                     <a href="../Profile/profile.php">
-                    <img src="https://i.pravatar.cc/150?u=me" alt="Profile"></a>
+                    <img src="<?php 
+                            $path = '../../../public/img/' . $u_d['ProfilePic'];
+                            if (!empty($u_d['ProfilePic']) && file_exists($path)) {
+                                echo $path;
+                            } else {
+                                echo 'https://via.placeholder.com/50'; // ដាក់រូប default បើអត់មានរូបពិត
+                            }
+                        ?>" alt="Profile">
+                </a>
                 </div>
             </div>
         </header>

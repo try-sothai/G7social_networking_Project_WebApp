@@ -63,7 +63,13 @@
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
+                        <img src="<?php 
+                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
+                                echo '../../../public/img/' . $u_d['ProfilePic'];
+                            } else {
+                                
+                            }
+                        ?>" alt="Profile">
                     </a>
                 </div>
             </div>
