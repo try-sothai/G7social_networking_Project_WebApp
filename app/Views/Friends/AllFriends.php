@@ -38,6 +38,7 @@
             <a href="../Events/events.php" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Events</a>
             <a href="../Friends/AddFriends.php" class="nav-item active"><i class="fa-solid fa-user-friends"></i> Friends</a>
             <a href="../Messages/message.php" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
+            <a href="../Report/userReport.php" class="nav-item"><i class="fa-solid fa-chart-simple"></i> Report</a>   
         </nav>
         <button class="btn-create"><i class="fa-solid fa-plus-circle"></i><span>Create New Post</span></button>
     </div>
