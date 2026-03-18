@@ -1,3 +1,74 @@
+
+/* ការកំណត់ Profile Container */
+.profile-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* រៀបចំ Header ឱ្យនៅចំហៀងគ្នា */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.profile-avatar img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e2e8f0;
+}
+
+/* កែសម្រួលប៊ូតុង និង Input */
+.btn-save {
+    background-color: #2563eb;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    margin-left: 400px;
+}
+.btn-cancel{
+    background-color: #ce2727;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    
+
+}
+.bio-text {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    resize: none;
+}
+
+/* សម្រាប់ផ្នែក Interest Tags */
+.interests {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.interest-tag {
+    padding: 5px 15px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    border: none;
+}
+
 /* បន្ថែម/កែសម្រួល CSS ទាំងនេះ */
 .profile-actions {
     display: flex;
@@ -73,63 +144,4 @@
     border-top: 2px solid #2563eb;
     color: #2563eb;
     font-weight: 600;
-}
-/* ការកំណត់ Profile Container */
-.profile-container {
-    background: #fff;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    max-width: 900px;
-    margin: 20px auto;
-}
-
-/* រៀបចំ Header ឱ្យនៅចំហៀងគ្នា */
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    margin-bottom: 20px;
-}
-
-.profile-avatar img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #e2e8f0;
-}
-
-/* កែសម្រួលប៊ូតុង និង Input */
-.btn-save {
-    background-color: #2563eb;
-    color: white;
-    padding: 8px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-}
-
-.bio-text {
-    width: 100%;
-    height: 80px;
-    padding: 10px;
-    margin: 15px 0;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    resize: none;
-}
-
-/* សម្រាប់ផ្នែក Interest Tags */
-.interests {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.interest-tag {
-    padding: 5px 15px;
-    background: #e2e8f0;
-    border-radius: 20px;
-    border: none;
 }

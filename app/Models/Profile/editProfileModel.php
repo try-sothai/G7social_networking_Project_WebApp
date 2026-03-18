@@ -10,41 +10,37 @@ class editProfileModel {
     }
 
     public function getUserData($user_id) {
-        $sql = "SELECT Username, Bio, ProfilePic FROM users WHERE UserID = ?";
+    // បន្ថែម Email ទៅក្នុង SQL Query ខាងក្រោមនេះ
+        $sql = "SELECT Username, Email, Bio, ProfilePic FROM users WHERE UserID = ?"; 
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$user_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getProfileStats($user_id) {
-        // ទាញយកចំនួន Post
-        $sql_posts = "SELECT COUNT(*) FROM posts WHERE UserID = ?";
-        $stmt_posts = $this->conn->prepare($sql_posts);
-        $stmt_posts->execute([$user_id]);
-        $posts = $stmt_posts->fetchColumn();
+    public function getProfileStats($userId) {
+        $stats = ['posts' => 0, 'followers' => 0, 'following' => 0];
 
-        // ទាញយកចំនួន Followers
-        $sql_followers = "SELECT COUNT(*) FROM followers WHERE FollowedID = ?";
-        $stmt_followers = $this->conn->prepare($sql_followers);
-        $stmt_followers->execute([$user_id]);
-        $followers = $stmt_followers->fetchColumn();
+        // រាប់ចំនួន Posts
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM posts WHERE UserID = :id");
+        $stmt->execute(['id' => $userId]);
+        $stats['posts'] = $stmt->fetchColumn();
 
-        // ទាញយកចំនួន Following
-        $sql_following = "SELECT COUNT(*) FROM followers WHERE FollowerID = ?";
-        $stmt_following = $this->conn->prepare($sql_following);
-        $stmt_following->execute([$user_id]);
-        $following = $stmt_following->fetchColumn();
+        // រាប់ចំនួន Followers (អ្នកដែលផ្ញើមកយើង ហើយយើងបាន Accept)
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE ReceiverID = :id AND Status = 'accepted'");
+        $stmt->execute(['id' => $userId]);
+        $stats['followers'] = $stmt->fetchColumn();
 
-        return [
-            'posts' => $posts,
-            'followers' => $followers,
-            'following' => $following
-        ];
+        // រាប់ចំនួន Following (អ្នកដែលយើងផ្ញើទៅ រួចគេបាន Accept)
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE RequesterID = :id AND Status = 'accepted'");
+        $stmt->execute(['id' => $userId]);
+        $stats['following'] = $stmt->fetchColumn();
+
+        return $stats;
     }
 
-        public function updateProfile($user_id, $username, $bio, $profile_pic) {
-            $sql = "UPDATE users SET Username = ?, Bio = ?, ProfilePic = ? WHERE UserID = ?";
-            $stmt = $this->conn->prepare($sql);
-            return $stmt->execute([$username, $bio, $profile_pic, $user_id]);
-        }
+    public function updateProfile($user_id, $username, $bio, $profile_pic) {
+        $sql = "UPDATE users SET Username = ?, Bio = ?, ProfilePic = ? WHERE UserID = ?";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([$username, $bio, $profile_pic, $user_id]);
+    }
 }

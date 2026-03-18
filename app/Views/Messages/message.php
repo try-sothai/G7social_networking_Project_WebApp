@@ -68,7 +68,14 @@
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="<?php echo !empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . $u_d['UserID']; ?>" alt="Profile">
+                        <img src="<?php 
+                            $path = '../../../public/img/' . $u_d['ProfilePic'];
+                            if (!empty($u_d['ProfilePic']) && file_exists($path)) {
+                                echo $path;
+                            } else {
+                                echo 'https://via.placeholder.com/50'; // ដាក់រូប default បើអត់មានរូបពិត
+                            }
+                        ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -76,9 +83,9 @@
 
         <div class="chat-container">
             <div class="chat-sidebar">
-                <div class="chat-search">
+                <!-- <div class="chat-search">
                     <input type="text" placeholder="Search messages...">
-                </div>
+                </div> -->
 
                 <div class="contact-list" id="user-list-container">
                     <div style="padding: 20px; text-align: center; color: #888;">Loading users...</div>

@@ -52,7 +52,7 @@ radial-gradient(at 100% 100%, rgba(217, 70, 239, 0.1) 0px, transparent 50%);
 }
 
 .nav-menu { 
-    flex: 1; 
+    flex: 1;
 }
 
 .nav-item {
@@ -210,7 +210,9 @@ header {
     cursor: pointer;
 }
 
-.story-card:hover { transform: translateY(-5px); }
+.story-card:hover { 
+    transform: translateY(-5px); 
+}
 
 .story-card.add-story {
     background: linear-gradient(to bottom, #eff6ff, #dbeafe);
