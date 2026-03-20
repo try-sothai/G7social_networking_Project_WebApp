@@ -40,14 +40,8 @@
     align-items: center;
     padding: 15px 20px;
     cursor: pointer;
-    transition: 0.2s;
-    gap: 15px;
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    cursor: pointer;
     transition: background 0.2s;
-    gap: 12px;
+    gap: 15px;
 }
 .contact-avatar {
     width: 45px;

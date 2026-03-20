@@ -106,6 +106,8 @@
     const API_PATH = '../../../app/Controllers/Messages/ChatController.php';
     const CURRENT_USER_ID = <?php echo $_SESSION['user_id'] ?? 0; ?>;
 </script>
-    <script src="../../../public/js/Messages/message.js"></script> 
+    <script src="../../../public/js/Messages/message.js"></script>
+    <script src="../../../public/js/Messages/send_img.js"></script>
+    <script src="../../../public/js/Messages/call.js"></script>
 </body>
 </html>

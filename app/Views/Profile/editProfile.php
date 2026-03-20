@@ -20,6 +20,7 @@ $profile_pic = $u_d['ProfilePic'];
 $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
+$interests = $model->getInterests($user_id);
 ?>
 
 <!DOCTYPE html>
@@ -99,7 +100,7 @@ $following = $stats['following'];
                     <div class="profile-actions">
                         <input type="text" value="<?php echo htmlspecialchars($u_d['Username']); ?>" class="edit-name">
                         <button class="btn-save">Save</button>
-                        <button class="btn-cancel">Cancel</button>
+                        <a href="profile.php"><button class="btn-cancel">Cancel</button></a>
                     </div>
                     <p class="user-email"><?php echo htmlspecialchars($u_d['Email']); ?></p>
                     
@@ -111,19 +112,22 @@ $following = $stats['following'];
                 </div>
             </div>
 
-            <textarea class="bio-text" placeholder="Tell us about yourself...">Hey there! I am using LocalConnect 🎉</textarea>
+            <textarea class="bio-text" placeholder="Tell us about yourself..."><?php echo htmlspecialchars($bio); ?></textarea>
             
             <div class="location-edit">
                 <i class="fa-solid fa-location-dot"></i>
-                <input type="text" value="Downtown">
-                <input type="text" value="San Francisco">
+                <input type="text" id="location-input" value="<?php echo htmlspecialchars($u_d['Phone'] ?? ''); ?>" placeholder="Your location...">
             </div>
 
             <div class="interests">
-                <button class="interest-tag">Music</button>
-                <button class="interest-tag">Technology</button>
-                <button class="interest-tag">Travel</button>
-                <button class="add-interest">+ Add Interest</button>
+                <?php foreach ($interests as $interest): ?>
+                    <button class="interest-tag">
+                        <?php echo htmlspecialchars($interest); ?>
+                        <span class="remove-interest">x</span>
+                    </button>
+                <?php endforeach; ?>
+                <input type="text" id="interest-input" placeholder="Add an interest" >
+                <button class="add-interest">+ Add</button>
             </div>
 
             <hr>

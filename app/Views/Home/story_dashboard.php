@@ -27,7 +27,13 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
         <aside class="story-left">
             <a href="dashboard.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
             <div class="profile-chip">
-                <img src="<?php echo !empty($u_d['ProfilePic']) ? htmlspecialchars($u_d['ProfilePic']) : 'https://i.pravatar.cc/150?u=' . (int)$u_d['UserID']; ?>" alt="Profile">
+                <img src="<?php 
+                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
+                                echo '../../../public/img/' . $u_d['ProfilePic'];
+                            } else {
+                                
+                            }
+                        ?>" alt="Profile">
                 <span><?php echo htmlspecialchars($u_d['Username'] ?? 'User'); ?></span>
             </div>
         </aside>
