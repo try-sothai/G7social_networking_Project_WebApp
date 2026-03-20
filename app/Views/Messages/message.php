@@ -22,7 +22,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social7 Creative Dashboard</title>
+    <title>Messages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Messages/message.css">
@@ -35,14 +35,14 @@
             <span>LocalConnect</span>
         </div>
         
-        <nav class="nav-menu"> 
-            <a href="../Home/dashboard.php" class="nav-item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="nav-item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="nav-item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AddFriends.php" class="nav-item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="nav-item active"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="nav-item"><i class="fa-solid fa-chart-simple"></i> Report</a>       
+        <nav class="menu"> 
+            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
+            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
+            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
+            <a href="../Friends/AddFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
+            <a href="../Messages/message.php" class="item active"><i class="fa-solid fa-message"></i> Messages</a>
+            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>       
              
         </nav>
 

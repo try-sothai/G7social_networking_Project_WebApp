@@ -32,14 +32,14 @@
             <span>LocalConnect</span>
         </div>
         
-        <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item active"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="nav-item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="nav-item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="nav-item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="nav-item"><i class="fa-solid fa-chart-simple"></i> Report</a>
+        <nav class="menu">
+            <a href="dashboard.php" class="item active"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
+            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
+            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
+            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
+            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
+            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>
         </nav>
 
         <button class="btn-create">
@@ -51,7 +51,7 @@
     <div class="main-content">
         <header>
             <div class="search-bar">
-                <i class="fa-solid fa-search text-muted"></i>
+                <i class="fa-solid fa-search text"></i>
                 <input type="text" placeholder="Search for anything...">
             </div>
             
@@ -103,10 +103,10 @@
                             <img src="https://i.pravatar.cc/150?u=sarah" alt="User">
                             <div>
                                 <h4 style="font-weight: 800;">Sarah Johnson</h4>
-                                <span style="font-size: 13px; color: var(--text-muted);">Traveling in Switzerland • 2h ago</span>
+                                <span style="font-size: 13px; color: var(--text);">Traveling in Switzerland • 2h ago</span>
                             </div>
                         </div>
-                        <i class="fa-solid fa-ellipsis-h text-muted"></i>
+                        <i class="fa-solid fa-ellipsis-h text"></i>
                     </div>
                     <div class="post-content">
                         Waking up to this view is something I could never get used to. The Swiss Alps are truly magical! ✨🏔️ #travel #nature
@@ -129,14 +129,14 @@
                             <div style="width: 45px; height: 45px; border-radius: 12px; background: #ffe4e6; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎨</div>
                             <div>
                                 <div style="font-weight: 700; font-size: 14px;">Digital Artists</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">4.2k members</div>
+                                <div style="font-size: 12px; color: var(--text);">4.2k members</div>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 45px; height: 45px; border-radius: 12px; background: #fef9c3; display: flex; align-items: center; justify-content: center; font-size: 20px;">💻</div>
                             <div>
                                 <div style="font-weight: 700; font-size: 14px;">Web Developers</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">12.8k members</div>
+                                <div style="font-size: 12px; color: var(--text);">12.8k members</div>
                             </div>
                         </div>
                     </div>

@@ -40,13 +40,13 @@ $following = $stats['following'];
             <span>LocalConnect</span>
         </div>
         
-        <nav class="nav-menu">
-            <a href="../Home/dashboard.php" class="nav-item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="nav-item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="nav-item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="nav-item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>           
+        <nav class="menu">
+            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
+            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
+            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
+            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
+            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>           
         </nav>
 
         <button class="btn-create">
