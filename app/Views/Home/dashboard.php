@@ -76,22 +76,12 @@
             </div>
         </header>
 
-        <div class="stories-container">
-            <div class="story-card add-story">
-                <div style="background: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 40px;">
-                    <i class="fa-solid fa-plus" style="color: var(--accent-color);"></i>
+        <div class="stories-container" id="stories-container">
+            <div class="story-card add-story" id="open-add-story">
+                <div class="add-story-icon-wrap">
+                    <i class="fa-solid fa-circle-plus" style="color: rgb(119, 72, 255);"></i>
                 </div>
                 <span class="story-name">Add Story</span>
-            </div>
-            
-            <div class="story-card" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=60'); background-size: cover;">
-                <img src="https://i.pravatar.cc/150?u=sarah" class="story-avatar">
-                <span class="story-name" style="color: white;">Sarah J.</span>
-            </div>
-            
-            <div class="story-card" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=60'); background-size: cover;">
-                <img src="https://i.pravatar.cc/150?u=mike" class="story-avatar">
-                <span class="story-name" style="color: white;">Mike Wilson</span>
             </div>
         </div>
 
@@ -144,5 +134,53 @@
             </div>
         </div>
     </div>
+
+    <div class="story-modal-overlay" id="add-story-modal">
+        <div class="story-modal-card">
+            <div class="story-modal-header">
+                <h3>Add New Story</h3>
+                <button class="story-modal-close" id="close-add-story" type="button">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="add-story-form" class="story-upload-form" action="story_editor.php" method="post" enctype="multipart/form-data">
+                <label for="story-media-input" class="story-file-label">
+                    <i class="fa-solid fa-image"></i>
+                    <span>Choose Image or Video</span>
+                </label>
+                <input type="file" id="story-media-input" name="story_media" accept="image/*,video/*">
+                <div class="story-file-name" id="selected-file-name">No file chosen</div>
+                <button type="submit" class="story-upload-btn">Continue to Edit</button>
+                <p class="story-modal-message" id="story-modal-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <div class="story-modal-overlay" id="story-viewer-modal">
+        <div class="story-viewer-card">
+            <div class="story-viewer-top">
+                <div class="story-viewer-user">
+                    <img id="story-viewer-avatar" src="" alt="User">
+                    <div>
+                        <div id="story-viewer-username">User</div>
+                        <div id="story-viewer-time">Just now</div>
+                    </div>
+                </div>
+                <button class="story-modal-close" id="close-story-viewer" type="button">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="story-viewer-media" class="story-viewer-media"></div>
+        </div>
+    </div>
+
+    <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode(!empty($u_d['ProfilePic']) ? $u_d['ProfilePic'] : 'https://i.pravatar.cc/150?u=' . ($u_d['UserID'] ?? 0)); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>
+
+

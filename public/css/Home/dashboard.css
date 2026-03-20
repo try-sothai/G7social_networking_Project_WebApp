@@ -102,6 +102,7 @@ body {
 .btn-create:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 20px -5px rgba(99, 102, 241, 0.5);
+    
 }
 
 /* --- Main Content --- */
@@ -217,6 +218,19 @@ header {
     border: 2px dashed #6366f1;
 }
 
+.add-story-icon-wrap {
+    background: white;
+    width: 40px;
+
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+    color: var(--accent-color);
+}
+
 .story-avatar {
     position: absolute;
     top: 15px;
@@ -234,6 +248,191 @@ header {
     font-weight: 700;
     color: #1e293b;
     z-index: 2;
+}
+
+.story-name-light {
+    color: #ffffff;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+}
+
+.story-time {
+    font-size: 2px;
+    color: rgba(255, 255, 255, 0.85);
+    z-index: 2;
+}
+
+.story-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+.story-media-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.story-card.story-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.6));
+    z-index: 1;
+}
+
+.story-card.story-item .story-avatar,
+.story-card.story-item .story-name,
+.story-card.story-item .story-time {
+    z-index: 2;
+}
+
+.story-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1500;
+}
+
+.story-modal-overlay.active {
+    display: flex;
+}
+
+.story-modal-card {
+    width: min(440px, 100%);
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.2);
+    overflow: hidden;
+}
+
+.story-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.story-modal-header h3 {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.story-modal-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: #f1f5f9;
+    cursor: pointer;
+}
+
+.story-upload-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.story-file-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border: 2px dashed #93c5fd;
+    border-radius: 12px;
+    color: #1d4ed8;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#story-media-input {
+    display: none;
+}
+
+.story-file-name {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.story-upload-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.story-modal-message {
+    font-size: 13px;
+    color: #dc2626;
+    min-height: 18px;
+}
+
+.story-viewer-card {
+    width: min(460px, 100%);
+    background: #0f172a;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.story-viewer-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    color: #ffffff;
+}
+
+.story-viewer-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.story-viewer-user img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#story-viewer-username {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+#story-viewer-time {
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+.story-viewer-media {
+    width: 100%;
+    height: 70vh;
+    background: #020617;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.story-viewer-media-asset {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
 
 /* --- Feed Area --- */
@@ -323,4 +522,457 @@ header {
     font-size: 18px;
     font-weight: 800;
     margin-bottom: 20px;
+}
+
+/* Facebook-like clean dashboard theme (scoped to dashboard only) */
+body.fb-dashboard {
+    --fb-blue: #1877f2;
+    --fb-bg: #f0f2f5;
+    --fb-card: #ffffff;
+    --fb-text: #1c1e21;
+    --fb-muted: #65676b;
+    --fb-border: #d8dadf;
+    --fb-hover: #f2f4f7;
+    background: var(--fb-bg);
+    color: var(--fb-text);
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+body.fb-dashboard .sidebar {
+    background: transparent;
+    border-right: none;
+    backdrop-filter: none;
+    padding-top: 96px;
+}
+
+body.fb-dashboard .logo-section {
+    display: none;
+}
+
+body.fb-dashboard .nav-item {
+    border-radius: 10px;
+    color: var(--fb-text);
+    font-weight: 600;
+}
+
+body.fb-dashboard .nav-item.active,
+body.fb-dashboard .nav-item:hover {
+    background: #e7f3ff;
+    color: var(--fb-blue);
+    box-shadow: none;
+    transform: none;
+}
+
+body.fb-dashboard .btn-create {
+    background: var(--fb-blue);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+body.fb-dashboard .main-content {
+    padding: 0 28px;
+}
+
+body.fb-dashboard header {
+    height: 56px;
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    border-bottom: 1px solid var(--fb-border);
+    backdrop-filter: none;
+    margin-left: -28px;
+    margin-right: -28px;
+    padding: 0 28px;
+}
+
+body.fb-dashboard .search-bar {
+    width: 320px;
+    border-radius: 999px;
+    background: #f0f2f5;
+    box-shadow: none;
+    padding: 8px 14px;
+}
+
+body.fb-dashboard .search-bar input {
+    background: transparent;
+    font-size: 15px;
+}
+
+body.fb-dashboard .icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: none;
+    background: #e4e6eb;
+    color: var(--fb-text);
+}
+
+body.fb-dashboard .user-profile {
+    box-shadow: none;
+    border-radius: 999px;
+    border: 1px solid var(--fb-border);
+    padding-right: 10px;
+}
+
+body.fb-dashboard .user-profile img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+}
+
+body.fb-dashboard .stories-container {
+    margin-top: 16px;
+    padding: 0 0 14px;
+    gap: 10px;
+}
+
+body.fb-dashboard .story-card {
+    min-width: 112px;
+    height: 190px;
+    border-radius: 12px;
+    border: 1px solid var(--fb-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+body.fb-dashboard .story-card:hover {
+    transform: translateY(-2px);
+}
+
+body.fb-dashboard .story-card.add-story {
+    background: #ffffff;
+    border: 1px solid var(--fb-border);
+}
+
+body.fb-dashboard .add-story-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    margin-bottom: 38px;
+    background: #e7f3ff;
+    color: var(--fb-blue);
+}
+
+body.fb-dashboard .story-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border-color: var(--fb-blue);
+    top: 10px;
+    left: 10px;
+}
+
+body.fb-dashboard .feed-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 18px;
+    margin-top: 8px;
+}
+
+body.fb-dashboard .post-card,
+body.fb-dashboard .section-card {
+    border-radius: 12px;
+    border: 1px solid var(--fb-border);
+    box-shadow: none;
+    background: var(--fb-card);
+}
+
+body.fb-dashboard .post-card {
+    padding: 14px;
+}
+
+body.fb-dashboard .post-user img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+body.fb-dashboard .post-content {
+    font-size: 15px;
+    color: var(--fb-text);
+}
+
+body.fb-dashboard .post-image {
+    border-radius: 10px;
+    height: auto;
+    max-height: 560px;
+}
+
+body.fb-dashboard .post-actions {
+    border-top-color: var(--fb-border);
+    justify-content: space-around;
+    gap: 8px;
+}
+
+body.fb-dashboard .action-item {
+    width: 100%;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 9px 8px;
+    color: var(--fb-muted);
+}
+
+body.fb-dashboard .action-item:hover {
+    background: var(--fb-hover);
+    color: var(--fb-text);
+}
+
+body.fb-dashboard .story-modal-overlay {
+    background: rgba(0, 0, 0, 0.58);
+}
+
+body.fb-dashboard .story-modal-card {
+    border-radius: 10px;
+}
+
+body.fb-dashboard .story-viewer-card {
+    width: min(430px, 100%);
+    height: min(760px, 88vh);
+    border-radius: 14px;
+    border: 1px solid #2f3a57;
+    background: #101a38;
+    display: flex;
+    flex-direction: column;
+}
+
+body.fb-dashboard .story-viewer-top {
+    padding: 10px 12px;
+    background: rgba(3, 20, 61, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.fb-dashboard .story-viewer-user img {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #fff;
+}
+
+body.fb-dashboard .story-modal-close {
+    background: #e4e6eb;
+    color: #050505;
+    border-radius: 10px;
+}
+
+body.fb-dashboard .story-viewer-media {
+    height: auto;
+    flex: 1;
+    background: #08122d;
+}
+
+body.fb-dashboard .story-viewer-media-asset {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 1100px) {
+    body.fb-dashboard .right-section {
+        display: none;
+    }
+
+    body.fb-dashboard .feed-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 860px) {
+    body.fb-dashboard .sidebar {
+        display: none;
+    }
+
+    body.fb-dashboard .main-content {
+        margin-left: 0;
+        padding: 0 12px;
+    }
+
+    body.fb-dashboard header {
+        margin-left: -12px;
+        margin-right: -12px;
+        padding: 0 12px;
+    }
+
+    body.fb-dashboard .search-bar {
+        width: 58%;
+    }
+
+    body.fb-dashboard .user-profile span {
+        display: none;
+    }
+}
+
+/* Facebook-like story viewer chrome */
+body.fb-dashboard .story-viewer-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 10px 12px 12px;
+}
+
+body.fb-dashboard .story-viewer-progress {
+    flex: 0 0 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+}
+
+body.fb-dashboard #story-progress-fill {
+    display: block;
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: #ffffff;
+}
+
+body.fb-dashboard .story-viewer-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+body.fb-dashboard .story-viewer-icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+body.fb-dashboard .story-viewer-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+body.fb-dashboard #story-viewer-username {
+    color: #ffffff;
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 3px;
+}
+
+body.fb-dashboard #story-viewer-time {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
+}
+
+body.fb-dashboard #close-story-viewer.story-modal-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+/* Facebook-like stories row refresh (dashboard cards) */
+body.fb-dashboard .stories-container {
+    gap: 6px;
+    padding: 12px 0 18px;
+}
+
+body.fb-dashboard .story-card {
+    width: 98px;
+    min-width: 98px;
+    height: 168px;
+    border-radius: 12px;
+    padding: 0;
+    justify-content: flex-end;
+}
+
+body.fb-dashboard .story-card.story-item .story-avatar {
+    top: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    border-width: 2px;
+}
+
+body.fb-dashboard .story-card.story-item .story-name {
+    width: 100%;
+    text-align: left;
+    padding: 0 8px 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.fb-dashboard .story-card.add-story {
+    background: #1f2329;
+    border: 1px solid #2b3038;
+    overflow: hidden;
+}
+
+body.fb-dashboard .story-add-top {
+    position: absolute;
+    inset: 0 0 34% 0;
+    background: linear-gradient(180deg, #3a3f46 0%, #2d3239 100%);
+}
+
+body.fb-dashboard .story-add-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+body.fb-dashboard .story-add-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 34%;
+    background: #1f2329;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-bottom: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.fb-dashboard .add-story-icon-wrap {
+    width: 36px;
+    height: 36px;
+    margin: 0 0 6px;
+    margin-top: -22px;
+    border-radius: 50%;
+    background: #1877f2;
+    color: #ffffff;
+    border: 4px solid #1f2329;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+body.fb-dashboard .story-name.story-name-dark {
+    color: #f0f2f5;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+body.fb-dashboard .story-bg {
+    background-position: center;
+}
+
+.story-media-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/* Final lock: Add Story must match normal story card size */
+body.fb-dashboard .stories-container {
+    --story-card-w: 112px;
+    --story-card-h: 200px;
+}
+
+body.fb-dashboard .stories-container .story-card,
+body.fb-dashboard .stories-container .story-card.add-story,
+body.fb-dashboard .stories-container .story-card.story-item {
+    width: var(--story-card-w);
+    min-width: var(--story-card-w);
+    max-width: var(--story-card-w);
+    height: var(--story-card-h);
+    flex: 0 0 var(--story-card-w);
 }
