@@ -32,15 +32,21 @@ class ProfileModel {
 
         return $stats;
     }
-        public function updateProfile($userId, $username, $bio) {
-        $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic WHERE UserID = :id");
+        public function updateProfile($userId, $username, $bio, $profilePic, $locations, $interestName) {
+        $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic, Locations = :locations WHERE UserID = :id");
         return $stmt->execute([
             // 'ProfilePic' => $profile_pic,
             'username' => $username,
             'bio' => $bio,
+            'profilePic' => $profilePic,
+            'locations' => $locations,
             'id' => $userId
         ]);
     }
-    
+        public function getInterests($userId) {
+        $stmt = $this->conn->prepare("SELECT InterestName FROM user_interests WHERE UserID = :id");
+        $stmt->execute(['id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }
 ?>

@@ -116,7 +116,7 @@ $interests = $model->getInterests($user_id);
             
             <div class="location-edit">
                 <i class="fa-solid fa-location-dot"></i>
-                <input type="text" id="location-input" value="<?php echo htmlspecialchars($u_d['Phone'] ?? ''); ?>" placeholder="Your location...">
+                <input type="text" id="location-input" value="<?php echo htmlspecialchars($u_d['Locations'] ?? ''); ?>" placeholder="Your location...">
             </div>
 
             <div class="interests">
@@ -126,10 +126,10 @@ $interests = $model->getInterests($user_id);
                         <span class="remove-interest">x</span>
                     </button>
                 <?php endforeach; ?>
-                <input type="text" id="interest-input" placeholder="Add an interest" >
+                <input type="text" id="interest-input" value="<?php echo htmlspecialchars($u_d['InterestName'] ?? ''); ?>" placeholder="Add an interest" >
                 <button class="add-interest">+ Add</button>
             </div>
-
+            <br>
             <hr>
 
             <div class="profile-footer">

@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userListContainer.innerHTML = users.map(user => {
                     // ថែម Path ឱ្យរូបភាព User ម្នាក់ៗ
                     const userImg = (user.ProfilePic) ? `../../../public/img/${user.ProfilePic}` : 'https://via.placeholder.com/50';
-                    
+                                       
                     return `
                         <div class="contact-item" data-id="${user.UserID}" data-username="${user.Username}">
                             <img src="${userImg}" class="contact-avatar">
@@ -105,19 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             box.innerHTML = messages.map(m => {
                 const isMe = m.SenderID == CURRENT_USER_ID; 
-                
-                // --- ចំណុចត្រូវកែសម្រួល ---
+
                 let finalAvatar;
                 if (isMe) {
                     finalAvatar = myAvatar;
                 } else {
-                    // បើជាសាររបស់គេ យើងឆែកមើលថាតើ m.ProfilePic មានឈ្មោះរូបភាពដែរឬទេ
-                    // ប្រសិនបើមាន យើងត្រូវថែមផ្លូវ (Path) ទៅកាន់ Folder រូបភាពឱ្យវា
+
                     finalAvatar = (m.ProfilePic && m.ProfilePic !== 'default.png') 
                                   ? `../../../public/img/${m.ProfilePic}` 
                                   : receiverAvatar; 
                 }
-                // -----------------------
 
                 return `
                     <div class="message-wrapper ${isMe ? 'me' : 'them'}">

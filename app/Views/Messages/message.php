@@ -97,8 +97,8 @@
                 <h3>Please select a chat to start a conversation.</h3>
             </div>
                 
-            <div id="chat-active" class="chat-main" style="display: none;">
-                </div>
+            <div id="chat-active" class="chat-main" style="display: none;"></div>
+
         </div>            
     </div>
 

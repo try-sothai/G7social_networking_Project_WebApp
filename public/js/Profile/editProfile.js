@@ -2,7 +2,8 @@ document.querySelector('.btn-save').addEventListener('click', function() {
     let formData = new FormData();
     formData.append('username', document.querySelector('.edit-name').value);
     formData.append('bio', document.querySelector('.bio-text').value);
-    formData.append('phone', document.querySelector('#location-input').value);
+    formData.append('Locations', document.querySelector('#location-input').value);
+    formData.append('InterestName', document.querySelector('#interest-input').value);
 
     let fileInput = document.getElementById('upload-photo');
     if (fileInput.files.length > 0) {
@@ -33,7 +34,7 @@ document.querySelector('.btn-save').addEventListener('click', function() {
     .then(data => {
         if(data.success) {
             alert("Updated successfully!");
-            window.location.reload();
+            window.Locations.reload();
         } else {
             alert("Update failed!");
         }

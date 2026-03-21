@@ -18,6 +18,7 @@ $stats = $model->getProfileStats($user_id);
 $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
+
 ?>
 
 <!DOCTYPE html>
@@ -108,12 +109,14 @@ $following = $stats['following'];
                         <div class="stat-item"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
 
                         <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
-                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Phone']) ? htmlspecialchars($u_d['Phone']) : 'No location available'; ?></p>
+                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Locations']) ? htmlspecialchars($u_d['Locations']) : 'No location available'; ?></p>
 
                         <div class="interest-tags">
-                            <span class="interest-tag">Music</span>
-                            <span class="interest-tag">Technology</span>
-                            <span class="interest-tag">Travel</span>
+                            <?php
+                            $interests = $model->getInterests($user_id);
+                            foreach ($interests as $interest): ?>
+                                <span class="interest-tag"><?php echo htmlspecialchars($interest); ?></span>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>

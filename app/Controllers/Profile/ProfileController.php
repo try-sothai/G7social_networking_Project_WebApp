@@ -11,7 +11,7 @@ $u_d = $model->getUserData($user_id);
 $stats = $model->getProfileStats($user_id);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
-    $result = $model->updateProfile($user_id, $_POST['username'], $_POST['bio']);
+    $result = $model->updateProfile($user_id, $_POST['username'], $_POST['bio'], $_POST['profile_pic'], $_POST['Locations'], $_POST['InterestName']);
     echo json_encode(['success' => $result]);
     exit(); // ឈប់ត្រឹមនេះ ដើម្បីកុំឱ្យវា include View នាំឱ្យខូច JSON
 }
