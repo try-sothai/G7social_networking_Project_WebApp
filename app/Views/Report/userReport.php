@@ -51,31 +51,32 @@
         
     </div>
     
-    <div class="container">
+<div class="container">
 
         <!-- Top Cards -->
         <div class="cards">
 
             <div class="card">
-                <h4>Total Users</h4>
+                <h4>Total Posts</h4>
                 <h2>1.24M</h2>
                 <span class="green">+5.2%</span>
             </div>
 
             <div class="card">
-                <h4>Net Growth</h4>
+                <!-- <p class="story-view"><i class="fa-solid fa-eye"></i></p> -->
+                <h4>Story View</h4>
                 <h2>15.4K</h2>
                 <span class="green">+12.8%</span>
             </div>
 
             <div class="card">
-                <h4>Churn Rate</h4>
+                <h4>Avg. Engagement</h4>
                 <h2>2.1%</h2>
                 <span class="orange">-0.4%</span>
             </div>
 
             <div class="card">
-                <h4>Acquisition Cost</h4>
+                <h4>Active Stories</h4>
                 <h2>$12.50</h2>
                 <span class="green">-2.1%</span>
             </div>
@@ -99,5 +100,6 @@
         </div>
         <script src="../../../public/Report/reportScript.js"></script>
     </div>
+
 </body>
 </html>
