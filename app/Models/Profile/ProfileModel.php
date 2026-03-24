@@ -32,7 +32,7 @@ class ProfileModel {
 
         return $stats;
     }
-<<<<<<< HEAD
+
 
     public function getUserPosts($userId, $limit = 60) {
         $stmt = $this->conn->prepare("
@@ -48,14 +48,9 @@ class ProfileModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-        public function updateProfile($userId, $username, $bio) {
-        $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic WHERE UserID = :id");
-=======
-        public function updateProfile($userId, $username, $bio, $profilePic, $locations, $interestName) {
+    public function updateProfile($userId, $username, $bio, $profilePic, $locations) {
         $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic, Locations = :locations WHERE UserID = :id");
->>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd
         return $stmt->execute([
-            // 'ProfilePic' => $profile_pic,
             'username' => $username,
             'bio' => $bio,
             'profilePic' => $profilePic,
