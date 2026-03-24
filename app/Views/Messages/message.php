@@ -109,5 +109,7 @@
     <script src="../../../public/js/Messages/message.js"></script>
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/Messages/call.js"></script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
+

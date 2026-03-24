@@ -32,6 +32,21 @@ class ProfileModel {
 
         return $stats;
     }
+
+    public function getUserPosts($userId, $limit = 60) {
+        $stmt = $this->conn->prepare("
+            SELECT PostID, Content, ImagePath, CreatedAt
+            FROM posts
+            WHERE UserID = :id
+            ORDER BY CreatedAt DESC
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':id', (int)$userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', max(1, min((int)$limit, 200)), PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
         public function updateProfile($userId, $username, $bio) {
         $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic WHERE UserID = :id");
         return $stmt->execute([

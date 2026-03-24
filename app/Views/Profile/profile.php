@@ -2,9 +2,8 @@
 session_start();
 
 require_once '../../../config/db_config.php';
-
 require_once '../../Models/Profile/ProfileModel.php';
-// សុវត្ថិភាព
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
     exit();
@@ -12,12 +11,71 @@ if (!isset($_SESSION['user_id'])) {
 
 $model = new ProfileModel($conn);
 $user_id = $_SESSION['user_id'];
-// ទាញយកទិន្នន័យ
 $u_d = $model->getUserData($user_id);
 $stats = $model->getProfileStats($user_id);
+$userPosts = $model->getUserPosts($user_id, 80);
 $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
+
+function parsePostMediaList($imagePathValue) {
+    $raw = trim((string)$imagePathValue);
+    if ($raw === '') {
+        return [];
+    }
+
+    if (str_starts_with($raw, '[') && str_ends_with($raw, ']')) {
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) {
+            return array_values(array_filter(array_map('strval', $decoded), fn($v) => trim($v) !== ''));
+        }
+    }
+
+    return [$raw];
+}
+
+function isVideoMedia($path) {
+    $lower = strtolower((string)$path);
+    return str_ends_with($lower, '.mp4') || str_ends_with($lower, '.webm') || str_ends_with($lower, '.ogg');
+}
+
+function formatTimeAgo($dateTime) {
+    $ts = strtotime((string)$dateTime);
+    if (!$ts) {
+        return 'Just now';
+    }
+
+    $diff = time() - $ts;
+    if ($diff < 60) return 'Just now';
+    if ($diff < 3600) return floor($diff / 60) . 'm ago';
+    if ($diff < 86400) return floor($diff / 3600) . 'h ago';
+    if ($diff < 604800) return floor($diff / 86400) . 'd ago';
+    return date('M j, Y', $ts);
+}
+
+$profileAvatarPath = !empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])
+    ? '../../../public/img/' . $u_d['ProfilePic']
+    : 'https://i.pravatar.cc/150?u=' . ((int)($u_d['UserID'] ?? $user_id));
+
+$profileFeedPosts = [];
+foreach ($userPosts as $postRow) {
+    $mediaList = parsePostMediaList($postRow['ImagePath'] ?? '');
+    $mediaItems = [];
+    foreach ($mediaList as $mediaPath) {
+        $mediaItems[] = [
+            'media' => (string)$mediaPath,
+            'is_video' => isVideoMedia($mediaPath),
+        ];
+    }
+
+    $profileFeedPosts[] = [
+        'post_id' => (int)($postRow['PostID'] ?? 0),
+        'content' => (string)($postRow['Content'] ?? ''),
+        'created_at' => (string)($postRow['CreatedAt'] ?? ''),
+        'time_ago' => formatTimeAgo($postRow['CreatedAt'] ?? ''),
+        'media_items' => $mediaItems,
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -72,8 +130,6 @@ $following = $stats['following'];
                         <img src="<?php 
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
-                            } else {
-                               
                             }
                         ?>" alt="Profile">
                     </a>
@@ -88,8 +144,6 @@ $following = $stats['following'];
                         <img class="profile-img-large" src="<?php 
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
-                            } else {
-                               
                             }
                         ?>" alt="Profile">
                     </div>
@@ -107,7 +161,7 @@ $following = $stats['following'];
                         <div class="stat-item"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
                         <div class="stat-item"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
 
-                        <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
+                        <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect!'; ?></p>
                         <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Phone']) ? htmlspecialchars($u_d['Phone']) : 'No location available'; ?></p>
 
                         <div class="interest-tags">
@@ -131,12 +185,152 @@ $following = $stats['following'];
                 <div class="tab-item"><i class="fa-regular fa-bookmark"></i> Saved</div>
             </div>
 
-            <div class="post-visual-grid">
-                <div class="post-placeholder">Post 1</div>
-                <div class="post-placeholder">Post 2</div>
-                <div class="post-placeholder">Post 3</div>
+            <div class="feed-grid profile-feed-grid">
+                <div class="feed-left">
+                    <div class="profile-post-feed">
+                        <?php if (count($profileFeedPosts) > 0): ?>
+                            <?php foreach ($profileFeedPosts as $post): ?>
+                        <?php
+                            $postMediaPaths = array_map(
+                                fn($mediaItem) => (string)($mediaItem['media'] ?? ''),
+                                $post['media_items'] ?? []
+                            );
+                            $postMediaJson = htmlspecialchars(
+                                json_encode($postMediaPaths, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                                ENT_QUOTES,
+                                'UTF-8'
+                            );
+                        ?>
+                        <article class="post-card profile-post-card">
+                            <div class="post-header">
+                                <div class="post-user">
+                                    <img src="<?php echo htmlspecialchars($profileAvatarPath); ?>" alt="<?php echo htmlspecialchars($u_d['Username']); ?>">
+                                    <div>
+                                        <h4 style="font-weight: 800;"><?php echo htmlspecialchars($u_d['Username']); ?></h4>
+                                        <span class="post-time"><?php echo htmlspecialchars($post['time_ago']); ?></span>
+                                    </div>
+                                </div>
+                                <div class="post-menu-wrap">
+                                    <button class="post-menu-btn" type="button" data-role="toggle-post-menu" aria-label="Post options">
+                                        <i class="fa-solid fa-ellipsis-h text"></i>
+                                    </button>
+                                    <div class="post-menu-dropdown">
+                                        <button
+                                            type="button"
+                                            class="post-menu-item"
+                                            data-role="edit-post"
+                                            data-post-id="<?php echo (int)$post['post_id']; ?>"
+                                            data-content="<?php echo htmlspecialchars((string)$post['content'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-media="<?php echo $postMediaJson; ?>"
+                                        >
+                                            Edit Post
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="post-menu-item danger"
+                                            data-role="delete-post"
+                                            data-post-id="<?php echo (int)$post['post_id']; ?>"
+                                        >
+                                            Delete Post
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <?php if (trim((string)$post['content']) !== ''): ?>
+                                <div class="post-content"><?php echo htmlspecialchars($post['content']); ?></div>
+                            <?php endif; ?>
+
+                            <?php if (count($post['media_items']) > 1): ?>
+                                <div class="post-media-grid">
+                                    <?php foreach ($post['media_items'] as $mediaItem): ?>
+                                        <?php if ($mediaItem['is_video']): ?>
+                                            <video class="post-image post-image-grid" controls preload="metadata">
+                                                <source src="<?php echo htmlspecialchars($mediaItem['media']); ?>">
+                                            </video>
+                                        <?php else: ?>
+                                            <img class="post-image post-image-grid" src="<?php echo htmlspecialchars($mediaItem['media']); ?>" alt="Post media">
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php elseif (count($post['media_items']) === 1): ?>
+                                <?php if ($post['media_items'][0]['is_video']): ?>
+                                    <video class="post-image" controls preload="metadata">
+                                        <source src="<?php echo htmlspecialchars($post['media_items'][0]['media']); ?>">
+                                    </video>
+                                <?php else: ?>
+                                    <img class="post-image" src="<?php echo htmlspecialchars($post['media_items'][0]['media']); ?>" alt="Post media">
+                                <?php endif; ?>
+                            <?php endif; ?>
+
+                            <div class="post-actions">
+                                <div class="action-item"><i class="fa-regular fa-heart"></i> Like</div>
+                                <div class="action-item"><i class="fa-regular fa-comment"></i> Comment</div>
+                                <div class="action-item"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                            </div>
+                        </article>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="post-placeholder">No posted media yet</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="right-section">
+                    <div class="section-card">
+                        <h3 class="section-title">Trending Groups</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 45px; height: 45px; border-radius: 12px; background: #ffe4e6; display: flex; align-items: center; justify-content: center; font-size: 20px;">Art</div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 14px;">Digital Artists</div>
+                                    <div style="font-size: 12px; color: var(--text);">4.2k members</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 45px; height: 45px; border-radius: 12px; background: #fef9c3; display: flex; align-items: center; justify-content: center; font-size: 20px;">Dev</div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 14px;">Web Developers</div>
+                                    <div style="font-size: 12px; color: var(--text);">12.8k members</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>       
     </div>
+    <div class="story-modal-overlay" id="edit-post-modal">
+        <div class="story-modal-card post-modal-card">
+            <div class="story-modal-header">
+                <h3>Edit Post</h3>
+                <button class="story-modal-close" id="close-edit-post" type="button">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="edit-post-form" class="story-upload-form" enctype="multipart/form-data">
+                <input type="hidden" id="edit-post-id" name="post_id">
+
+                <label for="edit-post-media-input" class="story-file-label">
+                    <i class="fa-solid fa-image"></i>
+                    <span>Change / Add Images</span>
+                </label>
+                <input type="file" id="edit-post-media-input" name="new_media[]" accept="image/*" multiple>
+                <div class="story-file-name" id="edit-post-selected-file-name">No new image selected</div>
+
+                <div class="post-editor-area active">
+                    <div class="post-editor-preview" id="edit-post-preview"></div>
+                    <label for="edit-post-content-input">Caption</label>
+                    <textarea id="edit-post-content-input" name="content" maxlength="800" placeholder="Edit your caption..."></textarea>
+                </div>
+
+                <button type="submit" class="story-upload-btn">Save Changes</button>
+                <p class="story-modal-message" id="edit-post-modal-message"></p>
+            </form>
+        </div>
+    </div>
+    <script src="../../../public/js/Profile/profile.js"></script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
+

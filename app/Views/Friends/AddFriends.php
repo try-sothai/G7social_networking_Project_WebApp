@@ -137,7 +137,9 @@
         </div>
     </div>
 
+    <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
+
 
 

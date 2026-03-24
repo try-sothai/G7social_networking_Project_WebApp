@@ -146,5 +146,7 @@ $interests = $model->getInterests($user_id);
     </div>
 
     <script src="../../../public/js/Profile/editProfile.js"></script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
+
