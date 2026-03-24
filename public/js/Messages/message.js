@@ -2,144 +2,81 @@ document.addEventListener('DOMContentLoaded', () => {
     const userListContainer = document.getElementById('user-list-container');
     const chatActive = document.getElementById('chat-active');
     const chatWelcome = document.getElementById('chat-welcome');
+    const chatBox = document.getElementById('chat-box');
+    const msgInput = document.getElementById('msg-input');
+    const sendBtn = document.getElementById('send-btn');
+    
     let activeReceiverID = null;
-    const API_PATH = '../../../app/Controllers/Messages/ChatController.php';
+
     function fetchUsers() {
         fetch(`${API_PATH}?action=fetch_users`)
             .then(res => res.json())
             .then(users => {
-                if (!Array.isArray(users)) {
-                    if (users.error) {
-                        userListContainer.innerHTML = `<p style="padding:20px; color:#f59e0b;">${users.error}</p>`;
-                    }
+                if (users.error) {
+                    userListContainer.innerHTML = `<p class="error-msg">${users.error}</p>`;
                     return;
-
                 }
-                // កែក្នុង fetchUsers()
-                userListContainer.innerHTML = users.map(user => {
-                    // ថែម Path ឱ្យរូបភាព User ម្នាក់ៗ
-                    const userImg = (user.ProfilePic) ? `../../../public/img/${user.ProfilePic}` : 'https://via.placeholder.com/50';
-                    
-                    return `
-                        <div class="contact-item" data-id="${user.UserID}" data-username="${user.Username}">
-                            <img src="${userImg}" class="contact-avatar">
-                            <div class="contact-info">
-                                <span class="contact-name">${user.Username}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-                attachEvents();
+                renderUserList(users);
             })
             .catch(err => console.error('Error fetching users:', err));
     }
 
-    function attachEvents() {
-        document.querySelectorAll('.contact-item').forEach(item => {
-            item.onclick = function() {
-                activeReceiverID = this.getAttribute('data-id');
-                const userName = this.getAttribute('data-username');
-                const userImg = this.querySelector('img').src;
-                
-                chatWelcome.style.display = 'none';
-                chatActive.style.display = 'flex';
-
-                chatActive.innerHTML = `
-                    <div class="chat-header">
-                        <div class="header-info" style="display: flex; align-items: center; gap: 12px;">
-                            <div style="position: relative;">
-                                <img src="${userImg}" class="header-avatar" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
-                                <span style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background: #22c55e; border: 2px solid white; border-radius: 50%;"></span>
-                            </div>
-                            <div style="display: flex; flex-direction: column; justify-content: center;">
-                                <span class="header-name" style="font-weight: 700; font-size: 16px; line-height: 1.2;">${userName}</span>
-                                <span class="header-status" style="font-size: 13px; color: #22c55e;">Active now</span>
-                            </div>
-                        </div>
-                        <div class="header-actions" style="display: flex; align-items: center; gap: 20px;">
-                            <button class="call-btn"><i class="fa-solid fa-phone"></i></button>
-                            <button class="call-btn"><i class="fa-solid fa-video"></i></button>
-                            <button class="call-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                        </div>
+    function renderUserList(users) {
+        userListContainer.innerHTML = users.map(user => {
+            const userImg = user.ProfilePic ? `../../../public/img/${user.ProfilePic}` : 'https://via.placeholder.com/50';
+            return `
+                <div class="contact-item" onclick="selectUser('${user.UserID}', '${user.Username}', '${userImg}')">
+                    <img src="${userImg}" class="contact-avatar">
+                    <div class="contact-info">
+                        <span class="contact-name">${user.Username}</span>
                     </div>
-
-                    <div class="chat-messages" id="chat-box"></div>
-
-                    <div class="chat-input-area">
-                        <button class="action-btn"><i class="fa-regular fa-image"></i></button>
-                        <div class="input-wrapper">
-                            <textarea id="msg-input" rows="1" placeholder="Type a message..."></textarea>
-                        </div>
-                        <button class="action-btn"><i class="fa-solid fa-microphone"></i></button>
-                        <button id="send-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                `;
-                
-                const msgInput = document.getElementById('msg-input');
-                document.getElementById('send-btn').onclick = sendMessage;
-                
-                msgInput.onkeydown = function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                };
-
-                loadMessages();
-            };
-        });
+                </div>
+            `;
+        }).join('');
     }
 
+    // Window function ងាយស្រួលហៅពី HTML string
+    window.selectUser = function(id, name, img) {
+        activeReceiverID = id;
+        chatWelcome.style.display = 'none';
+        chatActive.style.display = 'flex';
+        
+        document.getElementById('active-user-name').innerText = name;
+        document.getElementById('active-user-img').src = img;
+        
+        loadMessages();
+    };
+
     function loadMessages() {
-    if (!activeReceiverID) return;
+        if (!activeReceiverID) return;
 
-    fetch(`${API_PATH}?action=fetch&receiver_id=${activeReceiverID}`)
-        .then(res => res.json())
-        .then(messages => {
-            const box = document.getElementById("chat-box");
-            if (!box) return;
+        fetch(`${API_PATH}?action=fetch&receiver_id=${activeReceiverID}`)
+            .then(res => res.json())
+            .then(messages => {
+                const myAvatar = document.getElementById('my-avatar-img').src;
+                const receiverAvatar = document.getElementById('active-user-img').src;
 
-            const receiverAvatar = document.querySelector(".header-avatar").src;
-            const myAvatar = document.querySelector(".user-profile img").src;
-
-            box.innerHTML = messages.map(m => {
-                const isMe = m.SenderID == CURRENT_USER_ID; 
-                
-                // --- ចំណុចត្រូវកែសម្រួល ---
-                let finalAvatar;
-                if (isMe) {
-                    finalAvatar = myAvatar;
-                } else {
-                    // បើជាសាររបស់គេ យើងឆែកមើលថាតើ m.ProfilePic មានឈ្មោះរូបភាពដែរឬទេ
-                    // ប្រសិនបើមាន យើងត្រូវថែមផ្លូវ (Path) ទៅកាន់ Folder រូបភាពឱ្យវា
-                    finalAvatar = (m.ProfilePic && m.ProfilePic !== 'default.png') 
-                                  ? `../../../public/img/${m.ProfilePic}` 
-                                  : receiverAvatar; 
-                }
-                // -----------------------
-
-                return `
-                    <div class="message-wrapper ${isMe ? 'me' : 'them'}">
-                        ${!isMe ? `<img src="${finalAvatar}" class="msg-avatar">` : ''}
-                        <div class="msg-content">
-                            <div class="msg-bubble">${m.MessageBody}</div>
-                            <span class="msg-time">
-                                ${new Date(m.SentAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                            </span>
+                chatBox.innerHTML = messages.map(m => {
+                    const isMe = m.SenderID == CURRENT_USER_ID;
+                    const avatar = isMe ? myAvatar : (m.ProfilePic && m.ProfilePic !== 'default.png' ? `../../../public/img/${m.ProfilePic}` : receiverAvatar);
+                    
+                    return `
+                        <div class="message-wrapper ${isMe ? 'me' : 'them'}">
+                            ${!isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
+                            <div class="msg-content">
+                                <div class="msg-bubble">${m.MessageBody}</div>
+                                <span class="msg-time">${formatTime(m.SentAt)}</span>
+                            </div>
+                            ${isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
                         </div>
-                        ${isMe ? `<img src="${finalAvatar}" class="msg-avatar">` : ''}
-                    </div>
-                `;
-            }).join("");
-
-            box.scrollTop = box.scrollHeight;
-        });
+                    `;
+                }).join("");
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
     }
 
     function sendMessage() {
-        const input = document.getElementById('msg-input');
-        const message = input.value.trim();
+        const message = msgInput.value.trim();
         if (!message || !activeReceiverID) return;
 
         const formData = new FormData();
@@ -151,11 +88,24 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    input.value = '';
+                    msgInput.value = '';
                     loadMessages();
                 }
             });
     }
+
+    function formatTime(dateStr) {
+        return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Events
+    sendBtn.onclick = sendMessage;
+    msgInput.onkeydown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
 
     fetchUsers();
     setInterval(loadMessages, 3000);

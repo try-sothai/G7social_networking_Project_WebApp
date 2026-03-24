@@ -47,20 +47,31 @@ if ($action === 'fetch') {
     }
     exit;
 }
-
 if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $messageBody = trim($_POST['message'] ?? '');
-        $receiver_id = intval($_POST['receiver_id'] ?? 0);
+    $messageBody = $_POST['message'] ?? '';
+    $receiver_id = intval($_POST['receiver_id']);
+    $type = 'text';
+    $fileUrl = null;
 
-        if (!empty($messageBody) && $receiver_id > 0 && $receiver_id !== $current_user_id) {
-            $status = $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody); 
-            echo json_encode(['status' => $status ? 'success' : 'error']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid message or receiver.']);
+    if (isset($_FILES['chat_file']) && $_FILES['chat_file']['error'] === 0) {
+        $ext = pathinfo($_FILES['chat_file']['name'], PATHINFO_EXTENSION);
+        $fileName = time() . '_' . uniqid() . '.' . $ext;
+        $uploadPath = "../../../public/uploads/chat/" . $fileName;
+
+        // បែងចែកប្រភេទហ្វាយ
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        $videoExtensions = ['mp4', 'mov', 'avi'];
+
+        if (in_array(strtolower($ext), $imageExtensions)) $type = 'image';
+        elseif (in_array(strtolower($ext), $videoExtensions)) $type = 'video';
+        else $type = 'file';
+
+        if (move_uploaded_file($_FILES['chat_file']['tmp_name'], $uploadPath)) {
+            $fileUrl = $fileName;
         }
-    } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
+
+    $status = $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody, $type, $fileUrl);
+    echo json_encode(['status' => $status ? 'success' : 'error']);
     exit;
 }

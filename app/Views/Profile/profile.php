@@ -18,6 +18,7 @@ $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
 
+<<<<<<< HEAD
 function parsePostMediaList($imagePathValue) {
     $raw = trim((string)$imagePathValue);
     if ($raw === '') {
@@ -76,6 +77,8 @@ foreach ($userPosts as $postRow) {
         'media_items' => $mediaItems,
     ];
 }
+=======
+>>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd
 ?>
 
 <!DOCTYPE html>
@@ -161,13 +164,20 @@ foreach ($userPosts as $postRow) {
                         <div class="stat-item"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
                         <div class="stat-item"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
 
+<<<<<<< HEAD
                         <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect!'; ?></p>
                         <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Phone']) ? htmlspecialchars($u_d['Phone']) : 'No location available'; ?></p>
+=======
+                        <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
+                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Locations']) ? htmlspecialchars($u_d['Locations']) : 'No location available'; ?></p>
+>>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd
 
                         <div class="interest-tags">
-                            <span class="interest-tag">Music</span>
-                            <span class="interest-tag">Technology</span>
-                            <span class="interest-tag">Travel</span>
+                            <?php
+                            $interests = $model->getInterests($user_id);
+                            foreach ($interests as $interest): ?>
+                                <span class="interest-tag"><?php echo htmlspecialchars($interest); ?></span>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>

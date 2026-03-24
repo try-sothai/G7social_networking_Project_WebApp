@@ -1,12 +1,8 @@
 <?php
     require_once __DIR__ . "/../../../config/db_config.php"; 
-
-    $current_user_id = 6;
     session_start();
-    $current_user_id = $_SESSION['user_id'] ?? 6;
-    // ProfileModel ត្រូវបានប្រើសម្រាប់ទាញយកព័ត៌មានអ្នកប្រើ
     require_once '../../Models/Profile/ProfileModel.php';
-    // សុវត្ថិភាព
+
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
@@ -15,7 +11,6 @@
     $model = new ProfileModel($conn);
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
-    
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -42,8 +37,7 @@
             <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
             <a href="../Friends/AddFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
             <a href="../Messages/message.php" class="item active"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>       
-             
+            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>      
         </nav>
 
         <button class="btn-create">
@@ -63,19 +57,12 @@
                 <div class="icon-btn"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
-                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                    <span class="notification-dot"></span>
                 </div>
                 <div class="user-profile">
-                    <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
+                    <span id="current-user-name" data-id="<?= $user_id ?>"><?= htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img src="<?php 
-                            $path = '../../../public/img/' . $u_d['ProfilePic'];
-                            if (!empty($u_d['ProfilePic']) && file_exists($path)) {
-                                echo $path;
-                            } else {
-                                echo 'https://via.placeholder.com/50'; // ដាក់រូប default បើអត់មានរូបពិត
-                            }
-                        ?>" alt="Profile">
+                        <img id="my-avatar-img" src="<?= !empty($u_d['ProfilePic']) ? '../../../public/img/' . $u_d['ProfilePic'] : 'https://via.placeholder.com/50' ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -83,33 +70,62 @@
 
         <div class="chat-container">
             <div class="chat-sidebar">
-                <!-- <div class="chat-search">
-                    <input type="text" placeholder="Search messages...">
-                </div> -->
-
                 <div class="contact-list" id="user-list-container">
-                    <div style="padding: 20px; text-align: center; color: #888;">Loading users...</div>
+                    <div class="loading-state">Loading users...</div>
                 </div>
             </div>
 
-            <div id="chat-welcome" class="chat-main" style="display: flex; align-items: center; justify-content: center; flex-direction: column; opacity: 0.6;">
-                <i class="fa-regular fa-comments" style="font-size: 60px; margin-bottom: 15px;"></i>
+            <div id="chat-welcome" class="chat-main empty-state">
+                <i class="fa-regular fa-comments"></i>
                 <h3>Please select a chat to start a conversation.</h3>
             </div>
                 
             <div id="chat-active" class="chat-main" style="display: none;">
+                <div class="chat-header">
+                    <div class="header-info">
+                        <div class="avatar-wrapper">
+                            <img src="" class="header-avatar" id="active-user-img">
+                            <span class="online-status"></span>
+                        </div>
+                        <div class="user-meta">
+                            <span class="header-name" id="active-user-name">...</span>
+                            <span class="header-status">Active now</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="call-btn"><i class="fa-solid fa-phone"></i></button>
+                        <button class="call-btn"><i class="fa-solid fa-video"></i></button>
+                        <button class="call-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
                 </div>
+
+                <div class="chat-messages" id="chat-box"></div>
+
+                <div class="chat-input-area">
+                    <button class="action-btn"><i class="fa-regular fa-image"></i></button>
+                    <div class="input-wrapper">
+                        <textarea id="msg-input" rows="1" placeholder="Type a message..."></textarea>
+                    </div>
+                    <button class="action-btn"><i class="fa-solid fa-microphone"></i></button>
+                    <button id="send-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
         </div>            
     </div>
 
     <script>
-    const API_PATH = '../../../app/Controllers/Messages/ChatController.php';
-    const CURRENT_USER_ID = <?php echo $_SESSION['user_id'] ?? 0; ?>;
-</script>
+        const API_PATH = '../../../app/Controllers/Messages/ChatController.php';
+        const CURRENT_USER_ID = <?= json_encode($user_id) ?>;
+    </script>
     <script src="../../../public/js/Messages/message.js"></script>
+<<<<<<< HEAD
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/Messages/call.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
 
+=======
+</body>
+</html>
+>>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $username = $_POST['username'] ?? '';
     $bio = $_POST['bio'] ?? '';
-    $phone = $_POST['phone'] ?? '';
+    $Locations = $_POST['Locations'] ?? '';
     $interests = isset($_POST['interests']) ? json_decode($_POST['interests'], true) : [];
     
     // យកឈ្មោះរូបភាពចាស់ជាមុន
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $result = $model->updateProfile($user_id, $username, $bio, $profile_pic, $phone);
+    $result = $model->updateProfile($user_id, $username, $bio, $profile_pic, $Locations);
     $model->updateInterests($user_id, $interests);
     
     // បញ្ជូនចម្លើយជា JSON ស្អាត (គ្មានអក្សរ HTML លាយឡំ)
