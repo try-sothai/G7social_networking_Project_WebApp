@@ -32,6 +32,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <script>
+        (function () {
+            const key = 'localconnect_theme';
+            if (!localStorage.getItem(key)) {
+                localStorage.setItem(key, 'dark');
+            }
+        })();
+    </script>
 </head>
 <body>
 
@@ -65,7 +73,7 @@
             </div>
 
             <div class="header-actions">
-                <div class="icon-btn"><i class="fa-solid fa-moon"></i></div>
+                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
                     <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
@@ -189,21 +197,47 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <form id="create-post-form" class="story-upload-form" enctype="multipart/form-data">
-                <label for="post-media-input" class="story-file-label">
-                    <i class="fa-solid fa-photo-film"></i>
-                    <span>Choose Photos or Videos</span>
-                </label>
+            <form id="create-post-form" class="story-upload-form create-post-modern-form" enctype="multipart/form-data">
+                <div class="create-post-user-row">
+                    <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile" class="create-post-user-avatar">
+                    <div class="create-post-user-meta">
+                        <strong><?php echo htmlspecialchars($u_d['Username']); ?></strong>
+                        <select name="visibility" class="create-post-privacy">
+                            <option value="public">Public</option>
+                            <option value="friends">Friends</option>
+                            <option value="private">Only me</option>
+                        </select>
+                    </div>
+                </div>
+
+                <textarea id="post-content-input" name="content" maxlength="800" placeholder="What's on your mind?"></textarea>
+
                 <input type="file" id="post-media-input" name="post_media[]" accept="image/*,video/*" multiple>
                 <div class="story-file-name" id="post-selected-file-name">No file chosen</div>
 
                 <div class="post-editor-area" id="post-editor-area">
                     <div class="post-editor-preview" id="post-editor-preview"></div>
-                    <label for="post-content-input">Caption</label>
-                    <textarea id="post-content-input" name="content" maxlength="800" placeholder="Write something about this post..."></textarea>
                 </div>
 
-                <button type="submit" class="story-upload-btn">Post to Website</button>
+                <div class="create-post-tool-row">
+                    <label for="post-media-input" class="create-post-tool-pill">
+                        <i class="fa-solid fa-image"></i>
+                        <span>Photo/Video</span>
+                    </label>
+                    <label for="post-location-input" class="create-post-tool-pill">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Location</span>
+                    </label>
+                    <label for="post-feeling-input" class="create-post-tool-pill">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <span>Feeling</span>
+                    </label>
+                </div>
+
+                <input type="text" id="post-location-input" name="location" class="create-post-extra-input" placeholder="Add location">
+                <input type="text" id="post-feeling-input" name="feeling" class="create-post-extra-input" placeholder="How are you feeling?">
+
+                <button type="submit" class="story-upload-btn create-post-submit-btn"><i class="fa-solid fa-paper-plane"></i> Post</button>
                 <p class="story-modal-message" id="post-modal-message"></p>
             </form>
         </div>

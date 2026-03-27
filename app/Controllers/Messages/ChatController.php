@@ -1,15 +1,11 @@
 <?php
 session_start();
 require_once __DIR__ . "/../../../config/db_config.php";
-require_once __DIR__ . "/../../Models/Messages/MessageModel.php"; 
+require_once __DIR__ . "/../../Models/Messages/MessageModel.php";
 
 header('Content-Type: application/json');
 
-<<<<<<< HEAD
-$current_user_id = (int)($_SESSION['user_id'] ?? 0); 
-=======
-$current_user_id = $_SESSION['user_id'] ?? null;
->>>>>>> d24310f1a8573ad24fc75739cdb1185198e0f56b
+$current_user_id = (int)($_SESSION['user_id'] ?? 0);
 
 if (!$current_user_id) {
     echo json_encode(['error' => 'Unauthorized: Please login first.']);
@@ -17,7 +13,7 @@ if (!$current_user_id) {
 }
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
-$messageModel = new MessageModel($conn); 
+$messageModel = new MessageModel($conn);
 
 // Fetch friends with last message
 if ($action === 'fetch_friends') {
@@ -66,16 +62,16 @@ if ($action === 'search_all_users') {
 if ($action === 'fetch') {
     try {
         $receiver_id = intval($_GET['receiver_id'] ?? 0);
-        
+
         if ($receiver_id === $current_user_id) {
             echo json_encode([]);
             exit;
         }
-        
+
         // Mark messages as read
         $messageModel->markAsRead($current_user_id, $receiver_id);
-        
-        $messages = $messageModel->getChatHistory($current_user_id, $receiver_id); 
+
+        $messages = $messageModel->getChatHistory($current_user_id, $receiver_id);
         echo json_encode($messages);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
@@ -89,7 +85,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $receiver_id = intval($_POST['receiver_id'] ?? 0);
     $type = $_POST['type'] ?? 'text';
     $fileUrl = null;
-    
+
     // Handle file upload
     if (isset($_FILES['chat_file'])) {
         $uploadError = $_FILES['chat_file']['error'];
@@ -107,28 +103,28 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $uploadDir = "../../../public/uploads/chat/";
-        
+
         // Create directory if not exists
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
-        
+
         $file = $_FILES['chat_file'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $fileName = time() . '_' . uniqid() . '.' . $ext;
         $uploadPath = $uploadDir . $fileName;
-        
+
         // Determine file type
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', '3gp', 'ogv', 'mts', 'ts', 'm2ts'];
         $audioExtensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac', 'wma'];
-        
+
         // File size limits (in bytes)
         $maxImageSize = 50 * 1024 * 1024;     // 50 MB for images
         $maxVideoSize = 200 * 1024 * 1024;    // 200 MB for videos
         $maxAudioSize = 50 * 1024 * 1024;     // 50 MB for audio
         $maxFileSize = 100 * 1024 * 1024;     // 100 MB for other files
-        
+
         if (in_array($ext, $imageExtensions)) {
             $type = 'image';
             $maxSize = $maxImageSize;
@@ -142,24 +138,24 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $type = 'file';
             $maxSize = $maxFileSize;
         }
-        
+
         // Check file size
         if ($file['size'] > $maxSize) {
             $maxSizeMB = round($maxSize / (1024 * 1024), 1);
             echo json_encode(['status' => 'error', 'message' => "File size exceeds {$maxSizeMB}MB limit"]);
             exit;
         }
-        
+
         // Compress image if it's an image
         if ($type === 'image') {
             compressImage($file['tmp_name'], $uploadPath, 800);
         } else {
             move_uploaded_file($file['tmp_name'], $uploadPath);
         }
-        
+
         $fileUrl = $fileName;
     }
-    
+
     // Handle call recording (audio file)
     if ($type === 'call' && isset($_FILES['call_recording'])) {
         $uploadDir = "../../../public/uploads/calls/";
@@ -172,9 +168,9 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $fileUrl = $fileName;
         $messageBody = "Voice message";
     }
-    
+
     $messageId = $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody, $type, $fileUrl);
-    
+
     echo json_encode([
         'status' => $messageId ? 'success' : 'error',
         'message_id' => $messageId,
@@ -183,18 +179,16 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     ]);
     exit;
 }
-<<<<<<< HEAD
-=======
 
 // Start a call
 if ($action === 'start_call') {
     $receiver_id = intval($_POST['receiver_id'] ?? 0);
     $callType = $_POST['call_type'] ?? 'audio'; // audio or video
-    
+
     // Create a call notification message
-    $messageBody = "📞 " . ($callType === 'video' ? 'Video' : 'Audio') . " call started";
+    $messageBody = ($callType === 'video' ? 'Video' : 'Audio') . ' call started';
     $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody, 'call', null);
-    
+
     echo json_encode([
         'success' => true,
         'call_id' => uniqid(),
@@ -208,7 +202,7 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $message_id = intval($_POST['message_id'] ?? 0);
         $new_text = trim($_POST['message'] ?? '');
-        
+
         if (!$message_id || $new_text === '') {
             echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
             exit;
@@ -244,14 +238,14 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $message_id = intval($_POST['message_id'] ?? 0);
-        
+
         if (!$message_id) {
             echo json_encode(['success' => false, 'error' => 'Invalid message ID']);
             exit;
         }
-        
+
         $success = $messageModel->deleteMessage($message_id, $current_user_id);
-        
+
         if ($success) {
             echo json_encode(['success' => true, 'message' => 'Message deleted']);
         } else {
@@ -266,7 +260,7 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // Image compression function
 function compressImage($source, $destination, $quality) {
     $info = getimagesize($source);
-    
+
     if ($info['mime'] == 'image/jpeg') {
         $image = imagecreatefromjpeg($source);
         imagejpeg($image, $destination, $quality);
@@ -277,11 +271,10 @@ function compressImage($source, $destination, $quality) {
         $image = imagecreatefromgif($source);
         imagegif($image, $destination);
     }
-    
+
     imagedestroy($image);
     return true;
 }
 
 echo json_encode(['error' => 'Invalid action']);
 ?>
->>>>>>> d24310f1a8573ad24fc75739cdb1185198e0f56b
