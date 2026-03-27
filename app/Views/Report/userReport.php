@@ -7,7 +7,7 @@ require_once '../../Models/Report/ReportModel.php';
 
 // Security: Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../Login/login_gmail.php");
+    header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
     exit();
 }
 
@@ -81,8 +81,8 @@ function timeAgo($datetime) {
     <title>Social Activity & Engagement Report | LocalConnect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Report/userReport.css">
-    <link rel="stylesheet" href="../../../public/css/home/dashboard.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Report/userReport.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/home/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -93,16 +93,16 @@ function timeAgo($datetime) {
         </div>
         
         <nav class="menu">
-            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="userReport.php" class="item active"><i class="fa-solid fa-chart-simple"></i> Report</a> 
+            <a href="<?= BASE_URL ?>app/Views/Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="<?= BASE_URL ?>app/Views/Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
+            <a href="<?= BASE_URL ?>app/Views/Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
+            <a href="<?= BASE_URL ?>app/Views/Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
+            <a href="<?= BASE_URL ?>app/Views/Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
+            <a href="<?= BASE_URL ?>app/Views/Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
+            <a href="<?= BASE_URL ?>app/Views/Report/userReport.php" class="item active"><i class="fa-solid fa-chart-simple"></i> Report</a> 
         </nav>
 
-        <button class="btn-create" onclick="location.href='../Posts/createPost.php'">
+        <button class="btn-create" onclick="location.href='<?= BASE_URL ?>app/Views/Posts/createPost.php'">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -348,7 +348,7 @@ function timeAgo($datetime) {
                         mode: 'index',
                         intersect: false,
                         backgroundColor: '#1e293b',
-                        titleColor: '#f1f5f9',
+                        titleColor: '#f1f5f9',.
                         bodyColor: '#cbd5e1'
                     }
                 },

@@ -14,6 +14,30 @@
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
     $stats = $model->getProfileStats($user_id);
+
+    require_once '../../Models/Events/EventModel.php';
+
+    $eventModel = new EventModel($conn);
+    $upcomingEvents = $eventModel->getUpcomingEvents();
+    $myEvents = $eventModel->getEventsByUserId($user_id);
+    $allEvents = $eventModel->getAllEvents();
+
+    function formatEventDate($datetime) {
+        $eventDate = new DateTime($datetime);
+        $now = new DateTime();
+        $interval = $now->diff($eventDate);
+
+        if ($eventDate->format('Y-m-d') == $now->format('Y-m-d')) {
+            return 'Today';
+        }
+        if ($eventDate->format('Y-m-d') == (new DateTime('+1 day'))->format('Y-m-d')) {
+            return 'Tomorrow';
+        }
+        if ($interval->days < 7) {
+            return $eventDate->format('l'); // e.g., Monday
+        }
+        return $eventDate->format('M j, Y'); // e.g., Mar 22, 2026
+    }
     
 ?>
 <!DOCTYPE html>
@@ -22,10 +46,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Events/events.css">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <style>
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e293b;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            margin-left: 8px;
+            box-sizing: border-box;
+        }
+        .icon-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            transform: scale(1.07);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.25);
+        }
+        .tab {
+            cursor: pointer;
+            border-radius: 12px;
+            color: #1e293b;
+            background: rgba(255,255,255,0.7);
+            transition: all 0.3s ease;
+            padding: 10px 16px;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        .events-list.hidden {
+            display: none;
+        }
+        .dark-mode .icon-btn {
+            background: rgba(255,255,255,0.12);
+            color: #e2e8f0;
+            border-color: rgba(226,232,240,0.3);
+        }
+        .dark-mode .icon-btn.active {
+            background: linear-gradient(135deg, #f97316, #fb923c);
+            color: #fff;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
 
@@ -59,8 +150,8 @@
             </div>
             
             <div class="header-actions">
-                <div class="icon-btn"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;">
+                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
+                <div class="icon-btn notifications-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
                     <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
                 </div>
@@ -81,73 +172,221 @@
         </header>
                 
                 <div class="events-container">
+            <div id="toast" class="toast"></div>
             <div class="events-header">
                 <h1>Events</h1>
-                <button class="btn-primary"><i class="fa-solid fa-plus"></i> Create Event</button>
+                <a href="create_event.php" class="btn-primary"><i class="fa-solid fa-plus"></i> Create Event</a>
             </div>
 
             <div class="events-tabs">
                 <div class="tab active">Upcoming Events</div>
-                <div class="tab">My Events (3)</div>
+                <div class="tab">My Events (<?php echo count($myEvents); ?>)</div>
             </div>
 
-            <div class="events-list">
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80" alt="Yoga">
-                    </div>
-                    <div class="event-details">
-                        <div class="event-info-top">
-                            <span class="tag health">Health & Wellness</span>
-                            <span class="event-date-text">Tomorrow</span>
-                        </div>
-                        <h3>Community Yoga in the Park</h3>
-                        <p class="event-desc">Free outdoor yoga session. All levels welcome! Bring your own mat.</p>
-                        
-                        <div class="event-meta">
-                            <span><i class="fa-regular fa-clock"></i> 1:44 PM</span>
-                            <span><i class="fa-solid fa-location-dot"></i> Golden Gate Park, San Francisco</span>
-                            <span><i class="fa-solid fa-users"></i> 1 going</span>
-                        </div>
+            <div id="upcoming-events" class="events-list">
+                <?php if (empty($upcomingEvents) && empty($allEvents)): ?>
+                    <p class="no-events-message" style="text-align: center; padding: 2rem;">No events found.</p>
+                <?php endif; ?>
 
-                        <div class="event-actions">
-                            <button class="btn-status going"><i class="fa-solid fa-check"></i> Going</button>
-                            <button class="btn-status interested">Interested</button>
-                        </div>
-                    </div>
-                </div>
+                <?php $eventsToRender = !empty($upcomingEvents) ? $upcomingEvents : $allEvents; ?>
+                <?php foreach ($eventsToRender as $event): ?>
+                    <div class="event-card">
+                            <div class="event-image">
+                                <img src="<?php echo !empty($event['ImagePath']) ? '../../../public/' . htmlspecialchars($event['ImagePath']) : 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'; ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
+                            </div>
+                            <div class="event-details">
+                                <div class="event-info-top">
+                                    <span class="tag health">Event</span>
+                                    <span class="event-date-text"><?php echo formatEventDate($event['EventDateTime']); ?></span>
+                                </div>
+                                <h3><?php echo htmlspecialchars($event['Title']); ?></h3>
+                                <p class="event-desc"><?php echo nl2br(htmlspecialchars($event['Description'])); ?></p>
+                                
+                                <div class="event-meta">
+                                    <span><i class="fa-regular fa-clock"></i> <?php echo (new DateTime($event['EventDateTime']))->format('g:i A'); ?></span>
+                                    <span><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($event['Location']); ?></span>
+                                    <span><i class="fa-solid fa-user"></i> Created by <?php echo htmlspecialchars($event['Username']); ?></span>
+                                </div>
 
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1488459711615-228f39596750?auto=format&fit=crop&w=800&q=80" alt="Market">
-                    </div>
-                    <div class="event-details">
-                        <div class="event-info-top">
-                            <span class="tag market">Market</span>
-                            <span class="event-date-text">Mar 5, 2026</span>
+                                <div class="event-actions">
+                                    <button class="btn-status interested">Interested</button>
+                                </div>
+                            </div>
                         </div>
-                        <h3>Weekend Farmers Market</h3>
-                        <p class="event-desc">Fresh local produce, artisan goods, and live music. Every Saturday morning!</p>
-                        
-                        <div class="event-meta">
-                            <span><i class="fa-regular fa-clock"></i> 1:44 PM</span>
-                            <span><i class="fa-solid fa-location-dot"></i> Ferry Building, San Francisco</span>
-                            <span><i class="fa-solid fa-users"></i> 3 going</span>
-                        </div>
+                    <?php endforeach; ?>
+            </div>
 
-                        <div class="event-actions">
-                            <button class="btn-status going"><i class="fa-solid fa-check"></i> Going</button>
-                            <button class="btn-status interested">Interested</button>
+            <div id="my-events" class="events-list hidden">
+                <?php if (empty($myEvents)): ?>
+                    <p class="no-events-message" style="text-align: center; padding: 2rem;">You have no events yet.</p>
+                <?php else: ?>
+                    <?php foreach ($myEvents as $event): ?>
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="<?php echo !empty($event['ImagePath']) ? '../../../public/' . htmlspecialchars($event['ImagePath']) : 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'; ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
+                            </div>
+                            <div class="event-details">
+                                <div class="event-info-top">
+                                    <span class="tag health">My Event</span>
+                                    <span class="event-date-text"><?php echo formatEventDate($event['EventDateTime']); ?></span>
+                                </div>
+                                <h3><?php echo htmlspecialchars($event['Title']); ?></h3>
+                                <p class="event-desc"><?php echo nl2br(htmlspecialchars($event['Description'])); ?></p>
+                                <div class="event-meta">
+                                    <span><i class="fa-regular fa-clock"></i> <?php echo (new DateTime($event['EventDateTime']))->format('g:i A'); ?></span>
+                                    <span><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($event['Location']); ?></span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
 
 
         </div>
     </div>
-    <script src="../../../public/js/common/theme-toggle.js"></script>
+
+    <div class="story-modal-overlay" id="add-story-modal">
+        <div class="story-modal-card">
+            <div class="story-modal-header">
+                <h3>Add New Story</h3>
+                <button class="story-modal-close" id="close-add-story" type="button">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="add-story-form" class="story-upload-form" action="../Home/story_editor.php" method="post" enctype="multipart/form-data">
+                <label for="story-media-input" class="story-file-label">
+                    <i class="fa-solid fa-image"></i>
+                    <span>Choose Image or Video</span>
+                </label>
+                <input type="file" id="story-media-input" name="story_media" accept="image/*,video/*">
+                <div class="story-file-name" id="selected-file-name">No file chosen</div>
+                <button type="submit" class="story-upload-btn">Continue to Edit</button>
+                <p class="story-modal-message" id="story-modal-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const createPostBtn = document.querySelector('.btn-create');
+            const addStoryModal = document.getElementById('add-story-modal');
+            const closeAddStoryBtn = document.getElementById('close-add-story');
+            const storyMediaInput = document.getElementById('story-media-input');
+            const selectedFileName = document.getElementById('selected-file-name');
+
+            const themeBtn = document.querySelector('.theme-toggle');
+            const bellBtn = document.querySelector('.notifications-btn');
+            const themeIcon = themeBtn?.querySelector('i');
+
+            const upcomingTab = document.querySelector('.events-tabs .tab:first-child');
+            const myEventsTab = document.querySelector('.events-tabs .tab:last-child');
+            const upcomingSection = document.getElementById('upcoming-events');
+            const myEventsSection = document.getElementById('my-events');
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    themeBtn?.classList.add('active');
+                    themeIcon && (themeIcon.className = 'fa-solid fa-sun');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeBtn?.classList.remove('active');
+                    themeIcon && (themeIcon.className = 'fa-solid fa-moon');
+                }
+                localStorage.setItem('theme', theme);
+            }
+
+            if (localStorage.getItem('theme') === 'dark') {
+                applyTheme('dark');
+            } else {
+                applyTheme('light');
+            }
+
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+                    applyTheme(newTheme);
+                });
+            }
+
+            if (bellBtn) {
+                bellBtn.addEventListener('click', () => {
+                    bellBtn.classList.add('active');
+                    setTimeout(() => bellBtn.classList.remove('active'), 350);
+                    alert('មិនមានការជូនដំណឹងថ្មីទេ');
+                });
+            }
+
+            function switchTab(tab) {
+                if (tab === 'upcoming') {
+                    upcomingTab?.classList.add('active');
+                    myEventsTab?.classList.remove('active');
+                    upcomingSection?.classList.remove('hidden');
+                    myEventsSection?.classList.add('hidden');
+                } else {
+                    myEventsTab?.classList.add('active');
+                    upcomingTab?.classList.remove('active');
+                    myEventsSection?.classList.remove('hidden');
+                    upcomingSection?.classList.add('hidden');
+                }
+            }
+
+            if (upcomingTab) {
+                upcomingTab.addEventListener('click', () => switchTab('upcoming'));
+            }
+            if (myEventsTab) {
+                myEventsTab.addEventListener('click', () => switchTab('my'));
+            }
+
+            switchTab('upcoming');
+
+            const toastEl = document.getElementById('toast');
+            function showToast(message) {
+                if (!toastEl) return;
+                toastEl.textContent = message;
+                toastEl.classList.add('show');
+                setTimeout(() => toastEl.classList.remove('show'), 2200);
+            }
+
+            document.querySelectorAll('.btn-status.interested').forEach(button => {
+                button.addEventListener('click', () => {
+                    button.textContent = 'Interest Sent';
+                    button.disabled = true;
+                    button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    showToast('Interest registered!');
+                });
+            });
+
+            if (createPostBtn && addStoryModal) {
+                createPostBtn.addEventListener('click', () => {
+                    addStoryModal.classList.add('active');
+                });
+            }
+
+            if (closeAddStoryBtn && addStoryModal) {
+                closeAddStoryBtn.addEventListener('click', () => {
+                    addStoryModal.classList.remove('active');
+                });
+            }
+
+            if (addStoryModal) {
+                addStoryModal.addEventListener('click', (event) => {
+                    if (event.target === addStoryModal) {
+                        addStoryModal.classList.remove('active');
+                    }
+                });
+            }
+
+            if (storyMediaInput && selectedFileName) {
+                storyMediaInput.addEventListener('change', () => {
+                    const file = storyMediaInput.files && storyMediaInput.files[0];
+                    selectedFileName.textContent = file ? file.name : 'No file chosen';
+                });
+            }
+        });
+    </script>
 </body>
 </html>
-
