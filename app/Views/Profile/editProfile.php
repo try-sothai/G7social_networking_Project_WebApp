@@ -93,7 +93,10 @@ $interests = $model->getInterests($user_id);
                                 echo 'https://via.placeholder.com/150';
                             }
                         ?>" alt="Profile">
-                    <label for="upload-photo" class="change-photo" style="cursor:pointer;">Change Photo</label>
+                    <label for="upload-photo" class="change-photo-btn">
+                        <i class="fa-solid fa-camera"></i>
+                        Change Photo
+                    </label>
                     <input type="file" id="upload-photo" style="display:none;" accept="image/*">
                 </div>
                 <div class="profile-info">

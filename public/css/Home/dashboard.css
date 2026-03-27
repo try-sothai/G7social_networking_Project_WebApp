@@ -1090,7 +1090,272 @@ body.fb-dashboard .stories-container .story-card.story-item {
 }
 
 .post-modal-card {
-    width: min(560px, 100%);
+    width: min(520px, 100%);
+    border-radius: 22px;
+}
+
+#create-post-modal {
+    backdrop-filter: blur(3px);
+}
+
+#create-post-modal .story-modal-header {
+    padding: 22px 24px 16px;
+}
+
+#create-post-modal .story-modal-header h3 {
+    font-size: 34px;
+}
+
+.create-post-modern-form {
+    padding: 10px 22px 20px;
+    gap: 12px;
+}
+
+.create-post-user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.create-post-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    object-fit: cover;
+}
+
+.create-post-user-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.create-post-user-meta strong {
+    font-size: 15px;
+    line-height: 1;
+    color: #111827;
+}
+
+.create-post-privacy {
+    width: 120px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 12px;
+    color: #475569;
+}
+
+#create-post-modal #post-content-input {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #edf2f7;
+    border-bottom: 1px solid #edf2f7;
+    padding: 14px 0;
+    font-size: 24px;
+    font-weight: 600;
+    min-height: 124px;
+    resize: vertical;
+    color: #1f2937;
+    outline: none;
+}
+
+#create-post-modal #post-content-input::placeholder {
+    color: #94a3b8;
+}
+
+.create-post-tool-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.create-post-tool-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.create-post-tool-pill:hover {
+    background: #e2e8f0;
+}
+
+.create-post-extra-input {
+    display: none;
+}
+
+.create-post-submit-btn {
+    border-radius: 999px;
+    font-size: 24px;
+    font-weight: 800;
+    padding: 14px;
+    background: linear-gradient(90deg, #5b6cff 0%, #4f46e5 100%);
+}
+
+.create-post-submit-btn i {
+    margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+    #create-post-modal .story-modal-header h3 {
+        font-size: 26px;
+    }
+
+    #create-post-modal #post-content-input {
+        font-size: 18px;
+        min-height: 96px;
+    }
+
+    .create-post-tool-row {
+        grid-template-columns: 1fr;
+    }
+
+    .create-post-submit-btn {
+        font-size: 20px;
+    }
+}
+
+#edit-post-modal {
+    backdrop-filter: blur(3px);
+}
+
+#edit-post-modal .post-modal-card {
+    width: min(640px, 100%);
+    border-radius: 24px;
+}
+
+#edit-post-modal .story-modal-header {
+    padding: 20px 22px 16px;
+}
+
+#edit-post-modal .story-modal-header h3 {
+    font-size: 34px;
+    font-weight: 800;
+}
+
+#edit-post-modal #edit-post-form {
+    padding: 20px 22px 22px;
+    gap: 12px;
+}
+
+#edit-post-modal .story-file-label {
+    border: 2px dashed #93c5fd;
+    border-radius: 16px;
+    color: #2563eb;
+    font-size: 26px;
+    font-weight: 700;
+    padding: 16px;
+}
+
+#edit-post-modal .story-file-name {
+    color: #64748b;
+    font-size: 16px;
+    margin: 2px 0 6px;
+}
+
+#edit-post-modal .post-editor-area.active {
+    display: flex;
+    gap: 12px;
+}
+
+#edit-post-modal .post-editor-preview {
+    background: #cfd5df;
+    border-radius: 18px;
+    min-height: 280px;
+    max-height: 300px;
+    padding: 12px;
+}
+
+#edit-post-modal .post-editor-preview-grid {
+    display: flex;
+    gap: 12px;
+    height: 100%;
+    padding: 0;
+}
+
+#edit-post-modal .post-editor-thumb {
+    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
+    min-height: 240px;
+    border-radius: 14px;
+}
+
+#edit-post-modal .post-editor-thumb img,
+#edit-post-modal .post-editor-thumb video {
+    max-height: none;
+    height: 100%;
+}
+
+#edit-post-modal .post-thumb-remove {
+    background: rgba(15, 23, 42, 0.9);
+    width: 32px;
+    height: 32px;
+}
+
+#edit-post-modal label[for="edit-post-content-input"] {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+#edit-post-modal #edit-post-content-input {
+    border: 1px solid #94a3b8;
+    border-radius: 0;
+    padding: 10px 12px;
+    min-height: 90px;
+    font-size: 16px;
+    color: #111827;
+    resize: vertical;
+    width: 100%;
+}
+
+#edit-post-modal .story-upload-btn {
+    border-radius: 16px;
+    font-size: 20px;
+    font-weight: 800;
+    padding: 14px;
+    background: linear-gradient(90deg, #5b6cff 0%, #7c4dff 100%);
+}
+
+#edit-post-modal #edit-post-modal-message {
+    font-size: 14px;
+    min-height: 26px;
+}
+
+@media (max-width: 768px) {
+    #edit-post-modal .story-modal-header h3 {
+        font-size: 28px;
+    }
+
+    #edit-post-modal .story-file-label,
+    #edit-post-modal .story-file-name,
+    #edit-post-modal label[for="edit-post-content-input"],
+    #edit-post-modal #edit-post-content-input,
+    #edit-post-modal .story-upload-btn,
+    #edit-post-modal #edit-post-modal-message {
+        font-size: 16px;
+    }
+
+    #edit-post-modal .post-editor-preview {
+        min-height: 210px;
+    }
+
+    #edit-post-modal .post-editor-thumb {
+        width: 160px;
+        min-width: 160px;
+        min-height: 180px;
+    }
 }
 
 .post-editor-area {
@@ -1376,4 +1641,51 @@ body.dark-mode .post-menu-item {
 
 body.dark-mode .post-menu-item:hover {
     background: rgba(148, 163, 184, 0.15);
+}
+
+body.dark-mode #create-post-modal .post-modal-card {
+    background: #0f172a;
+}
+
+body.dark-mode #create-post-modal .story-modal-header {
+    border-bottom-color: rgba(148, 163, 184, 0.25);
+}
+
+body.dark-mode .create-post-user-meta strong,
+body.dark-mode #create-post-modal #post-content-input {
+    color: #e2e8f0;
+}
+
+body.dark-mode #create-post-modal #post-content-input {
+    border-top-color: rgba(148, 163, 184, 0.2);
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+body.dark-mode .create-post-privacy {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+body.dark-mode .create-post-tool-pill {
+    background: #1e293b;
+    color: #cbd5e1;
+}
+
+body.dark-mode #edit-post-modal .post-modal-card {
+    background: #0f172a;
+}
+
+body.dark-mode #edit-post-modal .story-modal-header {
+    border-bottom-color: rgba(148, 163, 184, 0.25);
+}
+
+body.dark-mode #edit-post-modal label[for="edit-post-content-input"] {
+    color: #e2e8f0;
+}
+
+body.dark-mode #edit-post-modal #edit-post-content-input {
+    background: #0b1220;
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.35);
 }
