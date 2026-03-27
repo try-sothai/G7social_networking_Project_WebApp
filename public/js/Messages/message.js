@@ -4,6 +4,7 @@ class MessageChat {
         this.activeReceiverID = null;
         this.activeReceiverName = '';
         this.activeReceiverAvatar = '';
+        this.activeReceiverOnline = false;
         this.mediaRecorder = null;
         this.audioChunks = [];
         this.isRecording = false;
@@ -34,6 +35,8 @@ class MessageChat {
             callVideoBtn: document.getElementById('call-video-btn'),
             activeUserName: document.getElementById('active-user-name'),
             activeUserImg: document.getElementById('active-user-img'),
+            activeUserStatus: document.querySelector('.header-status'),
+            activeUserOnlineDot: document.querySelector('.online-status'),
             myAvatar: document.getElementById('my-avatar-img')
         };
     }
@@ -165,6 +168,9 @@ class MessageChat {
             
             const unreadBadge = friend.unread_count > 0 ? 
                 `<span class="unread-badge">${friend.unread_count}</span>` : '';
+            const onlineBadge = Number(friend.IsOnline) === 1
+                ? `<span class="contact-online"><i class="fa-solid fa-circle"></i> Online</span>`
+                : '';
             
             return `
                 <div class="contact-item" data-user-id="${friend.UserID}" onclick="chatApp.selectUser('${friend.UserID}', '${this.escapeHtml(friend.Username)}', '${userImg}', this)">
@@ -175,6 +181,7 @@ class MessageChat {
                             <small>${this.formatTimeShort(friend.last_message_time)}</small>
                         </div>
                         <p class="last-message">${this.escapeHtml(lastMessage)}</p>
+                        ${onlineBadge}
                     </div>
                     ${unreadBadge}
                 </div>
@@ -196,12 +203,19 @@ class MessageChat {
         this.activeReceiverID = id;
         this.activeReceiverName = name;
         this.activeReceiverAvatar = img;
+        this.activeReceiverOnline = !!itemElement?.querySelector('.contact-online');
         
         this.elements.chatWelcome.style.display = 'none';
         this.elements.chatActive.style.display = 'flex';
         
         this.elements.activeUserName.innerText = name;
         this.elements.activeUserImg.src = img;
+        if (this.elements.activeUserStatus) {
+            this.elements.activeUserStatus.innerText = this.activeReceiverOnline ? 'Online' : 'Offline';
+        }
+        if (this.elements.activeUserOnlineDot) {
+            this.elements.activeUserOnlineDot.style.display = this.activeReceiverOnline ? 'inline-block' : 'none';
+        }
         
         this.loadMessages();
         this.markMessagesAsRead(id);
@@ -249,7 +263,7 @@ class MessageChat {
                 <div class="message-wrapper ${isMe ? 'me' : 'them'}" id="message-${m.MessageID}">
                     ${!isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
                     <div class="message-content">
-                        <div class="msg-bubble">${messageContent}</div>
+                        <div class="msg-bubble ${m.MessageType === 'audio' ? 'msg-bubble-audio' : ''}">${messageContent}</div>
                         <span class="msg-time">${timeStr}</span>
                         <div class="message-actions">
                             ${canEdit ? `<button class="btn-edit" onclick="chatApp.openEditModal(${m.MessageID}, '${this.escapeJs(m.MessageBody)}')" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
@@ -305,7 +319,12 @@ class MessageChat {
                 if (message.FileUrl) {
                     content = `
                         <div class="audio-message">
-                            <audio controls src="${window.APP_CONFIG.chatPath}${message.FileUrl}"></audio>
+                            <button class="audio-download-btn" onclick="chatApp.downloadFile('${window.APP_CONFIG.chatPath}${message.FileUrl}')" title="Download audio">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                            <div class="audio-player-wrap">
+                                <audio controls src="${window.APP_CONFIG.chatPath}${message.FileUrl}"></audio>
+                            </div>
                         </div>
                     `;
                 }

@@ -6,6 +6,26 @@ class MessageModel {
         $this->db = $conn;
     }
 
+    private function ensurePresenceTable() {
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS user_presence (
+                UserID INT PRIMARY KEY,
+                LastSeen DATETIME NOT NULL,
+                INDEX idx_last_seen (LastSeen)
+            )
+        ");
+    }
+
+    public function touchPresence($userId) {
+        $this->ensurePresenceTable();
+        $stmt = $this->db->prepare("
+            INSERT INTO user_presence (UserID, LastSeen)
+            VALUES (:uid, NOW())
+            ON DUPLICATE KEY UPDATE LastSeen = NOW()
+        ");
+        return $stmt->execute([':uid' => $userId]);
+    }
+
     /* ===== INSERT MESSAGE ===== */
     public function sendMessage($senderId, $receiverId, $messageBody, $type = 'text', $fileUrl = null) {
         $stmt = $this->db->prepare("
@@ -47,9 +67,14 @@ class MessageModel {
     
     /* ===== GET FRIENDS WITH LAST MESSAGE ===== */
     public function getFriendsWithLastMessage($userId) {
+        $this->ensurePresenceTable();
         $stmt = $this->db->prepare("
             SELECT 
                 u.UserID, u.Username, u.ProfilePic, u.Bio,
+                CASE 
+                    WHEN up.LastSeen IS NOT NULL AND up.LastSeen >= DATE_SUB(NOW(), INTERVAL 2 MINUTE) 
+                    THEN 1 ELSE 0 
+                END as IsOnline,
                 (
                     SELECT MessageBody 
                     FROM messages 
@@ -80,6 +105,7 @@ class MessageModel {
                     WHERE ReceiverID = :uid AND SenderID = u.UserID AND IsRead = 0
                 ) as unread_count
             FROM users u
+            LEFT JOIN user_presence up ON up.UserID = u.UserID
             INNER JOIN friends f ON 
                 (f.RequesterID = u.UserID AND f.ReceiverID = :uid) OR 
                 (f.ReceiverID = u.UserID AND f.RequesterID = :uid)
@@ -93,15 +119,21 @@ class MessageModel {
     
     /* ===== SEARCH USERS (Friends Only) ===== */
     public function searchFriends($userId, $searchTerm) {
+        $this->ensurePresenceTable();
         $searchTerm = "%{$searchTerm}%";
         $stmt = $this->db->prepare("
             SELECT u.UserID, u.Username, u.ProfilePic, u.Bio,
+                   CASE 
+                       WHEN up.LastSeen IS NOT NULL AND up.LastSeen >= DATE_SUB(NOW(), INTERVAL 2 MINUTE) 
+                       THEN 1 ELSE 0 
+                   END as IsOnline,
                    (
                        SELECT COUNT(*) 
                        FROM messages 
                        WHERE ReceiverID = :uid AND SenderID = u.UserID AND IsRead = 0
                    ) as unread_count
             FROM users u
+            LEFT JOIN user_presence up ON up.UserID = u.UserID
             INNER JOIN friends f ON 
                 (f.RequesterID = u.UserID AND f.ReceiverID = :uid) OR 
                 (f.ReceiverID = u.UserID AND f.RequesterID = :uid)

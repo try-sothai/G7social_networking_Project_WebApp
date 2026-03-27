@@ -101,6 +101,20 @@
     text-overflow: ellipsis;
 }
 
+.contact-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.contact-online i {
+    font-size: 0.55rem;
+}
+
 .unread-badge {
     background: #6366f1;
     color: white;
@@ -290,6 +304,12 @@
     word-break: break-word;
 }
 
+.msg-bubble-audio {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
 .me .msg-bubble {
     background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
@@ -372,44 +392,58 @@
 
 /* Audio Message */
 .audio-message {
-    display: flex;
+    position: relative;
+    width: min(360px, 78vw);
+    border-radius: 18px;
+    padding: 8px 0 0;
+    background: transparent;
+    border: none;
+}
+
+.audio-download-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.65);
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 16px;
-    background: rgba(148, 163, 184, 0.24);
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    max-width: 320px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.audio-download-btn:hover {
+    background: rgba(15, 23, 42, 0.85);
+    transform: translateY(-1px);
+}
+
+.audio-player-wrap {
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 8px 10px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
 }
 
 .audio-message audio {
-    height: 46px;
+    height: 40px;
     width: 100%;
-    border-radius: 20px;
+    border-radius: 999px;
     background: transparent;
 }
 
 .message-wrapper.me .audio-message {
-    background: rgba(99, 102, 241, 0.24);
-    border-color: rgba(99, 102, 241, 0.4);
+    background: transparent;
+    border: none;
 }
 
 .message-wrapper.them .audio-message {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(226, 232, 240, 1);
-}
-
-.message-wrapper.me .audio-message,
-.message-wrapper.me .media-preview {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
-.message-wrapper.them .audio-message,
-.message-wrapper.them .media-preview {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(226, 232, 240, 1);
+    background: transparent;
+    border: none;
 }
 
 /* Call Message */
@@ -880,6 +914,10 @@ body.dark-mode .header-status {
     color: #94a3b8;
 }
 
+body.dark-mode .contact-online {
+    color: #22c55e;
+}
+
 body.dark-mode .chat-main,
 body.dark-mode .chat-messages {
     background: #0b1220;
@@ -907,4 +945,13 @@ body.dark-mode .edit-textarea {
     background: #0f172a;
     color: #e2e8f0;
     border-color: rgba(148, 163, 184, 0.3);
+}
+
+body.dark-mode .message-wrapper.them .audio-message {
+    background: #1e293b;
+    border-color: rgba(148, 163, 184, 0.35);
+}
+
+body.dark-mode .audio-player-wrap {
+    background: #f8fafc;
 }

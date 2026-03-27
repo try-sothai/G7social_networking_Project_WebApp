@@ -14,6 +14,7 @@ if (!$current_user_id) {
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $messageModel = new MessageModel($conn);
+$messageModel->touchPresence($current_user_id);
 
 // Fetch friends with last message
 if ($action === 'fetch_friends') {
