@@ -441,3 +441,56 @@ body {
         gap: 16px;
     }
 }
+/* Dark mode */
+body.dark-mode {
+    background: #0b1220;
+    color: #e2e8f0;
+}
+
+body.dark-mode .report-header h1,
+body.dark-mode .section-header h3,
+body.dark-mode .chart-header h3,
+body.dark-mode .stat-info h3,
+body.dark-mode .activity-text strong {
+    color: #e2e8f0;
+}
+
+body.dark-mode .date-range,
+body.dark-mode .stat-card,
+body.dark-mode .chart-container,
+body.dark-mode .activity-feed,
+body.dark-mode .story-performance,
+body.dark-mode .top-users-section,
+body.dark-mode .summary-card,
+body.dark-mode .data-table,
+body.dark-mode .export-btn,
+body.dark-mode .user-row,
+body.dark-mode .user-card {
+    background: #111827;
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+body.dark-mode .stat-info p,
+body.dark-mode .chart-header p,
+body.dark-mode .activity-text,
+body.dark-mode .activity-time,
+body.dark-mode .table-header,
+body.dark-mode .user-handle,
+body.dark-mode .subtext,
+body.dark-mode .muted,
+body.dark-mode .empty-state,
+body.dark-mode .no-data {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .activity-item,
+body.dark-mode .table-row,
+body.dark-mode .story-row {
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+body.dark-mode .comment-preview {
+    background: #0f172a;
+    color: #cbd5e1;
+}

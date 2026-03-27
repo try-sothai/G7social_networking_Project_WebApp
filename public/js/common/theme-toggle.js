@@ -14,7 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const saved = localStorage.getItem(THEME_KEY);
+    let saved = localStorage.getItem(THEME_KEY);
+    if (!saved) {
+        saved = 'dark';
+        localStorage.setItem(THEME_KEY, saved);
+    }
     applyTheme(saved === 'dark' ? 'dark' : 'light');
 
     if (!themeBtn) return;
@@ -26,3 +30,4 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(THEME_KEY, next);
     });
 });
+

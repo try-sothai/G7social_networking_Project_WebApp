@@ -395,6 +395,57 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
         body.dark-mode .event-item {
             background: #0f172a;
         }
+    
+        /* Dark mode */
+        body.dark-mode .friends-tabs {
+            background: #1e293b;
+        }
+
+        body.dark-mode .friends-card,
+        body.dark-mode .left-content,
+        body.dark-mode .right-content,
+        body.dark-mode .friend-card,
+        body.dark-mode .friend-profile,
+        body.dark-mode .search-results,
+        body.dark-mode .suggestions-section,
+        body.dark-mode .requests-section,
+        body.dark-mode .empty-state,
+        body.dark-mode .request-card {
+            background: #111827 !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+        }
+
+        body.dark-mode .tab-btn {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .tab-btn:not(.active):hover {
+            background: #334155;
+        }
+
+        body.dark-mode .search-box input,
+        body.dark-mode #searchInput {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        body.dark-mode .section-title,
+        body.dark-mode .friend-name,
+        body.dark-mode h2,
+        body.dark-mode h3,
+        body.dark-mode h4 {
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode .friend-location,
+        body.dark-mode .friend-bio,
+        body.dark-mode .empty-state p,
+        body.dark-mode p,
+        body.dark-mode small {
+            color: #94a3b8 !important;
+        }
     </style>
 </head>
 <body>
@@ -667,3 +718,4 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
     </script>
 </body>
 </html>
+

@@ -234,5 +234,6 @@ $defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
     </div>
 
     <script src="../../../public/js/Groups/groups.js"></script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
