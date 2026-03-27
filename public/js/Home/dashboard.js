@@ -226,6 +226,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function postCardTemplate(post) {
+        const likesCount = post.LikesCount || 0;
+        const commentsCount = post.CommentsCount || 0;
+        const sharesCount = post.SharesCount || 0;
+        const isLiked = post.IsLiked ? 'liked' : '';
+        const likeIcon = post.IsLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
+        const likeColor = post.IsLiked ? 'color: var(--primary-color);' : '';
+        const commentsHtml = (post.Comments && post.Comments.length > 0)
+            ? post.Comments.map(c => `<div><strong>${escapeHtml(c.Username)}</strong> ${escapeHtml(c.CommentText)}</div>`).join('')
+            : 'No comments yet.';
+
         const mediaList = getPostMediaList(post.ImagePath || '');
         const avatar = resolveAvatarUrl(post.ProfilePic || FALLBACK_AVATAR);
         const username = post.Username || 'User';
@@ -270,10 +280,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${content ? `<div class="post-content">${escapeHtml(content)}</div>` : ''}
                 ${mediaHtml}
+                <div class="post-actions-stats" style="display:flex; justify-content:space-between; color:var(--text-muted, #65676b); font-size:13px; margin-bottom:10px; padding: 0 5px;">
+                    <div>${likesCount} Likes</div>
+                    <div>${commentsCount} Comments &nbsp;•&nbsp; ${sharesCount} Shares</div>
+                </div>
                 <div class="post-actions">
-                    <div class="action-item"><i class="fa-regular fa-heart"></i> Like</div>
-                    <div class="action-item"><i class="fa-regular fa-comment"></i> Comment</div>
-                    <div class="action-item"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                    <div class="action-item ${isLiked}" data-role="like-post" data-post-id="${escapeHtml(post.PostID || '')}" style="${likeColor}"><i class="${likeIcon}"></i> Like</div>
+                    <div class="action-item" data-role="comment-post" data-post-id="${escapeHtml(post.PostID || '')}"><i class="fa-regular fa-comment"></i> Comment</div>
+                    <div class="action-item" data-role="share-post" data-post-id="${escapeHtml(post.PostID || '')}"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                </div>
+                <div class="post-comments-area" id="comments-area-${escapeHtml(post.PostID || '')}" style="display:none; margin-top: 15px; border-top: 1px solid #f0f2f5; padding-top: 15px;">
+                    <div class="comments-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">${commentsHtml}</div>
+                    <div style="display:flex; gap: 10px;">
+                        <img src="${escapeHtml(typeof CURRENT_USER_AVATAR !== 'undefined' ? CURRENT_USER_AVATAR : FALLBACK_AVATAR)}" style="width: 32px; height: 32px; border-radius: 50%;">
+                        <input type="text" id="comment-input-${escapeHtml(post.PostID || '')}" placeholder="Write a comment..." style="flex:1; border-radius: 20px; border: 1px solid #ccd0d5; padding: 8px 15px; outline: none; background: #f0f2f5;">
+                        <button type="button" data-role="submit-comment" data-post-id="${escapeHtml(post.PostID || '')}" style="background: transparent; border: none; color: #1877f2; font-weight: bold; cursor: pointer;">Post</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -296,10 +318,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'success') {
                     renderPosts(data.posts || []);
                 } else {
-                    renderPosts([]);
+                console.error("Server Error:", data.message);
+                if (postFeedList) postFeedList.innerHTML = `<div class="post-card empty-posts" style="color: red;">Error: ${data.message}</div>`;
                 }
             })
-            .catch(() => renderPosts([]));
+        .catch((err) => {
+            console.error("Fetch Error:", err);
+            if (postFeedList) postFeedList.innerHTML = `<div class="post-card empty-posts" style="color: red;">Failed to load posts. Please check console.</div>`;
+        });
     }
 
     function closeAllPostMenus() {
@@ -417,6 +443,55 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     })
                     .catch(() => window.alert('Unable to delete post.'));
+            };
+        });
+
+        document.querySelectorAll('[data-role="like-post"]').forEach((btn) => {
+            btn.onclick = () => {
+                const postId = btn.getAttribute('data-post-id');
+                const payload = new FormData();
+                payload.append('action', 'like');
+                payload.append('post_id', postId);
+                fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
+                    if(data.status === 'success') loadPosts();
+                });
+            };
+        });
+
+        document.querySelectorAll('[data-role="comment-post"]').forEach((btn) => {
+            btn.onclick = () => {
+                const postId = btn.getAttribute('data-post-id');
+                const area = document.getElementById('comments-area-' + postId);
+                if(area) area.style.display = area.style.display === 'none' ? 'block' : 'none';
+            };
+        });
+
+        document.querySelectorAll('[data-role="submit-comment"]').forEach((btn) => {
+            btn.onclick = () => {
+                const postId = btn.getAttribute('data-post-id');
+                const input = document.getElementById('comment-input-' + postId);
+                if(!input || !input.value.trim()) return;
+                
+                const payload = new FormData();
+                payload.append('action', 'comment');
+                payload.append('post_id', postId);
+                payload.append('comment', input.value);
+                fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
+                    if(data.status === 'success') loadPosts();
+                });
+            };
+        });
+
+        document.querySelectorAll('[data-role="share-post"]').forEach((btn) => {
+            btn.onclick = () => {
+                if(!window.confirm('Share this post to your profile?')) return;
+                const postId = btn.getAttribute('data-post-id');
+                const payload = new FormData();
+                payload.append('action', 'share');
+                payload.append('post_id', postId);
+                fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
+                    if(data.status === 'success') loadPosts();
+                });
             };
         });
     }

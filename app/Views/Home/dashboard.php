@@ -90,6 +90,16 @@
 
         <div class="feed-grid">
             <div class="feed-left">
+                <!-- Facebook-like Create Post Box -->
+                <div class="create-post-card" style="background: var(--bg-card, #ffffff); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px;">
+                    <a href="../Profile/profile.php">
+                        <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    </a>
+                    <button type="button" onclick="document.getElementById('open-create-post').click();" style="flex: 1; border: none; background: var(--bg-body, #f0f2f5); border-radius: 20px; padding: 12px 15px; text-align: left; color: var(--text-muted, #65676b); cursor: pointer; font-size: 15px; transition: background 0.2s;">
+                        What's on your mind, <?php echo htmlspecialchars($u_d['Username']); ?>?
+                    </button>
+                </div>
+
                 <div id="post-feed-list"></div>
             </div>
 
@@ -122,7 +132,7 @@
             <div class="story-modal-header">
                 <h3>Add New Story</h3>
                 <button class="story-modal-close" id="close-add-story" type="button">
-                    <i class="fa-solid fa-circle-plus" style="color: rgb(119, 72, 255);"></i>
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
@@ -224,4 +234,3 @@
     <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
-

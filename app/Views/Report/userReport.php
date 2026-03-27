@@ -37,6 +37,20 @@ $recentActivities = $reportModel->getRecentActivities(10);
 // Fetch top active users
 $topActiveUsers = $reportModel->getTopActiveUsers(5);
 
+// Fetch actual counts for Likes, Comments, Shares
+try {
+    $stmtLikes = $conn->query("SELECT COUNT(*) FROM post_likes");
+    $totalLikes = $stmtLikes->fetchColumn();
+
+    $stmtComments = $conn->query("SELECT COUNT(*) FROM post_comments");
+    $totalComments = $stmtComments->fetchColumn();
+
+    $stmtShares = $conn->query("SELECT COUNT(*) FROM post_shares");
+    $totalShares = $stmtShares->fetchColumn();
+} catch (PDOException $e) {
+    $totalLikes = 0; $totalComments = 0; $totalShares = 0;
+}
+
 // Helper function for time ago
 function timeAgo($datetime) {
     $time = strtotime($datetime);
@@ -123,44 +137,32 @@ function timeAgo($datetime) {
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon purple">
-                        <i class="fa-regular fa-eye"></i>
+                    <div class="stat-icon" style="background: rgba(230, 57, 70, 0.1); color: #e63946;">
+                        <i class="fa-solid fa-heart"></i>
                     </div>
                     <div class="stat-info">
-                        <h3><?php echo number_format($totalStoryViews); ?></h3>
-                        <p>Story Views</p>
-                        <span class="trend positive">
-                            <i class="fa-solid fa-arrow-up"></i>
-                            12.5%
-                        </span>
+                        <h3><?php echo number_format($totalLikes ?? 0); ?></h3>
+                        <p>Total Likes</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fa-regular fa-heart"></i>
+                    <div class="stat-icon" style="background: rgba(42, 157, 143, 0.1); color: #2a9d8f;">
+                        <i class="fa-solid fa-comment"></i>
                     </div>
                     <div class="stat-info">
-                        <h3><?php echo $avgEngagementRate; ?>%</h3>
-                        <p>Avg. Engagement</p>
-                        <span class="trend <?php echo $avgEngagementRate >= 4 ? 'positive' : 'negative'; ?>">
-                            <i class="fa-solid fa-arrow-<?php echo $avgEngagementRate >= 4 ? 'up' : 'down'; ?>"></i>
-                            <?php echo $avgEngagementRate >= 4 ? '+' : ''; ?><?php echo number_format($avgEngagementRate - 4, 1); ?>%
-                        </span>
+                        <h3><?php echo number_format($totalComments ?? 0); ?></h3>
+                        <p>Total Comments</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="fa-regular fa-clock"></i>
+                    <div class="stat-icon" style="background: rgba(244, 162, 97, 0.1); color: #f4a261;">
+                        <i class="fa-solid fa-share-nodes"></i>
                     </div>
                     <div class="stat-info">
-                        <h3><?php echo $activeStories; ?></h3>
-                        <p>Active Stories</p>
-                        <span class="trend positive">
-                            <i class="fa-solid fa-arrow-up"></i>
-                            <?php echo round(($activeStories / max(1, $activeStories - 5)) * 100 - 100, 1); ?>%
-                        </span>
+                        <h3><?php echo number_format($totalShares ?? 0); ?></h3>
+                        <p>Total Shares</p>
                     </div>
                 </div>
             </div>

@@ -384,14 +384,6 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
         </div>
     </div>
 
-<<<<<<< Updated upstream
-    <script src="../../../public/js/common/theme-toggle.js"></script>
-</body>
-</html>
-
-
-
-=======
     <div id="toast" class="toast"></div>
 
     <script>
@@ -405,7 +397,7 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
                 return;
             }
             
-            fetch(`search_users.php?q=${encodeURIComponent(searchTerm)}`)
+            fetch(`../../Controllers/Friends/search_users.php?q=${encodeURIComponent(searchTerm)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -533,4 +525,3 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
     </script>
 </body>
 </html>
->>>>>>> Stashed changes

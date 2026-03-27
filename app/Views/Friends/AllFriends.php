@@ -555,7 +555,7 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
                             </div>
                         </div>
                         <button class="btn-view-event" onclick="location.href='../Events/events.php'">
-                            View All Events
+                            
                         </button>
                     </div>
                 </div>
@@ -571,7 +571,6 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
             const searchTerm = this.value.toLowerCase();
             const friends = document.querySelectorAll('.friend-profile');
             
-<<<<<<< Updated upstream
         </div>   
     </div>
     <script src="../../../public/js/common/theme-toggle.js"></script>
@@ -686,4 +685,4 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
     </script>
 </body>
 </html>
->>>>>>> Stashed changes
+

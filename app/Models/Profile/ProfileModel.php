@@ -58,7 +58,7 @@ class ProfileModel {
             'id' => $userId
         ]);
     }
-        public function getInterests($userId) {
+    public function getInterests($userId) {
         $stmt = $this->conn->prepare("SELECT InterestName FROM user_interests WHERE UserID = :id");
         $stmt->execute(['id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);

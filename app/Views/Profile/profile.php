@@ -18,7 +18,7 @@ $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
 
-<<<<<<< HEAD
+
 function parsePostMediaList($imagePathValue) {
     $raw = trim((string)$imagePathValue);
     if ($raw === '') {
@@ -77,8 +77,7 @@ foreach ($userPosts as $postRow) {
         'media_items' => $mediaItems,
     ];
 }
-=======
->>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd
+
 ?>
 
 <!DOCTYPE html>

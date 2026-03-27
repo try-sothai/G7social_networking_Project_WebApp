@@ -142,8 +142,43 @@ function uploadMediaFiles(array $uploadedFiles, int $current_user_id, string $up
 if ($action === 'fetch') {
     try {
         $posts = $postModel->getRecentPosts(25);
+        if (is_array($posts)) {
+            foreach ($posts as &$post) {
+                $postId = (int)$post['PostID'];
+                try {
+                    // Likes count
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_likes WHERE PostID = ?");
+                    $stmt->execute([$postId]);
+                    $post['LikesCount'] = (int)$stmt->fetchColumn();
+                    
+                    // Has liked
+                    $stmt = $conn->prepare("SELECT 1 FROM post_likes WHERE PostID = ? AND UserID = ?");
+                    $stmt->execute([$postId, $current_user_id]);
+                    $post['IsLiked'] = (bool)$stmt->fetchColumn();
+                    
+                    // Comments count
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_comments WHERE PostID = ?");
+                    $stmt->execute([$postId]);
+                    $post['CommentsCount'] = (int)$stmt->fetchColumn();
+                    
+                    // Shares count
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_shares WHERE PostID = ?");
+                    $stmt->execute([$postId]);
+                    $post['SharesCount'] = (int)$stmt->fetchColumn();
+                    
+                    // Fetch comments
+                    $stmt = $conn->prepare("SELECT c.CommentText, u.Username, u.ProfilePic FROM post_comments c JOIN users u ON c.UserID = u.UserID WHERE c.PostID = ? ORDER BY c.CreatedAt ASC");
+                    $stmt->execute([$postId]);
+                    $post['Comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } catch (PDOException $e) {
+                    // Ignore if tables don't exist yet
+                }
+            }
+        }
+        ob_clean(); // Prevent extra space/errors from breaking JSON
         echo json_encode(['status' => 'success', 'posts' => $posts]);
     } catch (PDOException $e) {
+        ob_clean();
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -200,6 +235,67 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (PDOException $e) {
         deleteMediaFiles($uploadDirAbs, $savedMedia);
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($action === 'like' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postId = (int)($_POST['post_id'] ?? 0);
+    if ($postId > 0) {
+        try {
+            $stmt = $conn->prepare("SELECT LikeID FROM post_likes WHERE PostID = ? AND UserID = ?");
+            $stmt->execute([$postId, $current_user_id]);
+            if ($stmt->fetch()) {
+                $conn->prepare("DELETE FROM post_likes WHERE PostID = ? AND UserID = ?")->execute([$postId, $current_user_id]);
+                echo json_encode(['status' => 'success', 'liked' => false]);
+            } else {
+                $conn->prepare("INSERT INTO post_likes (PostID, UserID) VALUES (?, ?)")->execute([$postId, $current_user_id]);
+                echo json_encode(['status' => 'success', 'liked' => true]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        }
+    }
+    exit;
+}
+
+if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postId = (int)($_POST['post_id'] ?? 0);
+    $comment = trim($_POST['comment'] ?? '');
+    if ($postId > 0 && $comment !== '') {
+        try {
+            $stmt = $conn->prepare("INSERT INTO post_comments (PostID, UserID, CommentText) VALUES (?, ?, ?)");
+            $stmt->execute([$postId, $current_user_id, $comment]);
+            echo json_encode(['status' => 'success']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Empty comment']);
+    }
+    exit;
+}
+
+if ($action === 'share' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postId = (int)($_POST['post_id'] ?? 0);
+    if ($postId > 0) {
+        try {
+            $stmt = $conn->prepare("SELECT * FROM posts WHERE PostID = ?");
+            $stmt->execute([$postId]);
+            $postToShare = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($postToShare) {
+                $newContent = "🔄 Shared a post:\n\n" . $postToShare['Content'];
+                $imagePath = $postToShare['ImagePath'];
+                $postModel->createPost($current_user_id, $newContent, $imagePath);
+                $conn->prepare("INSERT INTO post_shares (PostID, UserID) VALUES (?, ?)")->execute([$postId, $current_user_id]);
+                echo json_encode(['status' => 'success']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Post not found']);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
     }
     exit;
 }
