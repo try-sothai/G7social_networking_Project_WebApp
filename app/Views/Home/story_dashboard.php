@@ -31,7 +31,7 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
                             } else {
-                                echo 'https://i.pravatar.cc/150?u=' . ($u_d['UserID'] ?? 0);
+                                echo 'https://via.placeholder.com/150';
                             }
                         ?>" alt="Profile">
                 <span><?php echo htmlspecialchars($u_d['Username'] ?? 'User'); ?></span>

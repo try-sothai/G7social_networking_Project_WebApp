@@ -132,6 +132,8 @@ foreach ($userPosts as $postRow) {
                         <img src="<?php 
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
+                            } else {
+                                echo 'https://via.placeholder.com/150';
                             }
                         ?>" alt="Profile">
                     </a>
@@ -146,6 +148,8 @@ foreach ($userPosts as $postRow) {
                         <img class="profile-img-large" src="<?php 
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
+                            } else {
+                                echo 'https://via.placeholder.com/150';
                             }
                         ?>" alt="Profile">
                     </div>
@@ -163,13 +167,8 @@ foreach ($userPosts as $postRow) {
                         <div class="stat-item"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
                         <div class="stat-item"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
 
-<<<<<<< HEAD
-                        <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect!'; ?></p>
-                        <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Phone']) ? htmlspecialchars($u_d['Phone']) : 'No location available'; ?></p>
-=======
                         <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
                         <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Locations']) ? htmlspecialchars($u_d['Locations']) : 'No location available'; ?></p>
->>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd
 
                         <div class="interest-tags">
                             <?php

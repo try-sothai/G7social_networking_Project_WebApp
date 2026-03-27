@@ -102,7 +102,8 @@
                 <div class="chat-messages" id="chat-box"></div>
 
                 <div class="chat-input-area">
-                    <button class="action-btn"><i class="fa-regular fa-image"></i></button>
+                    <input type="file" id="media-input" name="media" style="display: none;" accept="image/*,video/*">
+                    <button class="action-btn" id="media-btn"><i class="fa-regular fa-image"></i></button>
                     <div class="input-wrapper">
                         <textarea id="msg-input" rows="1" placeholder="Type a message..."></textarea>
                     </div>
@@ -118,14 +119,8 @@
         const CURRENT_USER_ID = <?= json_encode($user_id) ?>;
     </script>
     <script src="../../../public/js/Messages/message.js"></script>
-<<<<<<< HEAD
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/Messages/call.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>
-
-=======
-</body>
-</html>
->>>>>>> 86111d334b67c2ac61946bb7df45f2a250c1b3cd

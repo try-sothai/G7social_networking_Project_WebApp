@@ -20,7 +20,7 @@
         }
     }
     if ($profilePicPath === '') {
-        $profilePicPath = 'https://i.pravatar.cc/150?u=' . ($u_d['UserID'] ?? 0);
+        $profilePicPath = 'https://via.placeholder.com/150';
     }
 ?>
 <!DOCTYPE html>

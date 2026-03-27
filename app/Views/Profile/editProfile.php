@@ -76,7 +76,7 @@ $interests = $model->getInterests($user_id);
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
                             } else {
-                               
+                               echo 'https://via.placeholder.com/150';
                             }
                         ?>" alt="Profile">
                     </a>
@@ -90,7 +90,7 @@ $interests = $model->getInterests($user_id);
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
                             } else {
-                                
+                                echo 'https://via.placeholder.com/150';
                             }
                         ?>" alt="Profile">
                     <label for="upload-photo" class="change-photo" style="cursor:pointer;">Change Photo</label>

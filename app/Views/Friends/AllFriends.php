@@ -555,7 +555,7 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
                             </div>
                         </div>
                         <button class="btn-view-event" onclick="location.href='../Events/events.php'">
-                            
+                            View All Events
                         </button>
                     </div>
                 </div>
@@ -565,19 +565,12 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
 
     <div id="toast" class="toast"></div>
 
+    <script src="../../../public/js/common/theme-toggle.js"></script>
     <script>
         // Search friends functionality
         document.getElementById('searchFriends').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const friends = document.querySelectorAll('.friend-profile');
-            
-        </div>   
-    </div>
-    <script src="../../../public/js/common/theme-toggle.js"></script>
-</body>
-</html>
-
-=======
             friends.forEach(friend => {
                 const name = friend.getAttribute('data-name');
                 if (name.includes(searchTerm)) {
@@ -671,18 +664,6 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
                 toast.style.display = 'none';
             }, 3000);
         }
-        
-        // Theme toggle
-        document.querySelector('.theme-toggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        });
-        
-        // Load saved theme
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
     </script>
 </body>
 </html>
-

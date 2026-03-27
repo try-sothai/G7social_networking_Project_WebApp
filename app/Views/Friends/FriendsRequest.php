@@ -17,6 +17,27 @@ $user_data = $profileModel->getUserData($user_id);
 $received_requests = $friendModel->getReceivedRequests($user_id);
 $sent_requests = $friendModel->getSentRequests($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
+
+function time_ago($datetime) {
+    $time = strtotime($datetime);
+    $now = time();
+    $diff = $now - $time;
+    
+    if ($diff < 60) {
+        return $diff . ' seconds ago';
+    } elseif ($diff < 3600) {
+        $mins = floor($diff / 60);
+        return $mins . ' minute' . ($mins > 1 ? 's' : '') . ' ago';
+    } elseif ($diff < 86400) {
+        $hours = floor($diff / 3600);
+        return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
+    } elseif ($diff < 2592000) {
+        $days = floor($diff / 86400);
+        return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+    } else {
+        return date('M j, Y', $time);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -396,17 +417,10 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
     </div>
     </div>
 
-<<<<<<< Updated upstream
-    <script src="../../../public/js/common/theme-toggle.js"></script>
-</body>
-</html>
-
-
-
-=======
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
+    <script src="../../../public/js/common/theme-toggle.js"></script>
     <script>
         function handleRequest(userId, action) {
             const button = event.target.closest('button');
@@ -457,40 +471,6 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
                 toast.style.display = 'none';
             }, 3000);
         }
-        
-        // Theme toggle
-        document.querySelector('.theme-toggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        });
-        
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
     </script>
 </body>
 </html>
-
-<?php
-function time_ago($datetime) {
-    $time = strtotime($datetime);
-    $now = time();
-    $diff = $now - $time;
-    
-    if ($diff < 60) {
-        return $diff . ' seconds ago';
-    } elseif ($diff < 3600) {
-        $mins = floor($diff / 60);
-        return $mins . ' minute' . ($mins > 1 ? 's' : '') . ' ago';
-    } elseif ($diff < 86400) {
-        $hours = floor($diff / 3600);
-        return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
-    } elseif ($diff < 2592000) {
-        $days = floor($diff / 86400);
-        return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
-    } else {
-        return date('M j, Y', $time);
-    }
-}
-?>
->>>>>>> Stashed changes

@@ -163,7 +163,7 @@ class FriendModel {
         $stmt = $this->conn->prepare($sql);
         
         if ($stmt->execute([':friend_id' => $friend_id, ':user_id' => $user_id]) && $stmt->rowCount() > 0) {
-            $this->createNotification($friend_id, $user_id, 'FriendRequest');
+            $this->createNotification($friend_id, $user_id, 'RequestAccepted');
             return ['success' => true, 'message' => 'Friend request accepted'];
         }
         
