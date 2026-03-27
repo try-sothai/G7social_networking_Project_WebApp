@@ -1,88 +1,102 @@
-document.addEventListener('DOMContentLoaded', function() {
-        // Search form auto-submit
-        const searchInput = document.querySelector('.search-bar input');
-        const searchForm = document.getElementById('searchForm');
-        
-        if (searchInput && searchForm) {
-            let searchTimeout;
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    searchForm.submit();
-                }, 500);
-            });
-        }
-        
-        // Join Group functionality
-        const joinBtns = document.querySelectorAll('.btn-join:not(.joined)');
-        
-        function showToast(message, type = 'success') {
-            const existingToast = document.querySelector('.toast-notification');
-            if (existingToast) existingToast.remove();
+document.addEventListener('DOMContentLoaded', () => {
+    const openCreatePostBtn = document.getElementById('open-create-post');
+    const closeCreatePostBtn = document.getElementById('close-create-post');
+    const createPostModal = document.getElementById('create-post-modal');
+    const createPostForm = document.getElementById('create-post-form');
+    const postMediaInput = document.getElementById('post-media-input');
+    const postPreviewContainer = document.getElementById('post-editor-preview');
+    const postSelectedFileName = document.getElementById('post-selected-file-name');
+    const postModalMessage = document.getElementById('post-modal-message');
+
+    // --- Modal Handling ---
+    if (openCreatePostBtn && createPostModal) {
+        openCreatePostBtn.addEventListener('click', () => {
+            createPostModal.classList.add('active');
+        });
+    }
+
+    if (closeCreatePostBtn && createPostModal) {
+        closeCreatePostBtn.addEventListener('click', () => {
+            createPostModal.classList.remove('active');
+        });
+    }
+
+    // Close modal if clicking outside the card
+    if (createPostModal) {
+        createPostModal.addEventListener('click', (e) => {
+            if (e.target === createPostModal) {
+                createPostModal.classList.remove('active');
+            }
+        });
+    }
+    
+    // --- Image Preview ---
+    if (postMediaInput && postPreviewContainer && postSelectedFileName) {
+        postMediaInput.addEventListener('change', () => {
+            const files = postMediaInput.files;
+            postPreviewContainer.innerHTML = ''; // Clear existing previews
             
-            const toast = document.createElement('div');
-            toast.className = `toast-notification ${type}`;
-            toast.innerHTML = `
-                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
-                <span>${message}</span>
-            `;
-            document.body.appendChild(toast);
+            if (files.length > 0) {
+                postSelectedFileName.textContent = `${files.length} file(s) selected`;
+                
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.classList.add('post-preview-image');
+                        postPreviewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+                postPreviewContainer.parentElement.classList.add('active');
+            } else {
+                postSelectedFileName.textContent = 'No file chosen';
+                postPreviewContainer.parentElement.classList.remove('active');
+            }
+        });
+    }
+
+    // --- Form Submission ---
+    if (createPostForm) {
+        createPostForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            postModalMessage.textContent = '';
+            const formData = new FormData(createPostForm);
+            formData.append('action', 'create');
+
+            const submitBtn = createPostForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Posting...';
             
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-        
-        joinBtns.forEach(btn => {
-            btn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                const groupId = this.dataset.groupId;
-                const groupCard = this.closest('.group-card');
-                const groupName = groupCard.querySelector('.group-name')?.textContent;
-                
-                // Show loading state
-                const originalText = this.innerHTML;
-                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Joining...';
-                this.disabled = true;
-                
-                try {
-                    const formData = new FormData();
-                    formData.append('group_id', groupId);
-                    formData.append('action', 'join');
-                    
-                    const response = await fetch('/G7social_networking/app/Controllers/Groups/GroupController.php?action=join', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        this.innerHTML = '<i class="fa-solid fa-check"></i> Joined';
-                        this.classList.add('joined');
-                        this.disabled = true;
-                        groupCard.dataset.isMember = '1';
-                        
-                        // Update member count
-                        const memberSpan = groupCard.querySelector('.group-meta span:first-child');
-                        if (memberSpan) {
-                            const currentCount = parseInt(memberSpan.textContent.replace(/[^0-9]/g, ''));
-                            const newCount = currentCount + 1;
-                            memberSpan.innerHTML = `<i class="fa-solid fa-user-group"></i> ${newCount.toLocaleString()} Members`;
-                        }
-                        
-                        showToast(`Successfully joined ${groupName}!`, 'success');
-                    } else {
-                        throw new Error(data.message || 'Failed to join group');
-                    }
-                } catch (error) {
-                    console.error('Error joining group:', error);
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                    showToast(error.message || 'Failed to join group. Please try again.', 'error');
+            fetch('../../Controllers/Home/PostController.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    postModalMessage.textContent = 'Post created successfully!';
+                    postModalMessage.style.color = 'green';
+                    setTimeout(() => {
+                        createPostModal.classList.remove('active');
+                        // Optionally, refresh the feed or add the new post dynamically
+                        location.reload(); 
+                    }, 1500);
+                } else {
+                    postModalMessage.textContent = data.message || 'An error occurred.';
+                    postModalMessage.style.color = 'red';
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                postModalMessage.textContent = 'A network error occurred. Please try again.';
+                postModalMessage.style.color = 'red';
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post to Website';
             });
         });
-    });
+    }
+});
