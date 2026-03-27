@@ -53,9 +53,9 @@ $defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
             <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a> 
             <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>          
         </nav>
-        <button class="btn-create" onclick="window.location.href='create_group.php'">
+        <button class="btn-create" onclick="document.getElementById('create-post-modal').classList.add('active')">
             <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Group</span>
+            <span>Create New Post</span>
         </button>
     </div>
     
