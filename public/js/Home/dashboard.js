@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const editPostPreview = document.getElementById('edit-post-preview');
     const editPostContentInput = document.getElementById('edit-post-content-input');
     const editPostModalMessage = document.getElementById('edit-post-modal-message');
+    const quickStatusForm = document.getElementById('quick-status-form');
+    const quickStatusInput = document.getElementById('quick-status-input');
+    const quickStatusMessage = document.getElementById('quick-status-message');
+    const quickStatusAddPhotoBtn = document.getElementById('quick-status-add-photo');
 
     const STORY_API = '../../../app/Controllers/Home/StoryController.php';
     const POST_API = '../../../app/Controllers/Home/PostController.php';
@@ -40,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         keepMedia: [],
         newFiles: []
     };
+    const viewedPostIds = new Set();
+    let postViewObserver = null;
 
     function escapeHtml(value) {
         return String(value || '')
@@ -51,14 +57,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isVideo(mediaPath) {
-        const lower = (mediaPath || '').toLowerCase();
-        return lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.ogg');
+        const raw = String(mediaPath || '').trim().toLowerCase();
+        if (!raw) return false;
+        if (raw.startsWith('data:video/')) return true;
+
+        const clean = raw.split('?')[0].split('#')[0];
+        return clean.endsWith('.mp4')
+            || clean.endsWith('.webm')
+            || clean.endsWith('.ogg')
+            || clean.endsWith('.mov')
+            || clean.endsWith('.m4v');
     }
 
     function resolveMediaUrl(mediaPath) {
         const raw = String(mediaPath || '').replace(/\\/g, '/').trim();
         if (!raw) return FALLBACK_STORY;
         if (/^(https?:)?\/\//i.test(raw) || raw.startsWith('data:')) return raw;
+
+        // Normalize legacy DB paths like "../../../public/uploads/posts/file.mp4"
+        if (raw.startsWith('../../../public/')) {
+            const rootPrefix = window.location.pathname.includes('/app/')
+                ? window.location.pathname.split('/app/')[0]
+                : '';
+            return `${rootPrefix}/public/${raw.replace('../../../public/', '')}`;
+        }
+
+        if (raw.startsWith('/public/')) {
+            const rootPrefix = window.location.pathname.includes('/app/')
+                ? window.location.pathname.split('/app/')[0]
+                : '';
+            return `${rootPrefix}${raw}`;
+        }
+
         try {
             return new URL(raw, window.location.href).href;
         } catch (error) {
@@ -229,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const likesCount = post.LikesCount || 0;
         const commentsCount = post.CommentsCount || 0;
         const sharesCount = post.SharesCount || 0;
+        const viewsCount = post.ViewsCount || 0;
         const isLiked = post.IsLiked ? 'liked' : '';
         const likeIcon = post.IsLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
         const likeColor = post.IsLiked ? 'color: var(--primary-color);' : '';
@@ -243,7 +274,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const createdAt = formatTimeAgo(post.CreatedAt || '');
         const isOwner = Number(post.UserID || 0) === Number(typeof CURRENT_USER_ID !== 'undefined' ? CURRENT_USER_ID : 0);
         const mediaHtml = mediaList.length > 1
-            ? `<div class="post-media-grid">${mediaList.map((media, index) => `<img src="${escapeHtml(media)}" class="post-image post-image-grid" alt="Post media ${index + 1}">`).join('')}</div>`
+            ? `<div class="post-media-grid">${mediaList.map((media, index) => (
+                isVideo(media)
+                    ? `<video class="post-image post-image-grid" controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
+                    : `<img src="${escapeHtml(media)}" class="post-image post-image-grid" alt="Post media ${index + 1}">`
+            )).join('')}</div>`
             : (() => {
                 const media = mediaList[0] || '';
                 if (!media) return '';
@@ -253,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })();
 
         return `
-            <div class="post-card">
+            <div class="post-card" data-post-id="${escapeHtml(post.PostID || '')}">
                 <div class="post-header">
                     <div class="post-user">
                         <a href="../Profile/profile.php" class="post-user-link" aria-label="Open profile">
@@ -282,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${mediaHtml}
                 <div class="post-actions-stats" style="display:flex; justify-content:space-between; color:var(--text-muted, #65676b); font-size:13px; margin-bottom:10px; padding: 0 5px;">
                     <div>${likesCount} Likes</div>
-                    <div>${commentsCount} Comments &nbsp;•&nbsp; ${sharesCount} Shares</div>
+                    <div>${viewsCount} Views &nbsp;&bull;&nbsp; ${commentsCount} Comments &nbsp;&bull;&nbsp; ${sharesCount} Shares</div>
                 </div>
                 <div class="post-actions">
                     <div class="action-item ${isLiked}" data-role="like-post" data-post-id="${escapeHtml(post.PostID || '')}" style="${likeColor}"><i class="${likeIcon}"></i> Like</div>
@@ -309,6 +344,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         postFeedList.innerHTML = posts.map(postCardTemplate).join('');
         bindPostEvents();
+        bindPostViewTracking();
+    }
+
+    function sendPostView(postId) {
+        const id = Number(postId || 0);
+        if (!id || viewedPostIds.has(id)) return;
+        viewedPostIds.add(id);
+
+        const payload = new FormData();
+        payload.append('action', 'view');
+        payload.append('post_id', String(id));
+
+        fetch(POST_API, {
+            method: 'POST',
+            body: payload
+        }).catch(() => {});
+    }
+
+    function bindPostViewTracking() {
+        const cards = document.querySelectorAll('.post-card[data-post-id]');
+        if (cards.length === 0) return;
+
+        if (postViewObserver) {
+            postViewObserver.disconnect();
+        }
+
+        postViewObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting || entry.intersectionRatio < 0.55) return;
+                const postId = entry.target.getAttribute('data-post-id');
+                sendPostView(postId);
+            });
+        }, { threshold: [0.55] });
+
+        cards.forEach((card) => postViewObserver.observe(card));
     }
 
     function loadPosts() {
@@ -339,7 +409,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const existingHtml = editPostState.keepMedia.map((media, idx) => `
             <div class="post-editor-thumb">
-                <img src="${escapeHtml(media)}" alt="Current image ${idx + 1}">
+                ${isVideo(media)
+                    ? `<video controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
+                    : `<img src="${escapeHtml(media)}" alt="Current media ${idx + 1}">`
+                }
                 <button type="button" class="post-thumb-remove" data-role="remove-existing-image" data-index="${idx}" title="Remove image">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -350,7 +423,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const objectUrl = URL.createObjectURL(file);
             return `
                 <div class="post-editor-thumb">
-                    <img src="${escapeHtml(objectUrl)}" alt="New image ${idx + 1}">
+                    ${file.type.startsWith('video/')
+                        ? `<video controls preload="metadata"><source src="${escapeHtml(objectUrl)}"></video>`
+                        : `<img src="${escapeHtml(objectUrl)}" alt="New media ${idx + 1}">`
+                    }
                     <button type="button" class="post-thumb-remove" data-role="remove-new-image" data-index="${idx}" title="Remove new image">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -361,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const all = existingHtml.concat(newHtml);
         editPostPreview.innerHTML = all.length > 0
             ? `<div class="post-editor-preview-grid">${all.join('')}</div>`
-            : '<div class="empty-post-preview">No image selected.</div>';
+            : '<div class="empty-post-preview">No media selected.</div>';
     }
 
     function openEditPostModal(postId, content, mediaList) {
@@ -372,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (editPostIdInput) editPostIdInput.value = String(editPostState.postId);
         if (editPostContentInput) editPostContentInput.value = content || '';
-        if (editPostSelectedFileName) editPostSelectedFileName.textContent = 'No new image selected';
+        if (editPostSelectedFileName) editPostSelectedFileName.textContent = 'No new media selected';
         if (editPostModalMessage) editPostModalMessage.textContent = '';
         if (editPostMediaInput) editPostMediaInput.value = '';
 
@@ -550,6 +626,10 @@ document.addEventListener('DOMContentLoaded', () => {
         openCreatePostBtn.addEventListener('click', openPostComposer);
     }
 
+    if (quickStatusAddPhotoBtn) {
+        quickStatusAddPhotoBtn.addEventListener('click', openPostComposer);
+    }
+
     if (closeCreatePostBtn) {
         closeCreatePostBtn.addEventListener('click', closePostComposer);
     }
@@ -564,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
         postMediaInput.addEventListener('change', () => {
             const files = Array.from(postMediaInput.files || []);
             postSelectedFileName.textContent = files.length > 0
-                ? `${files.length} photo${files.length > 1 ? 's' : ''} selected`
+                ? `${files.length} media file${files.length > 1 ? 's' : ''} selected`
                 : 'No file chosen';
             postModalMessage.textContent = '';
             postEditorPreview.innerHTML = '';
@@ -579,14 +659,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const objectUrl = URL.createObjectURL(file);
                 previews.push(`
                     <div class="post-editor-thumb">
-                        <img src="${escapeHtml(objectUrl)}" alt="Preview ${idx + 1}">
+                        ${file.type.startsWith('video/')
+                            ? `<video controls preload="metadata"><source src="${escapeHtml(objectUrl)}"></video>`
+                            : `<img src="${escapeHtml(objectUrl)}" alt="Preview ${idx + 1}">`
+                        }
                     </div>
                 `);
             });
 
             postEditorPreview.innerHTML = `<div class="post-editor-preview-grid">${previews.join('')}</div>`;
             if (files.length > 4) {
-                postModalMessage.textContent = 'You can upload up to 4 photos per post.';
+                postModalMessage.textContent = 'You can upload up to 4 media files per post.';
             }
             postEditorArea.classList.add('active');
         });
@@ -597,11 +680,11 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             const files = Array.from(postMediaInput.files || []);
             if (files.length === 0) {
-                postModalMessage.textContent = 'Please choose at least one photo first.';
+                postModalMessage.textContent = 'Please choose at least one media file first.';
                 return;
             }
             if (files.length > 4) {
-                postModalMessage.textContent = 'You can upload up to 4 photos per post.';
+                postModalMessage.textContent = 'You can upload up to 4 media files per post.';
                 return;
             }
 
@@ -638,6 +721,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (quickStatusForm) {
+        quickStatusForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (!quickStatusInput) return;
+
+            const content = quickStatusInput.value.trim();
+            if (!content) {
+                if (quickStatusMessage) quickStatusMessage.textContent = 'Please write something first.';
+                quickStatusInput.focus();
+                return;
+            }
+
+            const submitBtn = quickStatusForm.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+            if (quickStatusMessage) quickStatusMessage.textContent = 'Posting...';
+
+            const payload = new FormData();
+            payload.append('action', 'create');
+            payload.append('content', content);
+
+            fetch(POST_API, {
+                method: 'POST',
+                body: payload
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data || data.status !== 'success') {
+                        if (quickStatusMessage) {
+                            quickStatusMessage.textContent = (data && data.message) ? data.message : 'Unable to post status right now.';
+                        }
+                        return;
+                    }
+
+                    quickStatusInput.value = '';
+                    if (quickStatusMessage) quickStatusMessage.textContent = 'Status posted successfully.';
+                    loadPosts();
+                })
+                .catch(() => {
+                    if (quickStatusMessage) quickStatusMessage.textContent = 'Unable to post status right now.';
+                })
+                .finally(() => {
+                    if (submitBtn) submitBtn.disabled = false;
+                });
+        });
+    }
+
     if (editPostModal) {
         editPostModal.addEventListener('click', (event) => {
             if (event.target === editPostModal) closeEditPostModal();
@@ -656,12 +785,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (editPostSelectedFileName) {
                 editPostSelectedFileName.textContent = editPostState.newFiles.length > 0
-                    ? `${editPostState.newFiles.length} new image${editPostState.newFiles.length > 1 ? 's' : ''} selected`
-                    : 'No new image selected';
+                    ? `${editPostState.newFiles.length} new media file${editPostState.newFiles.length > 1 ? 's' : ''} selected`
+                    : 'No new media selected';
             }
             if (editPostModalMessage) {
                 editPostModalMessage.textContent = selected.length > allowedSlots
-                    ? `Only ${MAX_POST_IMAGES} images are allowed per post.`
+                    ? `Only ${MAX_POST_IMAGES} media files are allowed per post.`
                     : '';
             }
             renderEditPostPreview();
@@ -699,12 +828,13 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
 
             const finalCount = editPostState.keepMedia.length + editPostState.newFiles.length;
-            if (finalCount === 0) {
-                editPostModalMessage.textContent = 'Please keep at least one image.';
+            const editContent = (editPostContentInput && editPostContentInput.value) ? editPostContentInput.value.trim() : '';
+            if (finalCount === 0 && !editContent) {
+                editPostModalMessage.textContent = 'Please keep at least one media file or write some text.';
                 return;
             }
             if (finalCount > MAX_POST_IMAGES) {
-                editPostModalMessage.textContent = `You can keep up to ${MAX_POST_IMAGES} images.`;
+                editPostModalMessage.textContent = `You can keep up to ${MAX_POST_IMAGES} media files.`;
                 return;
             }
 

@@ -29,6 +29,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.ogg');
     }
 
+    function resolveProfileImage(profilePic) {
+        const raw = String(profilePic || '').replace(/\\/g, '/').trim();
+        if (!raw) return 'https://i.pravatar.cc/150?u=story-user';
+
+        if (
+            raw.startsWith('http://') ||
+            raw.startsWith('https://') ||
+            raw.startsWith('../../../') ||
+            raw.startsWith('/')
+        ) {
+            return raw;
+        }
+
+        return `../../../public/img/${raw}`;
+    }
+
     function timeAgo(dateString) {
         const d = new Date(dateString);
         const s = Math.floor((Date.now() - d.getTime()) / 1000);
@@ -159,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentIndex = index;
         username.textContent = story.Username || 'User';
         time.textContent = `${timeAgo(story.CreatedAt)} ago`;
-        avatar.src = story.ProfilePic || 'https://i.pravatar.cc/150?u=story-user';
+        avatar.src = resolveProfileImage(story.ProfilePic);
 
         const media = story.StoryMedia || '';
         mediaWrap.innerHTML = isVideo(media)

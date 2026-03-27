@@ -1142,6 +1142,14 @@ body.fb-dashboard .stories-container .story-card.story-item {
     display: block;
 }
 
+.post-editor-thumb video {
+    width: 100%;
+    height: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
 .post-thumb-remove {
     position: absolute;
     top: 6px;
@@ -1196,6 +1204,86 @@ body.fb-dashboard .stories-container .story-card.story-item {
     color: #64748b;
 }
 
+.create-post-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 14px;
+    margin-bottom: 20px;
+}
+
+.quick-status-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.quick-status-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#quick-status-input {
+    flex: 1;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 16px;
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 48px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #1e293b;
+    outline: none;
+}
+
+#quick-status-input:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.quick-status-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.quick-status-secondary,
+.quick-status-submit {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.quick-status-secondary {
+    background: #eef2ff;
+    color: #3730a3;
+}
+
+.quick-status-submit {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.quick-status-submit:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.quick-status-message {
+    min-height: 18px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #dc2626;
+}
+
 .empty-posts {
     text-align: center;
     color: #64748b;
@@ -1244,6 +1332,25 @@ body.dark-mode .search-bar input,
 body.dark-mode #post-content-input {
     background: transparent;
     color: #e2e8f0;
+}
+
+body.dark-mode .create-post-card {
+    background: #1e293b;
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+body.dark-mode #quick-status-input {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+body.dark-mode .quick-status-actions {
+    border-top-color: rgba(148, 163, 184, 0.25);
+}
+
+body.dark-mode .quick-status-secondary {
+    background: rgba(99, 102, 241, 0.2);
+    color: #c7d2fe;
 }
 
 body.dark-mode .post-content,

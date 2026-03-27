@@ -90,15 +90,29 @@
 
         <div class="feed-grid">
             <div class="feed-left">
-                <!-- Facebook-like Create Post Box -->
-                <div class="create-post-card" style="background: var(--bg-card, #ffffff); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px;">
-                    <a href="../Profile/profile.php">
-                        <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                    </a>
-                    <button type="button" onclick="document.getElementById('open-create-post').click();" style="flex: 1; border: none; background: var(--bg-body, #f0f2f5); border-radius: 20px; padding: 12px 15px; text-align: left; color: var(--text-muted, #65676b); cursor: pointer; font-size: 15px; transition: background 0.2s;">
-                        What's on your mind, <?php echo htmlspecialchars($u_d['Username']); ?>?
-                    </button>
-                </div>
+                <form id="quick-status-form" class="create-post-card">
+                    <div class="quick-status-top">
+                        <a href="../Profile/profile.php" class="quick-status-avatar-link">
+                            <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile" class="quick-status-avatar">
+                        </a>
+                        <textarea
+                            id="quick-status-input"
+                            name="content"
+                            maxlength="800"
+                            rows="2"
+                            placeholder="What's on your mind, <?php echo htmlspecialchars($u_d['Username']); ?>?"
+                        ></textarea>
+                    </div>
+                    <div class="quick-status-actions">
+                        <button type="button" class="quick-status-secondary" id="quick-status-add-photo">
+                            <i class="fa-solid fa-photo-film"></i> Photo/Video Post
+                        </button>
+                        <button type="submit" class="quick-status-submit">
+                            <i class="fa-solid fa-paper-plane"></i> Post Status
+                        </button>
+                    </div>
+                    <p id="quick-status-message" class="quick-status-message"></p>
+                </form>
 
                 <div id="post-feed-list"></div>
             </div>
@@ -178,9 +192,9 @@
             <form id="create-post-form" class="story-upload-form" enctype="multipart/form-data">
                 <label for="post-media-input" class="story-file-label">
                     <i class="fa-solid fa-photo-film"></i>
-                    <span>Choose Photos</span>
+                    <span>Choose Photos or Videos</span>
                 </label>
-                <input type="file" id="post-media-input" name="post_media[]" accept="image/*" multiple>
+                <input type="file" id="post-media-input" name="post_media[]" accept="image/*,video/*" multiple>
                 <div class="story-file-name" id="post-selected-file-name">No file chosen</div>
 
                 <div class="post-editor-area" id="post-editor-area">
@@ -207,11 +221,11 @@
                 <input type="hidden" id="edit-post-id" name="post_id">
 
                 <label for="edit-post-media-input" class="story-file-label">
-                    <i class="fa-solid fa-image"></i>
-                    <span>Change / Add Images</span>
+                    <i class="fa-solid fa-photo-film"></i>
+                    <span>Change / Add Media</span>
                 </label>
-                <input type="file" id="edit-post-media-input" name="new_media[]" accept="image/*" multiple>
-                <div class="story-file-name" id="edit-post-selected-file-name">No new image selected</div>
+                <input type="file" id="edit-post-media-input" name="new_media[]" accept="image/*,video/*" multiple>
+                <div class="story-file-name" id="edit-post-selected-file-name">No new media selected</div>
 
                 <div class="post-editor-area active">
                     <div class="post-editor-preview" id="edit-post-preview"></div>

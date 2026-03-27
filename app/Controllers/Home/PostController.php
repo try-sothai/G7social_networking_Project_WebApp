@@ -33,10 +33,35 @@ function isAllowedPostMime(string $tmpPath): bool {
         'image/jpeg',
         'image/png',
         'image/jpg',
-        'image/webp'
+        'image/webp',
+        'video/mp4',
+        'video/webm',
+        'video/ogg',
+        'video/quicktime'
     ];
     $type = mime_content_type($tmpPath);
     return in_array($type, $allowed, true);
+}
+
+function isVideoMime(string $tmpPath): bool {
+    $type = (string)mime_content_type($tmpPath);
+    return str_starts_with($type, 'video/');
+}
+
+function getMaxPostFileSize(string $tmpPath): int {
+    return isVideoMime($tmpPath) ? (100 * 1024 * 1024) : (15 * 1024 * 1024);
+}
+
+function ensurePostViewsTable(PDO $conn): void {
+    $conn->exec("
+        CREATE TABLE IF NOT EXISTS post_views (
+            ViewID INT AUTO_INCREMENT PRIMARY KEY,
+            PostID INT NOT NULL,
+            UserID INT NOT NULL,
+            ViewedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_post_viewer (PostID, UserID)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
 }
 
 function normalizeUploadedMedia(array $fileField): array {
@@ -141,6 +166,7 @@ function uploadMediaFiles(array $uploadedFiles, int $current_user_id, string $up
 
 if ($action === 'fetch') {
     try {
+        ensurePostViewsTable($conn);
         $posts = $postModel->getRecentPosts(25);
         if (is_array($posts)) {
             foreach ($posts as &$post) {
@@ -165,6 +191,11 @@ if ($action === 'fetch') {
                     $stmt = $conn->prepare("SELECT COUNT(*) FROM post_shares WHERE PostID = ?");
                     $stmt->execute([$postId]);
                     $post['SharesCount'] = (int)$stmt->fetchColumn();
+
+                    // Views count
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_views WHERE PostID = ?");
+                    $stmt->execute([$postId]);
+                    $post['ViewsCount'] = (int)$stmt->fetchColumn();
                     
                     // Fetch comments
                     $stmt = $conn->prepare("SELECT c.CommentText, u.Username, u.ProfilePic FROM post_comments c JOIN users u ON c.UserID = u.UserID WHERE c.PostID = ? ORDER BY c.CreatedAt ASC");
@@ -185,51 +216,51 @@ if ($action === 'fetch') {
 }
 
 if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_FILES['post_media'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Please choose at least one photo.']);
-        exit;
-    }
-
-    $uploadedFiles = normalizeUploadedMedia($_FILES['post_media']);
-    if (count($uploadedFiles) === 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Please choose at least one photo.']);
-        exit;
-    }
+    $content = sanitizePostContent((string)($_POST['content'] ?? ''));
+    $uploadedFiles = isset($_FILES['post_media']) ? normalizeUploadedMedia($_FILES['post_media']) : [];
+    $savedMedia = [];
+    $mediaValue = '';
 
     if (count($uploadedFiles) > 4) {
-        echo json_encode(['status' => 'error', 'message' => 'You can upload up to 4 photos per post.']);
+        echo json_encode(['status' => 'error', 'message' => 'You can upload up to 4 media files per post.']);
         exit;
     }
 
     foreach ($uploadedFiles as $file) {
         if ($file['tmp_name'] === '' || !isAllowedPostMime($file['tmp_name'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, and WEBP images are allowed.']);
+            echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, WEBP, MP4, WEBM, OGG, and MOV files are allowed.']);
             exit;
         }
 
-        if ($file['size'] > (15 * 1024 * 1024)) {
-            echo json_encode(['status' => 'error', 'message' => 'Each image must be 15MB or less.']);
+        if ($file['size'] > getMaxPostFileSize($file['tmp_name'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Images must be 15MB or less, and videos must be 100MB or less.']);
             exit;
         }
     }
 
-    ensureDirExists($uploadDirAbs);
-    $uploaded = uploadMediaFiles($uploadedFiles, $current_user_id, $uploadDirAbs, $uploadDirDb);
-    if (!$uploaded['ok']) {
-        echo json_encode(['status' => 'error', 'message' => 'Failed to upload media.']);
+    if ($content === '' && count($uploadedFiles) === 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Please add text or at least one media file.']);
         exit;
     }
 
-    $savedMedia = $uploaded['paths'];
-    $mediaValue = mediaListToDbValue($savedMedia);
-    if (strlen($mediaValue) > 255) {
-        deleteMediaFiles($uploadDirAbs, $savedMedia);
-        echo json_encode(['status' => 'error', 'message' => 'Too many photos selected. Please upload fewer photos.']);
-        exit;
+    if (count($uploadedFiles) > 0) {
+        ensureDirExists($uploadDirAbs);
+        $uploaded = uploadMediaFiles($uploadedFiles, $current_user_id, $uploadDirAbs, $uploadDirDb);
+        if (!$uploaded['ok']) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to upload media.']);
+            exit;
+        }
+
+        $savedMedia = $uploaded['paths'];
+        $mediaValue = mediaListToDbValue($savedMedia);
+        if (strlen($mediaValue) > 255) {
+            deleteMediaFiles($uploadDirAbs, $savedMedia);
+            echo json_encode(['status' => 'error', 'message' => 'Too many media files selected. Please upload fewer files.']);
+            exit;
+        }
     }
 
     try {
-        $content = sanitizePostContent((string)($_POST['content'] ?? ''));
         $postModel->createPost($current_user_id, $content, $mediaValue);
         echo json_encode(['status' => 'success', 'message' => 'Post published successfully.']);
     } catch (PDOException $e) {
@@ -276,7 +307,7 @@ if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($action === 'share' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($action === 'share' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $postId = (int)($_POST['post_id'] ?? 0);
     if ($postId > 0) {
         try {
@@ -296,6 +327,30 @@ if ($action === 'share' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
+    }
+    exit;
+}
+
+if ($action === 'view' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postId = (int)($_POST['post_id'] ?? 0);
+    if ($postId <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid post.']);
+        exit;
+    }
+
+    try {
+        ensurePostViewsTable($conn);
+
+        $stmt = $conn->prepare("INSERT IGNORE INTO post_views (PostID, UserID) VALUES (?, ?)");
+        $stmt->execute([$postId, $current_user_id]);
+
+        $countStmt = $conn->prepare("SELECT COUNT(*) FROM post_views WHERE PostID = ?");
+        $countStmt->execute([$postId]);
+        $viewsCount = (int)$countStmt->fetchColumn();
+
+        echo json_encode(['status' => 'success', 'views' => $viewsCount]);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
     }
     exit;
 }
@@ -330,21 +385,23 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $newFiles = isset($_FILES['new_media']) ? normalizeUploadedMedia($_FILES['new_media']) : [];
     foreach ($newFiles as $file) {
         if ($file['tmp_name'] === '' || !isAllowedPostMime($file['tmp_name'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, and WEBP images are allowed.']);
+            echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, WEBP, MP4, WEBM, OGG, and MOV files are allowed.']);
             exit;
         }
-        if ($file['size'] > (15 * 1024 * 1024)) {
-            echo json_encode(['status' => 'error', 'message' => 'Each image must be 15MB or less.']);
+        if ($file['size'] > getMaxPostFileSize($file['tmp_name'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Images must be 15MB or less, and videos must be 100MB or less.']);
             exit;
         }
     }
 
-    if (count($keepMedia) + count($newFiles) === 0) {
-        echo json_encode(['status' => 'error', 'message' => 'A post must contain at least one image.']);
+    $content = sanitizePostContent((string)($_POST['content'] ?? ''));
+
+    if (count($keepMedia) + count($newFiles) === 0 && $content === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Please add text or at least one media file.']);
         exit;
     }
     if (count($keepMedia) + count($newFiles) > 4) {
-        echo json_encode(['status' => 'error', 'message' => 'You can keep up to 4 images per post.']);
+        echo json_encode(['status' => 'error', 'message' => 'You can keep up to 4 media files per post.']);
         exit;
     }
 
@@ -360,12 +417,11 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $mediaValue = mediaListToDbValue($finalMedia);
     if (strlen($mediaValue) > 255) {
         deleteMediaFiles($uploadDirAbs, $newSavedMedia);
-        echo json_encode(['status' => 'error', 'message' => 'Too many photos selected. Please upload fewer photos.']);
+        echo json_encode(['status' => 'error', 'message' => 'Too many media files selected. Please upload fewer files.']);
         exit;
     }
 
     try {
-        $content = sanitizePostContent((string)($_POST['content'] ?? ''));
         $postModel->updatePostForUser($postId, $current_user_id, $content, $mediaValue);
 
         $removed = array_values(array_diff($existingMedia, $keepMedia));
