@@ -20,8 +20,8 @@
     <title>Messages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Messages/message.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="../../../public/css/Messages/message.css">
+    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
 </head>
 <body>
     <div class="sidebar"> 
@@ -31,13 +31,13 @@
         </div>
         
         <nav class="menu"> 
-            <a href="<?= BASE_URL ?>app/Views/Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="<?= BASE_URL ?>app/Views/Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="<?= BASE_URL ?>app/Views/Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="<?= BASE_URL ?>app/Views/Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="<?= BASE_URL ?>app/Views/Friends/AddFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="<?= BASE_URL ?>app/Views/Messages/message.php" class="item active"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="<?= BASE_URL ?>app/Views/Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>      
+            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
+            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
+            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
+            <a href="../Friends/AddFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
+            <a href="../Messages/message.php" class="item active"><i class="fa-solid fa-message"></i> Messages</a>
+            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>      
         </nav>
 
         <button class="btn-create">
@@ -62,7 +62,7 @@
                 <div class="user-profile">
                     <span id="current-user-name" data-id="<?= $user_id ?>"><?= htmlspecialchars($u_d['Username']); ?></span>
                     <a href="../Profile/profile.php">
-                        <img id="my-avatar-img" src="<?= !empty($u_d['ProfilePic']) ? BASE_URL . 'public/img/' . $u_d['ProfilePic'] : 'https://via.placeholder.com/50' ?>" alt="Profile">
+                        <img id="my-avatar-img" src="<?= !empty($u_d['ProfilePic']) ? '../../../public/img/' . $u_d['ProfilePic'] : 'https://via.placeholder.com/50' ?>" alt="Profile">
                     </a>
                 </div>
             </div>
@@ -115,12 +115,11 @@
     </div>
 
     <script>
-        const API_PATH = '<?= BASE_URL ?>app/Controllers/Messages/ChatController.php';
+        const API_PATH = '../../Controllers/Messages/ChatController.php';
         const CURRENT_USER_ID = <?= json_encode($user_id) ?>;
     </script>
-    <script src="<?= BASE_URL ?>public/js/Messages/message.js"></script>
-    <script src="<?= BASE_URL ?>public/js/Messages/send_img.js"></script>
-    <script src="<?= BASE_URL ?>public/js/Messages/call.js"></script>
-    <script src="<?= BASE_URL ?>public/js/common/theme-toggle.js"></script>
+    <script src="../../../public/js/Messages/message.js"></script>
+    <script src="../../../public/js/Messages/send_img.js"></script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
 </body>
 </html>

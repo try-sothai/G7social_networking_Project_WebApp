@@ -1,13 +1,11 @@
 <?php
 session_start();
-error_reporting(E_ALL); 
-ini_set('display_errors', 1);
 require_once __DIR__ . "/../../../config/db_config.php";
 require_once __DIR__ . "/../../Models/Messages/MessageModel.php"; 
 
 header('Content-Type: application/json');
 
-$current_user_id = $_SESSION['user_id'] ?? 6; 
+$current_user_id = (int)($_SESSION['user_id'] ?? 0); 
 
 if (!$current_user_id) {
     echo json_encode(['error' => 'Unauthorized: Please login first.']);
