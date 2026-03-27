@@ -286,6 +286,8 @@
             const upcomingSection = document.getElementById('upcoming-events');
             const myEventsSection = document.getElementById('my-events');
 
+            const THEME_KEY = 'localconnect_theme';
+
             function applyTheme(theme) {
                 if (theme === 'dark') {
                     document.body.classList.add('dark-mode');
@@ -296,13 +298,14 @@
                     themeBtn?.classList.remove('active');
                     themeIcon && (themeIcon.className = 'fa-solid fa-moon');
                 }
-                localStorage.setItem('theme', theme);
+                localStorage.setItem(THEME_KEY, theme);
             }
 
-            if (localStorage.getItem('theme') === 'dark') {
+            const savedTheme = localStorage.getItem(THEME_KEY);
+            if (!savedTheme) {
                 applyTheme('dark');
             } else {
-                applyTheme('light');
+                applyTheme(savedTheme);
             }
 
             if (themeBtn) {
