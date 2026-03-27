@@ -60,8 +60,8 @@ $unread_notifications = $model->getUnreadNotificationCount($user_id);
             <input type="text" id="searchInput" placeholder="Search for anything...">
         </div>
         
-        <div class="header-actions">
-            <div class="icon-btn"><i class="fa-solid fa-moon"></i></div>
+            <div class="header-actions">
+            <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
             <div class="icon-btn" style="position: relative;" id="notificationBtn">
                 <i class="fa-solid fa-bell"></i>
                 <?php if($unread_notifications > 0): ?>
@@ -142,6 +142,7 @@ window.APP_CONFIG = <?php echo getJsConfig(); ?>;
 </script>
 <script src="../../../public/js/config.js"></script>
 <script src="../../../public/js/Explore/explore.js"></script>
+<script src="../../../public/js/common/theme-toggle.js"></script>
 
 </body>
 </html>

@@ -376,5 +376,6 @@ function timeAgo($datetime) {
             }
         });
     </script>
+    <script src="<?= BASE_URL ?>public/js/common/theme-toggle.js"></script>
 </body>
 </html>

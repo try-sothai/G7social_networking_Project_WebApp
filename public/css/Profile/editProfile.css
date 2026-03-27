@@ -179,3 +179,70 @@
     color: #2563eb;
     font-weight: 600;
 }
+
+/* Dark mode for edit profile page */
+body.dark-mode .profile-container {
+    background: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45);
+}
+
+body.dark-mode .edit-name,
+body.dark-mode .bio-text,
+body.dark-mode .location-edit input,
+body.dark-mode #interest-input {
+    background: #111827;
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+body.dark-mode .edit-name::placeholder,
+body.dark-mode .bio-text::placeholder,
+body.dark-mode .location-edit input::placeholder,
+body.dark-mode #interest-input::placeholder {
+    color: #94a3b8;
+}
+
+body.dark-mode .user-email {
+    color: #cbd5e1;
+}
+
+body.dark-mode .profile-stats span {
+    color: #cbd5e1;
+}
+
+body.dark-mode .interest-tag {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+body.dark-mode .btn_st {
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.35);
+    background: #1e293b;
+}
+
+body.dark-mode .btn-logout {
+    color: #fda4af;
+    border-color: rgba(251, 113, 133, 0.5);
+    background: rgba(127, 29, 29, 0.2);
+}
+
+body.dark-mode .profile-tabs {
+    border-top-color: rgba(148, 163, 184, 0.25);
+}
+
+body.dark-mode .tab {
+    color: #94a3b8;
+}
+
+body.dark-mode .tab.active {
+    color: #93c5fd;
+    border-top-color: #3b82f6;
+}
+
+body.dark-mode hr {
+    border-color: rgba(148, 163, 184, 0.25);
+}
