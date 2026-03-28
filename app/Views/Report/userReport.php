@@ -348,7 +348,7 @@ function timeAgo($datetime) {
                         mode: 'index',
                         intersect: false,
                         backgroundColor: '#1e293b',
-                        titleColor: '#f1f5f9',.
+                        titleColor: '#f1f5f9',
                         bodyColor: '#cbd5e1'
                     }
                 },
