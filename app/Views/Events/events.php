@@ -38,7 +38,16 @@
         }
         return $eventDate->format('M j, Y'); // e.g., Mar 22, 2026
     }
-    
+    $profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
+}
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -136,7 +145,7 @@
             <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>       
         </nav>
 
-        <button class="btn-create">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -246,37 +255,11 @@
 
         </div>
     </div>
-
-    <div class="story-modal-overlay" id="add-story-modal">
-        <div class="story-modal-card">
-            <div class="story-modal-header">
-                <h3>Add New Story</h3>
-                <button class="story-modal-close" id="close-add-story" type="button">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <form id="add-story-form" class="story-upload-form" action="../Home/story_editor.php" method="post" enctype="multipart/form-data">
-                <label for="story-media-input" class="story-file-label">
-                    <i class="fa-solid fa-image"></i>
-                    <span>Choose Image or Video</span>
-                </label>
-                <input type="file" id="story-media-input" name="story_media" accept="image/*,video/*">
-                <div class="story-file-name" id="selected-file-name">No file chosen</div>
-                <button type="submit" class="story-upload-btn">Continue to Edit</button>
-                <p class="story-modal-message" id="story-modal-message"></p>
-            </form>
-        </div>
-    </div>
-
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const createPostBtn = document.querySelector('.btn-create');
-            const addStoryModal = document.getElementById('add-story-modal');
-            const closeAddStoryBtn = document.getElementById('close-add-story');
-            const storyMediaInput = document.getElementById('story-media-input');
-            const selectedFileName = document.getElementById('selected-file-name');
-
+            
             const themeBtn = document.querySelector('.theme-toggle');
             const bellBtn = document.querySelector('.notifications-btn');
             const themeIcon = themeBtn?.querySelector('i');
@@ -362,34 +345,13 @@
                     showToast('Interest registered!');
                 });
             });
-
-            if (createPostBtn && addStoryModal) {
-                createPostBtn.addEventListener('click', () => {
-                    addStoryModal.classList.add('active');
-                });
-            }
-
-            if (closeAddStoryBtn && addStoryModal) {
-                closeAddStoryBtn.addEventListener('click', () => {
-                    addStoryModal.classList.remove('active');
-                });
-            }
-
-            if (addStoryModal) {
-                addStoryModal.addEventListener('click', (event) => {
-                    if (event.target === addStoryModal) {
-                        addStoryModal.classList.remove('active');
-                    }
-                });
-            }
-
-            if (storyMediaInput && selectedFileName) {
-                storyMediaInput.addEventListener('change', () => {
-                    const file = storyMediaInput.files && storyMediaInput.files[0];
-                    selectedFileName.textContent = file ? file.name : 'No file chosen';
-                });
-            }
         });
     </script>
+    <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>

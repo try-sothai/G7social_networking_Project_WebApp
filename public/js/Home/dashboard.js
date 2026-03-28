@@ -503,7 +503,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeAllPostMenus();
                 const postId = Number(btn.getAttribute('data-post-id') || 0);
                 if (!postId) return;
-                if (!window.confirm('Delete this post?')) return;
 
                 const payload = new FormData();
                 payload.append('action', 'delete');
@@ -560,7 +559,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('[data-role="share-post"]').forEach((btn) => {
             btn.onclick = () => {
-                if(!window.confirm('Share this post to your profile?')) return;
                 const postId = btn.getAttribute('data-post-id');
                 const payload = new FormData();
                 payload.append('action', 'share');
@@ -679,10 +677,13 @@ document.addEventListener('DOMContentLoaded', () => {
         createPostForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const files = Array.from(postMediaInput.files || []);
-            if (files.length === 0) {
-                postModalMessage.textContent = 'Please choose at least one media file first.';
+            const content = (postContentInput && postContentInput.value) ? postContentInput.value.trim() : '';
+
+            if (files.length === 0 && content === '') {
+                postModalMessage.textContent = 'Please add text or at least one media file.';
                 return;
             }
+            
             if (files.length > 4) {
                 postModalMessage.textContent = 'You can upload up to 4 media files per post.';
                 return;
@@ -695,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = new FormData();
             payload.append('action', 'create');
             files.forEach((file) => payload.append('post_media[]', file));
-            payload.append('content', (postContentInput && postContentInput.value) ? postContentInput.value : '');
+            payload.append('content', content);
 
             fetch(POST_API, {
                 method: 'POST',

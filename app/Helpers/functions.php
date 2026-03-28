@@ -11,7 +11,7 @@ function getJsConfig() {
     return json_encode([
         'baseUrl' => BASE_URL,
         'imagePath' => BASE_URL . 'public/img/',
-        'postsImagePath' => BASE_URL . 'public/img/posts/',
+        'postsImagePath' => BASE_URL . 'public/uploads/posts/',
         'uploadsPath' => BASE_URL . 'public/uploads/',
         'chatPath' => BASE_URL . 'public/uploads/chat/'
     ]);

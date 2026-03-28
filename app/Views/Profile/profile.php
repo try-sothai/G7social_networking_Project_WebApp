@@ -77,7 +77,16 @@ foreach ($userPosts as $postRow) {
         'media_items' => $mediaItems,
     ];
 }
-
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
+}
 ?>
 
 <!DOCTYPE html>
@@ -107,7 +116,7 @@ foreach ($userPosts as $postRow) {
             <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>           
         </nav>
 
-        <button class="btn-create">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -339,6 +348,13 @@ foreach ($userPosts as $postRow) {
     </div>
     <script src="../../../public/js/Profile/profile.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+    <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>
 

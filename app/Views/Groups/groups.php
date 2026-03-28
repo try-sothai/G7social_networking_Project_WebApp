@@ -25,6 +25,17 @@ if (isset($_GET['success']) && $_GET['success'] === 'created') {
 
 $defaultAvatar = 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&length=2';
 $defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
+$u_d = $userData;
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
+}
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -53,7 +64,7 @@ $defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
             <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a> 
             <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>          
         </nav>
-        <button class="btn-create" onclick="document.getElementById('create-post-modal').classList.add('active')">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -205,35 +216,15 @@ $defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
         </div>
     </div>
     
-    <div class="story-modal-overlay" id="create-post-modal">
-        <div class="story-modal-card post-modal-card">
-            <div class="story-modal-header">
-                <h3>Create New Post</h3>
-                <button class="story-modal-close" id="close-create-post" type="button">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <form id="create-post-form" class="story-upload-form" enctype="multipart/form-data">
-                <label for="post-media-input" class="story-file-label">
-                    <i class="fa-solid fa-photo-film"></i>
-                    <span>Choose Photos</span>
-                </label>
-                <input type="file" id="post-media-input" name="post_media[]" accept="image/*" multiple>
-                <div class="story-file-name" id="post-selected-file-name">No file chosen</div>
-
-                <div class="post-editor-area" id="post-editor-area">
-                    <div class="post-editor-preview" id="post-editor-preview"></div>
-                    <label for="post-content-input">Caption</label>
-                    <textarea id="post-content-input" name="content" maxlength="800" placeholder="Write something about this post..."></textarea>
-                </div>
-
-                <button type="submit" class="story-upload-btn">Post to Website</button>
-                <p class="story-modal-message" id="post-modal-message"></p>
-            </form>
-        </div>
-    </div>
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
 
     <script src="../../../public/js/Groups/groups.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>

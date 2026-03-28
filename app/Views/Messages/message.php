@@ -15,6 +15,16 @@
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
     $unreadCount = $messageModel->getUnreadCount($user_id);
+    $profilePicPath = '';
+    if (!empty($u_d['ProfilePic'])) {
+        $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+        if (is_file($candidate)) {
+            $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        }
+    }
+    if ($profilePicPath === '') {
+        $profilePicPath = 'https://via.placeholder.com/150';
+    }
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -44,7 +54,7 @@
             <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>      
         </nav>
 
-        <button class="btn-create" onclick="location.href='../Posts/create.php'">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -142,5 +152,11 @@
     <script src="../../../public/js/Messages/message.js"></script>
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+    <script>
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>

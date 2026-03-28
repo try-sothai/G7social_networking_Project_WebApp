@@ -16,6 +16,16 @@ $u_d = $model->getUserData($user_id);
 $stats = $model->getProfileStats($user_id);
 $notifications = $model->getNotifications($user_id);
 $unread_notifications = $model->getUnreadNotificationCount($user_id);
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
+}
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -47,7 +57,7 @@ $unread_notifications = $model->getUnreadNotificationCount($user_id);
         <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>            
     </nav>
 
-    <button class="btn-create" id="createPostBtn">
+    <button class="btn-create" id="open-create-post" type="button">
         <i class="fa-solid fa-plus-circle"></i>
         <span>Create New Post</span>
     </button>
@@ -110,26 +120,7 @@ $unread_notifications = $model->getUnreadNotificationCount($user_id);
     </div>
 </div>
 
-<!-- Create Post Modal -->
-<div id="createPostModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Create New Post</h3>
-            <i class="fa-solid fa-times close-modal"></i>
-        </div>
-        <form id="createPostForm" enctype="multipart/form-data">
-            <textarea class="post-input" name="content" placeholder="What's on your mind?" required></textarea>
-            <img id="imagePreview" class="image-preview" alt="Preview">
-            <div class="modal-actions">
-                <label class="upload-btn">
-                    <i class="fa-solid fa-image"></i> Add Image
-                    <input type="file" name="image" accept="image/*" style="display: none;" id="imageInput">
-                </label>
-                <button type="submit" class="submit-post">Post</button>
-            </div>
-        </form>
-    </div>
-</div>
+<?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
 
 <script>
 // Pass PHP variables to JavaScript
@@ -143,6 +134,13 @@ window.APP_CONFIG = <?php echo getJsConfig(); ?>;
 <script src="../../../public/js/config.js"></script>
 <script src="../../../public/js/Explore/explore.js"></script>
 <script src="../../../public/js/common/theme-toggle.js"></script>
+<script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+<script src="../../../public/js/Home/dashboard.js"></script>
+
 
 </body>
 </html>

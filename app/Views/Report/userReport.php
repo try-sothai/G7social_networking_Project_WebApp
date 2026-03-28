@@ -4,11 +4,27 @@ session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
 require_once '../../Models/Report/ReportModel.php';
+require_once '../../Models/Profile/ProfileModel.php';
+
 
 // Security: Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
     exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$model = new ProfileModel($conn);
+$u_d = $model->getUserData($user_id);
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
 }
 
 $reportModel = new ReportModel($conn);
@@ -102,7 +118,7 @@ function timeAgo($datetime) {
             <a href="<?= BASE_URL ?>app/Views/Report/userReport.php" class="item active"><i class="fa-solid fa-chart-simple"></i> Report</a> 
         </nav>
 
-        <button class="btn-create" onclick="location.href='<?= BASE_URL ?>app/Views/Posts/createPost.php'">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -377,5 +393,12 @@ function timeAgo($datetime) {
         });
     </script>
     <script src="<?= BASE_URL ?>public/js/common/theme-toggle.js"></script>
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+    <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>

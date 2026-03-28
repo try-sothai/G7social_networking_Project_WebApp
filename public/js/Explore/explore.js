@@ -58,34 +58,6 @@ function setupEventListeners() {
         });
     }
 
-    // Create post button
-    const createPostBtn = document.getElementById('createPostBtn');
-    if (createPostBtn) {
-        createPostBtn.addEventListener('click', () => {
-            document.getElementById('createPostModal').style.display = 'flex';
-        });
-    }
-
-    // Close modal buttons
-    const closeModals = document.querySelectorAll('.close-modal');
-    closeModals.forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('createPostModal').style.display = 'none';
-        });
-    });
-
-    // Create post form
-    const createPostForm = document.getElementById('createPostForm');
-    if (createPostForm) {
-        createPostForm.addEventListener('submit', handleCreatePost);
-    }
-
-    // Image preview
-    const imageInput = document.getElementById('imageInput');
-    if (imageInput) {
-        imageInput.addEventListener('change', handleImagePreview);
-    }
-
     // Notifications
     const notificationBtn = document.getElementById('notificationBtn');
     if (notificationBtn) {
@@ -329,54 +301,6 @@ function addComment(postId) {
         console.error('Error:', error);
         alert('Error adding comment');
     });
-}
-
-function handleCreatePost(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    formData.append('action', 'create_post');
-    
-    const submitBtn = e.target.querySelector('.submit-post');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Posting...';
-    
-    fetch('explore_controller.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('createPostModal').style.display = 'none';
-            e.target.reset();
-            document.getElementById('imagePreview').style.display = 'none';
-            loadPosts(currentCategory);
-        } else {
-            alert('Error creating post: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error creating post');
-    })
-    .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Post';
-    });
-}
-
-function handleImagePreview(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const preview = document.getElementById('imagePreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
 }
 
 function toggleNotifications() {

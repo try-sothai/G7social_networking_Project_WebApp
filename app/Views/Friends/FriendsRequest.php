@@ -14,9 +14,21 @@ $profileModel = new ProfileModel($conn);
 $friendModel = new FriendModel($conn);
 
 $user_data = $profileModel->getUserData($user_id);
+$u_d = $user_data;
 $received_requests = $friendModel->getReceivedRequests($user_id);
 $sent_requests = $friendModel->getSentRequests($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
+
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
+}
 
 function time_ago($datetime) {
     $time = strtotime($datetime);
@@ -333,7 +345,7 @@ function time_ago($datetime) {
             <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
             <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>     
         </nav>
-        <button class="btn-create" onclick="location.href='../Posts/create.php'">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -468,9 +480,8 @@ function time_ago($datetime) {
     </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
-
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <script>
         function handleRequest(userId, action) {
@@ -523,6 +534,12 @@ function time_ago($datetime) {
             }, 3000);
         }
     </script>
+        <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($user_data['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath ?? 'https://via.placeholder.com/150'); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>
 

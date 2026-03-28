@@ -22,6 +22,16 @@ $friends = $friendModel->getFriends($user_id);
 $friendCount = $friendModel->getFriendCount($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://via.placeholder.com/150';
+}
 ?>
 
 <!DOCTYPE html>
@@ -463,7 +473,7 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
             <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
             <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>   
         </nav>
-        <button class="btn-create" onclick="location.href='../Posts/create.php'">
+        <button class="btn-create" id="open-create-post" type="button">
             <i class="fa-solid fa-plus-circle"></i>
             <span>Create New Post</span>
         </button>
@@ -616,6 +626,7 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
 
     <div id="toast" class="toast"></div>
 
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <script>
         // Search friends functionality
@@ -716,6 +727,12 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
             }, 3000);
         }
     </script>
+        <script>
+        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
+        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
+        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
+    </script>
+    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>
 
