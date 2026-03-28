@@ -67,7 +67,7 @@
 
     <div class="main-content">
         <header>
-            <button class="menu-toggle"><i class="fa-solid fa-ellipsis-v"></i></button>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
                 <i class="fa-solid fa-search text"></i>
                 <input type="text" placeholder="Search for anything...">

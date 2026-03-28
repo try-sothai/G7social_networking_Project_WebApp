@@ -65,12 +65,14 @@ if ($profilePicPath === '') {
 
 <div class="main-content">
     <header>
+        <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
             <i class="fa-solid fa-search text-muted"></i>
             <input type="text" id="searchInput" placeholder="Search for anything...">
         </div>
         
-            <div class="header-actions">
+        <div class="header-actions">
+            <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
             <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
             <div class="icon-btn" style="position: relative;" id="notificationBtn">
                 <i class="fa-solid fa-bell"></i>
@@ -120,6 +122,8 @@ if ($profilePicPath === '') {
     </div>
 </div>
 
+<div class="overlay"></div>
+
 <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
 
 <script>
@@ -140,6 +144,7 @@ window.APP_CONFIG = <?php echo getJsConfig(); ?>;
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
     </script>
 <script src="../../../public/js/Home/dashboard.js"></script>
+<script src="../../../public/js/Home/responsive.js"></script>
 
 
 </body>

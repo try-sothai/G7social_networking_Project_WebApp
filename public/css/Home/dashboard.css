@@ -131,6 +131,11 @@ header {
     backdrop-filter: blur(8px);
 }
 
+.menu-toggle {
+    display: none; /* លាក់នៅលើ Desktop ជា Default */
+    border: none;
+}
+
 .search-bar {
     background: white;
     padding: 10px 20px;
@@ -153,6 +158,7 @@ header {
     display: flex;
     align-items: center;
     gap: 20px;
+    flex-wrap: nowrap;
 }
 
 .icon-btn {
@@ -167,6 +173,7 @@ header {
     cursor: pointer;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     transition: 0.3s;
+    flex-shrink: 0;
 }
 
 .icon-btn:hover {
@@ -1743,15 +1750,13 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
         display: none; /* Or handle differently */
     }
     header {
-        padding-left: 60px; /* Space for menu button */
+        padding-left: 20px;
+        gap: 15px;
     }
+    /* បង្ហាញប៊ូតុង Menu នៅលើ Tablet និង Mobile */
     .menu-toggle {
-        display: block;
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 2001;
+        display: flex;
+        order: -1; /* ធានាថាវានៅខាងឆ្វេងគេបង្អស់ក្នុង Header */
     }
 }
 
@@ -1764,7 +1769,9 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
         width: auto;
         border-radius: 0;
         box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-        transform: translateY(-200%);
+        transform: translateY(-10px);
+        opacity: 0;
+        visibility: hidden;
         transition: transform 0.3s ease-in-out;
         z-index: 899;
         background-color: white;
@@ -1774,6 +1781,8 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     }
     .search-bar.active {
         transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
     }
     .search-toggle-btn {
         display: flex; /* Show the search toggle button */
@@ -1832,21 +1841,4 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     .quick-status-actions {
         flex-direction: column;
     }
-}
-
-.menu-toggle {
-    display: none; /* Hidden by default */
-    background: none;
-    border: none;
-    color: #1e293b;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-body.dark-mode .menu-toggle {
-    color: #e2e8f0;
-}
-
-body.dark-mode .menu-toggle {
-    color: #e2e8f0;
 }

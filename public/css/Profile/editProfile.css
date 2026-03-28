@@ -67,7 +67,7 @@
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    margin-left: 400px;
+    margin-left: auto;
 }
 .btn-cancel{
     background-color: #ce2727;
@@ -245,4 +245,32 @@ body.dark-mode .tab.active {
 
 body.dark-mode hr {
     border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* 📱 Responsive សម្រាប់ទូរស័ព្ទ និង Tablet */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    .profile-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+    }
+    .btn-save, .btn-cancel {
+        width: 100%;
+        margin: 0;
+    }
+    .profile-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .profile-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .profile-container {
+        padding: 15px;
+    }
 }
