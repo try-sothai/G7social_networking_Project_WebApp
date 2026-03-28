@@ -67,12 +67,14 @@
 
     <div class="main-content">
         <header>
+            <button class="menu-toggle"><i class="fa-solid fa-ellipsis-v"></i></button>
             <div class="search-bar">
                 <i class="fa-solid fa-search text"></i>
                 <input type="text" placeholder="Search for anything...">
             </div>
 
             <div class="header-actions">
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
                 <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
@@ -148,6 +150,8 @@
             </div>
         </div>
     </div>
+
+    <div class="overlay"></div>
 
     <div class="story-modal-overlay" id="add-story-modal">
         <div class="story-modal-card">
@@ -228,5 +232,6 @@
     </script>
     <script src="../../../public/js/Home/dashboard.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
 </body>
 </html>
