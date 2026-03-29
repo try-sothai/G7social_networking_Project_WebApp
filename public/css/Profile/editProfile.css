@@ -90,17 +90,98 @@
 }
 
 /* សម្រាប់ផ្នែក Interest Tags */
+.interests-label {
+    display: block; 
+    font-weight: 600; 
+    color: #475569; 
+    margin-bottom: 12px; 
+    font-size: 15px;
+}
+
 .interests {
     display: flex;
-    gap: 10px;
-    margin-top: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
 }
 
 .interest-tag {
-    padding: 5px 15px;
-    background: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: #f1f5f9;
+    color: #334155;
     border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.interest-tag:hover {
+    background: #e2e8f0;
+}
+
+.remove-interest {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #94a3b8;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.remove-interest:hover {
+    background: #ef4444;
+}
+
+.add-interest-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#interest-input {
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    width: 180px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#interest-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.add-interest {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
     border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.add-interest:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
 }
 
 /* បន្ថែម/កែសម្រួល CSS ទាំងនេះ */
@@ -204,6 +285,10 @@ body.dark-mode #interest-input::placeholder {
     color: #94a3b8;
 }
 
+body.dark-mode .interests-label {
+    color: #cbd5e1;
+}
+
 body.dark-mode .user-email {
     color: #cbd5e1;
 }
@@ -216,6 +301,14 @@ body.dark-mode .interest-tag {
     background: #1e293b;
     color: #e2e8f0;
     border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+body.dark-mode .remove-interest {
+    background: #475569;
+}
+
+body.dark-mode .remove-interest:hover {
+    background: #ef4444;
 }
 
 body.dark-mode .btn_st {

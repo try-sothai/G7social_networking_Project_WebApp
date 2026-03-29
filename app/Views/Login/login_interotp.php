@@ -38,33 +38,33 @@ if(isset($_POST['verify'])){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalConnect - Verify OTP</title>
+    <title>Social7 - Verify OTP</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Login/login_interotp.css">
+<link rel="stylesheet" href="../../../public/css/Login/auth.css">
 </head>
 <body>
 
-<div class="card">
-    <h1 class="logo">G7Connect</h1>
-    <p class="subtitle">Connect with your community</p>
+<div class="auth-card">
+    <h1 class="auth-logo">Social7</h1>
+    <p class="auth-subtitle">Connect with your community</p>
 
-    <div class="tab-box">
-        <a href="login_gmail.php" class="tab">
+    <div class="auth-tabs">
+        <a href="login_gmail.php" class="auth-tab">
             <span>📧</span> Email
         </a>
-        <a href="login_phone.php" class="tab active">
+        <a href="login_phone.php" class="auth-tab active">
             <span>📞</span> Phone
         </a>
     </div>
 
     <?php if($error): ?>
-        <div class="error-msg">⚠️ <?php echo $error; ?></div>
+        <div class="auth-msg error">⚠️ <?php echo $error; ?></div>
     <?php endif; ?>
 
-    <form action="" method="POST">
+    <form class="auth-form" action="" method="POST">
         <div class="form-group">
             <label>Phone Number</label>
-            <input type="text" value="<?php echo $_SESSION['phone']; ?>" readonly style="color: #64748b; cursor: not-allowed;">
+            <input type="text" value="<?php echo $_SESSION['phone']; ?>" readonly>
         </div>
 
         <div class="form-group">
@@ -74,10 +74,10 @@ if(isset($_POST['verify'])){
                    required autofocus>
         </div>
 
-        <button type="submit" name="verify" class="btn-login">Log In</button>
+        <button type="submit" name="verify" class="btn-primary">Log In</button>
     </form>
 
-    <div class="divider">or</div>
+    <div class="auth-divider">or</div>
 
     <button type="button" class="btn-social">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
@@ -86,7 +86,7 @@ if(isset($_POST['verify'])){
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 
-    <div class="footer">
+    <div class="auth-footer">
         Didn't receive the code? <a href="login_phone.php">Resend</a>
     </div>
 </div>

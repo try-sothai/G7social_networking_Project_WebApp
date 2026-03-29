@@ -80,7 +80,7 @@ body.dark-mode .stat-card {
 .groups-layout {
     display: grid;
     grid-template-columns: 1fr 320px;
-    gap: 2rem;
+    gap: 30px;
     align-items: start;
 }
 
@@ -111,9 +111,9 @@ body.dark-mode .stat-card {
 /* Filter Buttons in Sidebar */
 .group-filters-container {
     background: var(--bg-card);
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: var(--card-shadow);
+    padding: 25px;
+    border-radius: 24px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     margin-top: 1.5rem;
 }
 
@@ -145,7 +145,7 @@ body.dark-mode .stat-card {
 }
 
 .filter-btn.active {
-    background: var(--primary);
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
@@ -159,12 +159,12 @@ body.dark-mode .stat-card {
 
 .stat-card {
     background: var(--bg-card);
-    border-radius: 12px;
+    border-radius: 24px;
     padding: 1.5rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
 }
 
@@ -200,9 +200,9 @@ body.dark-mode .stat-card {
 /* Group Card */
 .group-card {
     background: var(--bg-card);
-    border-radius: 12px;
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
     cursor: pointer;
 }
@@ -278,7 +278,7 @@ body.dark-mode .stat-card {
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: var(--primary);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
 }
 
@@ -301,11 +301,11 @@ body.dark-mode .stat-card {
 /* Create Group Button */
 .btn-create-group {
     width: 100%;
-    background: var(--primary);
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    padding: 14px 24px;
+    border-radius: 14px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -325,8 +325,8 @@ body.dark-mode .stat-card {
     text-align: center;
     padding: 4rem;
     background: var(--bg-card);
-    border-radius: 12px;
-    box-shadow: var(--card-shadow);
+    border-radius: 24px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     grid-column: 1/-1;
 }
 
@@ -350,9 +350,11 @@ body.dark-mode .stat-card {
         position: static;
         top: auto;
         grid-row: 1; /* Move sidebar to the top on smaller screens */
+        grid-column: 1 / -1; /* Fix implicit grid overflow on mobile */
     }
     .groups-main-content {
         grid-row: 2;
+        grid-column: 1 / -1; /* Fix implicit grid overflow on mobile */
     }
     .group-filters-container {
         margin-top: 0;
@@ -362,6 +364,9 @@ body.dark-mode .stat-card {
         flex-direction: row;
         justify-content: center;
     }
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
@@ -369,6 +374,9 @@ body.dark-mode .stat-card {
         padding: 1rem;
     }
     .groups-grid {
+        grid-template-columns: 1fr;
+    }
+    .stats-grid {
         grid-template-columns: 1fr;
     }
 }

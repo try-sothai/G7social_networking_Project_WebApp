@@ -333,6 +333,19 @@ if ($profilePicPath === '') {
         body.dark-mode small {
             color: #94a3b8 !important;
         }
+
+        @media (max-width: 768px) {
+            .friends-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                width: 100%;
+            }
+            .tab-btn {
+                flex: 1;
+                text-align: center;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -358,11 +371,13 @@ if ($profilePicPath === '') {
 
     <div class="main-content">
         <header>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
-                <i class="fa-solid fa-search text-muted"></i>
+                <i class="fa-solid fa-search text"></i>
                 <input type="text" placeholder="Search for anything...">
             </div>
             <div class="header-actions">
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
                 <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
@@ -447,6 +462,7 @@ if ($profilePicPath === '') {
         </div>
     </div>
 
+    <div class="overlay"></div>
     <div id="toast" class="toast"></div>
 
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
@@ -594,7 +610,6 @@ if ($profilePicPath === '') {
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath ?? 'https://via.placeholder.com/150'); ?>;
     </script>
     <script src="../../../public/js/Home/dashboard.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
 </body>
 </html>
-
-

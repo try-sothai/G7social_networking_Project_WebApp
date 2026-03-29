@@ -125,6 +125,28 @@ function timeAgo($datetime) {
     </div>
     
     <div class="main-content">
+        <header>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="search-bar">
+                <i class="fa-solid fa-search text"></i>
+                <input type="text" placeholder="Search for anything...">
+            </div>
+            
+            <div class="header-actions">
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
+                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
+                <div class="icon-btn" style="position: relative;">
+                    <i class="fa-solid fa-bell"></i>
+                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                </div>
+                <div class="user-profile">
+                    <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
+                    <a href="../Profile/profile.php">
+                        <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile">
+                    </a>
+                </div>
+            </div>
+        </header>
         <div class="container">
             <!-- Header -->
             <div class="report-header">
@@ -301,6 +323,8 @@ function timeAgo($datetime) {
         </div>
     </div>
 
+    <div class="overlay"></div>
+
     <script>
         // Engagement Chart Data
         const engagementTrends = <?php echo json_encode($engagementTrends); ?>;
@@ -400,5 +424,6 @@ function timeAgo($datetime) {
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
     </script>
     <script src="../../../public/js/Home/dashboard.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
 </body>
 </html>

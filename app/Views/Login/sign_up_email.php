@@ -61,30 +61,30 @@ if (isset($_POST['signup'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalConnect - Sign Up</title>
+    <title>Social7 - Sign Up</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Login/sign_up_email.css">
+<link rel="stylesheet" href="../../../public/css/Login/auth.css">
 </head>
 <body>
 
-<div class="card">
-    <h1 class="logo">LocalConnect</h1>
-    <p class="subtitle">Connect with your community</p>
+<div class="auth-card">
+    <h1 class="auth-logo">Social7</h1>
+    <p class="auth-subtitle">Connect with your community</p>
 
-    <div class="tab-container">
-        <a href="sign_up_email.php" class="tab active"><span>📧</span> Email</a>
-        <a href="sign_up_phone.php" class="tab"><span>📞</span> Phone</a>
+    <div class="auth-tabs">
+        <a href="sign_up_email.php" class="auth-tab active"><span>📧</span> Email</a>
+        <a href="sign_up_phone.php" class="auth-tab"><span>📞</span> Phone</a>
     </div>
 
     <?php if($message): ?>
-        <div class="msg success">✅ <?php echo $message; ?></div>
+        <div class="auth-msg success">✅ <?php echo $message; ?></div>
     <?php endif; ?>
 
     <?php if($error): ?>
-        <div class="msg error">❌ <?php echo $error; ?></div>
+        <div class="auth-msg error">❌ <?php echo $error; ?></div>
     <?php endif; ?>
 
-    <form action="" method="POST">
+    <form class="auth-form" action="" method="POST">
         <div class="form-group">
             <label>Username</label>
             <input type="text" name="Username" placeholder="Enter your Username" required autofocus>
@@ -99,19 +99,19 @@ if (isset($_POST['signup'])) {
             <input type="password" name="Password" placeholder="Enter your Password" required>
         </div>
 
-        <button type="submit" name="signup" class="btn-signup">Sign Up</button>
+        <button type="submit" name="signup" class="btn-primary">Sign Up</button>
     </form>
 
-    <div class="divider">or</div>
+    <div class="auth-divider">or</div>
 
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
     </button>
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 
-    <div class="footer-text">
+    <div class="auth-footer">
         Already have an account? <a href="login_gmail.php">Log in</a>
     </div>
 </div>

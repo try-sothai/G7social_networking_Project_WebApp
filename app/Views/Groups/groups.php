@@ -72,8 +72,9 @@ if ($profilePicPath === '') {
     
     <div class="main-content">
         <header>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
-                <i class="fa-solid fa-search text-muted"></i>
+                <i class="fa-solid fa-search text"></i>
                 <form method="GET" action="" id="searchForm" style="flex: 1;">
                     <input type="text" name="search" placeholder="Search for groups..." 
                            value="<?php echo htmlspecialchars($searchKeyword); ?>"
@@ -82,6 +83,7 @@ if ($profilePicPath === '') {
             </div>
             
             <div class="header-actions">
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
                 <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
@@ -216,6 +218,8 @@ if ($profilePicPath === '') {
         </div>
     </div>
     
+    <div class="overlay"></div>
+
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
 
     <script src="../../../public/js/Groups/groups.js"></script>
@@ -226,5 +230,6 @@ if ($profilePicPath === '') {
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
     </script>
     <script src="../../../public/js/Home/dashboard.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
 </body>
 </html>

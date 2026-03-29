@@ -40,25 +40,25 @@ if(isset($_POST['login'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G7Connect - Login</title>
+<title>Social7 - Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../../public/css/Login/login_gmail.css">
+<link rel="stylesheet" href="../../../public/css/Login/auth.css">
 </head>
 <body>
-<div class="login-card">
-    <h1>G7Connect</h1>
-    <p>Connect with your community</p>
+<div class="auth-card">
+    <h1 class="auth-logo">Social7</h1>
+    <p class="auth-subtitle">Connect with your community</p>
 
-    <div class="tab-container">
-        <a href="login_gmail.php" class="tab active">
+    <div class="auth-tabs">
+        <a href="login_gmail.php" class="auth-tab active">
             <span>📧</span> Email
         </a>
-        <a href="login_phone.php" class="tab">
+        <a href="login_phone.php" class="auth-tab">
             <span>📞</span> Phone
         </a>
     </div>
 
-     <form action="" method="POST">
+     <form class="auth-form" action="" method="POST">
         <div class="form-group">
             <label>Email</label>
             <input type="Email" name="Email" placeholder="Enter your Email address" required>
@@ -67,19 +67,19 @@ if(isset($_POST['login'])) {
             <label>Password</label>
             <input type="password" name="Password" placeholder="Enter your Password" required>
         </div>   
-        <button type="submit" name="login" class="btn-login">Log In</button>
+        <button type="submit" name="login" class="btn-primary">Log In</button>
     </form>
 
-    <div class="divider">or</div>
+    <div class="auth-divider">or</div>
 
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
     </button>
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 
-    <div class="footer-text">
+    <div class="auth-footer">
         Don't have an account? <a href="sign_up_email.php">Sign up now</a>
     </div>
 </div>

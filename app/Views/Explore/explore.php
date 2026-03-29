@@ -35,9 +35,20 @@ if ($profilePicPath === '') {
     <title>LocalConnect V2 - Explore</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Explore/explore.css">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
     <link rel="stylesheet" href="../../../public/css/Explore/explore.css">
+    <style>
+        /* Add fallback media queries to ensure Explore page is 100% responsive exactly like Dashboard */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+            .explore-container {
+                padding: 15px !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -67,7 +78,7 @@ if ($profilePicPath === '') {
     <header>
         <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
-            <i class="fa-solid fa-search text-muted"></i>
+            <i class="fa-solid fa-search text"></i>
             <input type="text" id="searchInput" placeholder="Search for anything...">
         </div>
         

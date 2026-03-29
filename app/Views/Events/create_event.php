@@ -85,13 +85,15 @@ if (isset($_GET['error'])) {
             </div>
         <?php endif; ?>
         <header>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
                 <i class="fa-solid fa-search text-muted"></i>
                 <input type="text" placeholder="Search for anything...">
             </div>
             
             <div class="header-actions">
-                <div class="icon-btn"><i class="fa-solid fa-moon"></i></div>
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
+                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
                     <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
@@ -149,6 +151,9 @@ if (isset($_GET['error'])) {
         </div>
     </div>
 
+    <div class="overlay"></div>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const alertBox = document.querySelector('.alert-box');

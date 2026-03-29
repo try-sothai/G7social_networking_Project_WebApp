@@ -36,6 +36,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Messages/message.css">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <style>
+        /* Mobile Chat Responsive Fix */
+        .mobile-back-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: inherit;
+            cursor: pointer;
+            margin-right: 15px;
+            padding: 5px;
+        }
+        @media (max-width: 768px) {
+            .chat-container {
+                position: relative;
+                overflow: hidden;
+                display: flex;
+            }
+            .chat-sidebar {
+                width: 100% !important;
+                flex: none !important;
+                border-right: none !important;
+            }
+            .chat-main {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100% !important;
+                height: 100%;
+                background: var(--bg-card, #ffffff);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                z-index: 10;
+            }
+            body.dark-mode .chat-main { background: #111827; }
+            #chat-welcome { display: none !important; }
+            .chat-main.mobile-active { transform: translateX(0); }
+            .mobile-back-btn { display: block; }
+        }
+    </style>
 </head>
 <body>
     <div class="sidebar"> 
@@ -62,12 +102,14 @@
 
     <div class="main-content">
         <header>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
-                <i class="fa-solid fa-search text-muted"></i>
+                <i class="fa-solid fa-search text"></i>
                 <input type="text" id="search-input" placeholder="Search friends...">
             </div>
             
             <div class="header-actions">
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
                 <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
@@ -103,6 +145,7 @@
             <div id="chat-active" class="chat-main" style="display: none;">
                 <div class="chat-header">
                     <div class="header-info">
+                        <button id="mobile-back-to-list" class="mobile-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
                         <div class="avatar-wrapper">
                             <img src="" class="header-avatar" id="active-user-img">
                             <span class="online-status"></span>
@@ -143,6 +186,31 @@
         </div>            
     </div>
 
+    <div class="overlay"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userList = document.getElementById('user-list-container');
+            const chatActive = document.getElementById('chat-active');
+            const backBtn = document.getElementById('mobile-back-to-list');
+
+            // បង្ហាញផ្ទាំងឆាតពេលចុចលើឈ្មោះមិត្តភក្តិ (សម្រាប់តែទូរស័ព្ទ)
+            if (userList) {
+                userList.addEventListener('click', (e) => {
+                    const item = e.target.closest('div');
+                    if (item && !item.classList.contains('loading-state') && window.innerWidth <= 768) {
+                        chatActive.classList.add('mobile-active');
+                    }
+                });
+            }
+            // លាក់ផ្ទាំងឆាតវិញពេលចុចប៊ូតុង Back
+            if (backBtn) {
+                backBtn.addEventListener('click', () => {
+                    chatActive.classList.remove('mobile-active');
+                });
+            }
+        });
+    </script>
     <script>
         const API_PATH = '../../Controllers/Messages/ChatController.php';
         const CURRENT_USER_ID = <?= json_encode($user_id) ?>;
@@ -158,5 +226,6 @@
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
     </script>
     <script src="../../../public/js/Home/dashboard.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
 </body>
 </html>

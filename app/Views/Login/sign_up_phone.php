@@ -25,22 +25,22 @@ if(isset($_POST['send_otp'])){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalConnect - Sign Up with Phone</title>
+    <title>Social7 - Sign Up with Phone</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Login/sign_up_phone.css">
+<link rel="stylesheet" href="../../../public/css/Login/auth.css">
 </head>
 <body>
 
-<div class="card">
-    <h1 class="logo">LocalConnect</h1>
-    <p class="subtitle">Connect with your community</p>
+<div class="auth-card">
+    <h1 class="auth-logo">Social7</h1>
+    <p class="auth-subtitle">Connect with your community</p>
 
-    <div class="tab-container">
-        <a href="sign_up_email.php" class="tab"><span>📧</span> Email</a>
-        <a href="sign_up_phone.php" class="tab active"><span>📞</span> Phone</a>
+    <div class="auth-tabs">
+        <a href="sign_up_email.php" class="auth-tab"><span>📧</span> Email</a>
+        <a href="sign_up_phone.php" class="auth-tab active"><span>📞</span> Phone</a>
     </div>
 
-    <form action="sign_up_phone.php" method="POST">
+    <form class="auth-form" action="sign_up_phone.php" method="POST">
     <div class="form-group">
         <label>Name</label>
         <input type="text" name="name" placeholder="Enter your name" required autofocus>
@@ -49,19 +49,19 @@ if(isset($_POST['send_otp'])){
         <label>Phone Number</label>
         <input type="text" name="phone" placeholder="+855..." required>
     </div>
-    <button type="submit" name="send_otp" class="btn-send">Send OTP</button>
+    <button type="submit" name="send_otp" class="btn-primary">Send OTP</button>
 </form>
 
-    <div class="divider">or</div>
+    <div class="auth-divider">or</div>
 
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
     </button>
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 
-    <div class="footer-text">
+    <div class="auth-footer">
         Already have an account? <a href="login_phone.php">Log in</a>
     </div>
 </div>

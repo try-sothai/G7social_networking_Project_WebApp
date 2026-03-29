@@ -50,30 +50,30 @@ if (isset($_POST['signup'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalConnect - Sign Up</title>
+    <title>Social7 - Sign Up</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Login/sign_up_phone_otp.css">
+<link rel="stylesheet" href="../../../public/css/Login/auth.css">
 </head>
 <body>
-<div class="card">
-    <h1 class="logo">LocalConnect</h1>
-    <p class="subtitle">Verify OTP for <strong><?php echo $phone; ?></strong></p>
-    <div class="tab-container">
-        <a href="sign_up_email.php" class="tab"><span>📧</span> Email</a>
-        <a href="sign_up_phone.php" class="tab active"><span>📞</span> Phone</a>
+<div class="auth-card">
+    <h1 class="auth-logo">Social7</h1>
+    <p class="auth-subtitle">Verify OTP for <strong><?php echo $phone; ?></strong></p>
+    <div class="auth-tabs">
+        <a href="sign_up_email.php" class="auth-tab"><span>📧</span> Email</a>
+        <a href="sign_up_phone.php" class="auth-tab active"><span>📞</span> Phone</a>
     </div>
-    <?php if($message) echo "<div class='msg success'>✅ $message</div>"; ?>
-    <?php if($error) echo "<div class='msg error'>❌ $error</div>"; ?>
+    <?php if($message) echo "<div class='auth-msg success'>✅ $message</div>"; ?>
+    <?php if($error) echo "<div class='auth-msg error'>❌ $error</div>"; ?>
 
-    <form action="" method="POST">
+    <form class="auth-form" action="" method="POST">
         <div class="form-group">
             <label>Name</label>
-            <input type="text" value="<?php echo $name; ?>" class="readonly-input" readonly>
+            <input type="text" value="<?php echo $name; ?>" readonly>
         </div>
 
         <div class="form-group">
             <label>Phone Number</label>
-            <input type="text" value="<?php echo $phone; ?>" class="readonly-input" readonly>
+            <input type="text" value="<?php echo $phone; ?>" readonly>
         </div>
 
         <div class="form-group">
@@ -82,19 +82,19 @@ if (isset($_POST['signup'])) {
             <small style="color: #64748b;">Code sent to 123456</small>
         </div>
 
-        <button type="submit" name="signup" class="btn-signup">Verify & Sign Up</button>
+        <button type="submit" name="signup" class="btn-primary">Verify & Sign Up</button>
     </form>
 
-    <div class="divider">or</div>
+    <div class="auth-divider">or</div>
 
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
     </button>
-    <button type="button" class="social-btn">
+    <button type="button" class="btn-social">
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 
-    <div class="footer-text">
+    <div class="auth-footer">
         Already have an account? <a href="login_gmail.php">Log in</a>
     </div>
 </div>

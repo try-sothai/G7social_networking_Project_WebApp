@@ -73,3 +73,38 @@
     background-color: #7748ff;
     color: #fff;
 }
+
+/* Dark Mode Styles */
+body.dark-mode .create-event-container {
+    background: #111827;
+    color: #e2e8f0;
+    box-shadow: 0 10px 25px rgba(2, 6, 23, 0.35);
+}
+
+body.dark-mode .create-event-container h1,
+body.dark-mode .create-event-form label {
+    color: #e2e8f0;
+}
+
+body.dark-mode .create-event-form input[type="text"],
+body.dark-mode .create-event-form input[type="datetime-local"],
+body.dark-mode .create-event-form textarea,
+body.dark-mode .create-event-form input[type="file"] {
+    background: #0f172a;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    color: #e2e8f0;
+}
+
+body.dark-mode .create-event-form .btn-cancel {
+    background-color: #1e293b;
+    color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+    .create-event-form .form-actions {
+        flex-direction: column;
+    }
+    .create-event-container {
+        padding: 1.5rem;
+    }
+}

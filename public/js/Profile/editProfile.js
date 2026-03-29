@@ -12,7 +12,7 @@ document.querySelector('.btn-save').addEventListener('click', function() {
 
     const interests = [];
     document.querySelectorAll('.interest-tag').forEach(tag => {
-        interests.push(tag.textContent.trim().replace('x', ''));
+        interests.push(tag.textContent.trim());
     });
     formData.append('interests', JSON.stringify(interests));
 
@@ -46,22 +46,28 @@ document.querySelector('.add-interest').addEventListener('click', function() {
     const interest = input.value.trim();
     if (interest) {
         const newTag = document.createElement('button');
+        newTag.type = 'button';
         newTag.className = 'interest-tag';
-        newTag.textContent = interest;
-        const removeSpan = document.createElement('span');
-        removeSpan.className = 'remove-interest';
-        removeSpan.textContent = 'x';
-        newTag.appendChild(removeSpan);
+        newTag.innerHTML = `${interest} <span class="remove-interest"><i class="fa-solid fa-xmark"></i></span>`;
         
         const interestsContainer = document.querySelector('.interests');
-        interestsContainer.insertBefore(newTag, input);
+        const wrapper = document.querySelector('.add-interest-wrapper');
+        interestsContainer.insertBefore(newTag, wrapper);
         input.value = '';
     }
 });
 
-document.querySelector('.interests').addEventListener('click', function(e) {
-    if (e.target.classList.contains('remove-interest')) {
-        e.target.parentElement.remove();
+// Support Enter key to add interest quickly
+document.getElementById('interest-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.querySelector('.add-interest').click();
     }
 });
 
+document.querySelector('.interests').addEventListener('click', function(e) {
+    const removeBtn = e.target.closest('.remove-interest');
+    if (removeBtn) {
+        removeBtn.parentElement.remove();
+    }
+});

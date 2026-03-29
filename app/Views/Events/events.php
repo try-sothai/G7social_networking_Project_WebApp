@@ -153,12 +153,14 @@ if ($profilePicPath === '') {
 
     <div class="main-content">
         <header>
+            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
                 <i class="fa-solid fa-search text-muted"></i>
                 <input type="text" placeholder="Search for anything...">
             </div>
             
             <div class="header-actions">
+                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
                 <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
                 <div class="icon-btn notifications-btn" style="position: relative;">
                     <i class="fa-solid fa-bell"></i>
@@ -255,48 +257,18 @@ if ($profilePicPath === '') {
 
         </div>
     </div>
+    <div class="overlay"></div>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const createPostBtn = document.querySelector('.btn-create');
             
-            const themeBtn = document.querySelector('.theme-toggle');
             const bellBtn = document.querySelector('.notifications-btn');
-            const themeIcon = themeBtn?.querySelector('i');
 
             const upcomingTab = document.querySelector('.events-tabs .tab:first-child');
             const myEventsTab = document.querySelector('.events-tabs .tab:last-child');
             const upcomingSection = document.getElementById('upcoming-events');
             const myEventsSection = document.getElementById('my-events');
-
-            const THEME_KEY = 'localconnect_theme';
-
-            function applyTheme(theme) {
-                if (theme === 'dark') {
-                    document.body.classList.add('dark-mode');
-                    themeBtn?.classList.add('active');
-                    themeIcon && (themeIcon.className = 'fa-solid fa-sun');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    themeBtn?.classList.remove('active');
-                    themeIcon && (themeIcon.className = 'fa-solid fa-moon');
-                }
-                localStorage.setItem(THEME_KEY, theme);
-            }
-
-            const savedTheme = localStorage.getItem(THEME_KEY);
-            if (!savedTheme) {
-                applyTheme('dark');
-            } else {
-                applyTheme(savedTheme);
-            }
-
-            if (themeBtn) {
-                themeBtn.addEventListener('click', () => {
-                    const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
-                    applyTheme(newTheme);
-                });
-            }
 
             if (bellBtn) {
                 bellBtn.addEventListener('click', () => {
@@ -352,6 +324,8 @@ if ($profilePicPath === '') {
         const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
     </script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script src="../../../public/js/Home/responsive.js"></script>
     <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>

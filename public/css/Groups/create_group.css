@@ -6,43 +6,37 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 40px 20px;
-}
-
 .container {
-    max-width: 800px;
-    margin: 0 auto;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0;
 }
 
 .back-link {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: white;
+    color: var(--text-secondary, #64748b);
     text-decoration: none;
     margin-bottom: 20px;
-    font-weight: 500;
-    transition: opacity 0.3s;
+    font-weight: 600;
+    transition: color 0.3s;
 }
 
 .back-link:hover {
-    opacity: 0.8;
+    color: var(--primary, #6366f1);
 }
 
 .form-container {
-    background: white;
-    border-radius: 32px;
+    background: var(--bg-card, white);
+    border-radius: 24px;
     padding: 40px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--card-shadow, 0 10px 25px -5px rgba(0, 0, 0, 0.05));
 }
 
 h1 {
-    font-size: 32px;
-    color: #1e293b;
+    font-size: 28px;
+    color: var(--text-primary, #1e293b);
     margin-bottom: 8px;
 }
 
@@ -78,7 +72,7 @@ label {
     display: block;
     font-weight: 600;
     margin-bottom: 8px;
-    color: #1e293b;
+    color: var(--text-primary, #1e293b);
 }
 
 .required {
@@ -88,17 +82,20 @@ label {
 input, textarea, select {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 12px;
     font-family: inherit;
     font-size: 14px;
     transition: all 0.3s;
+    background: var(--bg-sidebar, #f8fafc);
+    color: var(--text-primary, #1e293b);
 }
 
 input:focus, textarea:focus, select:focus {
     outline: none;
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: var(--bg-card, white);
 }
 
 textarea {
@@ -120,7 +117,7 @@ textarea {
 }
 
 .avatar-preview, .banner-preview {
-    border: 2px dashed #e2e8f0;
+    border: 2px dashed var(--border-color, #e2e8f0);
     border-radius: 12px;
     padding: 40px;
     text-align: center;
@@ -152,18 +149,18 @@ textarea {
 
 .avatar-preview i, .banner-preview i {
     font-size: 48px;
-    color: #94a3b8;
+    color: var(--text-muted, #94a3b8);
 }
 
 .avatar-preview span, .banner-preview span {
-    color: #64748b;
+    color: var(--text-muted, #64748b);
     font-size: 14px;
 }
 
 .file-upload:hover .avatar-preview,
 .file-upload:hover .banner-preview {
     border-color: #6366f1;
-    background: #f1f5f9;
+    background: #f1f5f9; /* This is fine */
 }
 
 small {
@@ -175,7 +172,7 @@ small {
 
 .btn-submit {
     width: 100%;
-    background: #6366f1;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     color: white;
     border: none;
     padding: 14px;
@@ -191,6 +188,30 @@ small {
     background: #4f46e5;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Dark Mode Styles */
+body.dark-mode .back-link {
+    color: #94a3b8;
+}
+body.dark-mode .back-link:hover {
+    color: #a5b4fc;
+}
+body.dark-mode .avatar-preview, 
+body.dark-mode .banner-preview {
+    border-color: #374151;
+    background: #1f2937;
+}
+body.dark-mode .avatar-preview i, 
+body.dark-mode .banner-preview i,
+body.dark-mode .avatar-preview span, 
+body.dark-mode .banner-preview span {
+    color: #6b7280;
+}
+body.dark-mode .file-upload:hover .avatar-preview,
+body.dark-mode .file-upload:hover .banner-preview {
+    border-color: #6366f1;
+    background: #111827;
 }
 
 @media (max-width: 640px) {
