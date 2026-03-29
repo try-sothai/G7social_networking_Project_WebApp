@@ -3,7 +3,8 @@
 
     require_once '../../../config/db_config.php';
 
-    require_once '../../Models/Profile/ProfileModel.php';
+    require_once '../../Models/Profile/ProfileModel.php'; // For user data
+    require_once '../../Models/Friends/FriendModel.php'; // For notifications
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
@@ -12,6 +13,8 @@
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
     $stats = $model->getProfileStats($user_id);
+    $friendModel = new FriendModel($conn); // Create an instance of FriendModel
+    $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id); // Use FriendModel
     $profilePicPath = '';
     if (!empty($u_d['ProfilePic'])) {
         $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
@@ -31,7 +34,7 @@
     <title>LocalConnect V2 - Creative Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo time(); ?>">
     <script>
         (function () {
             const key = 'localconnect_theme';
@@ -76,9 +79,17 @@
             <div class="header-actions">
                 <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
                 <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;">
+                <div class="icon-btn" style="position: relative;" id="notificationBtn">
                     <i class="fa-solid fa-bell"></i>
-                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                    <?php if ($unread_notifications > 0): ?>
+                        <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+                    <?php endif; ?>
+                    <div class="notifications-dropdown" id="notificationsDropdown">
+                        <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">
+                            Notifications
+                        </div>
+                        <div id="notificationsList" class="notification-list"></div>
+                    </div>
                 </div>
                 <div class="user-profile">
                     <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>

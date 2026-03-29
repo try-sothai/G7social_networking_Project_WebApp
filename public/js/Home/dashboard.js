@@ -33,9 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickStatusMessage = document.getElementById('quick-status-message');
     const quickStatusAddPhotoBtn = document.getElementById('quick-status-add-photo');
 
-    const STORY_API = '../../../app/Controllers/Home/StoryController.php';
-    const POST_API = '../../../app/Controllers/Home/PostController.php';
-    const FALLBACK_AVATAR = 'https://i.pravatar.cc/150?u=default-user';
+    const STORY_API = '/g7social_networking/app/Controllers/Home/StoryController.php';
+    const POST_API = '/g7social_networking/app/Controllers/Home/PostController.php';
+    const FALLBACK_AVATAR = 'https://ui-avatars.com/api/?background=cbd5e1&color=1e293b&name=User';
     const FALLBACK_STORY = 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=300&q=60';
     const MAX_POST_IMAGES = 4;
 
@@ -270,10 +270,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const mediaList = getPostMediaList(post.ImagePath || '');
         const avatar = resolveAvatarUrl(post.ProfilePic || FALLBACK_AVATAR);
         const username = post.Username || 'User';
-        const content = post.Content || '';
+        let content = post.Content || '';
         const createdAt = formatTimeAgo(post.CreatedAt || '');
         const isOwner = Number(post.UserID || 0) === Number(typeof CURRENT_USER_ID !== 'undefined' ? CURRENT_USER_ID : 0);
-        const mediaHtml = mediaList.length > 1
+        
+        let isShare = false;
+        let shareData = null;
+
+        if (content.startsWith('[SHARED_POST]')) {
+            isShare = true;
+            try {
+                shareData = JSON.parse(content.substring(13));
+                content = ''; // លុប Content ខាងក្រៅចេញ
+            } catch(e) {
+                isShare = false;
+            }
+        }
+        
+        let mediaHtml = mediaList.length > 1
             ? `<div class="post-media-grid">${mediaList.map((media, index) => (
                 isVideo(media)
                     ? `<video class="post-image post-image-grid" controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
@@ -286,17 +300,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? `<video class="post-image" controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
                     : `<img src="${escapeHtml(media)}" class="post-image" alt="Post media">`;
             })();
+            
+        let sharedHtml = '';
+        if (isShare && shareData) {
+            const origAvatar = resolveAvatarUrl(shareData.original_avatar || '');
+            sharedHtml = `
+                <div class="shared-post-card">
+                    <div class="shared-post-header">
+                        <img src="${escapeHtml(origAvatar)}" alt="${escapeHtml(shareData.original_user)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
+                        <div>
+                            <h4 style="font-weight: 700; font-size: 14px; margin: 0;">${escapeHtml(shareData.original_user)}</h4>
+                            <span class="post-time" style="font-size: 11px;">Original Post</span>
+                        </div>
+                    </div>
+                    ${shareData.original_content ? `<div class="post-content" style="padding: 12px 15px; margin-bottom: 0;">${escapeHtml(shareData.original_content)}</div>` : ''}
+                    ${mediaHtml}
+                </div>
+            `;
+            mediaHtml = ''; // លុបរូបខាងក្រៅចេញ ដើម្បីឱ្យវាបង្ហាញតែខាងក្នុងកាត Share
+        }
 
         return `
-            <div class="post-card" data-post-id="${escapeHtml(post.PostID || '')}">
+            <div class="post-card" data-post-id="${escapeHtml(post.PostID || '')}" data-post-id-alt="${escapeHtml(post.id || '')}">
                 <div class="post-header">
                     <div class="post-user">
                         <a href="../Profile/profile.php" class="post-user-link" aria-label="Open profile">
                             <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}" onerror="this.src='${FALLBACK_AVATAR}'">
                         </a>
                         <div>
-                            <a href="../Profile/profile.php" class="post-user-link">
+                            <a href="../Profile/profile.php" class="post-user-link" style="display: flex; align-items: center; gap: 5px;">
                                 <h4 style="font-weight: 800;">${escapeHtml(username)}</h4>
+                                ${isShare ? `<span style="color: #64748b; font-weight: 500; font-size: 13px;"><i class="fa-solid fa-share" style="font-size: 11px; margin-right: 4px;"></i>shared a post</span>` : ''}
                             </a>
                             <span class="post-time">${escapeHtml(createdAt)}</span>
                         </div>
@@ -307,13 +341,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-ellipsis-h text"></i>
                         </button>
                         <div class="post-menu-dropdown">
-                            <button type="button" class="post-menu-item" data-role="edit-post" data-post-id="${escapeHtml(post.PostID || '')}" data-content="${escapeHtml(content)}" data-media='${escapeHtml(JSON.stringify(mediaList))}'>Edit Post</button>
+                            ${!isShare ? `<button type="button" class="post-menu-item" data-role="edit-post" data-post-id="${escapeHtml(post.PostID || '')}" data-content="${escapeHtml(content)}" data-media='${escapeHtml(JSON.stringify(mediaList))}'>Edit Post</button>` : ''}
                             <button type="button" class="post-menu-item danger" data-role="delete-post" data-post-id="${escapeHtml(post.PostID || '')}">Delete Post</button>
                         </div>
                     </div>
                     ` : ''}
                 </div>
                 ${content ? `<div class="post-content">${escapeHtml(content)}</div>` : ''}
+                ${sharedHtml}
                 ${mediaHtml}
                 <div class="post-actions-stats" style="display:flex; justify-content:space-between; color:var(--text-muted, #65676b); font-size:13px; margin-bottom:10px; padding: 0 5px;">
                     <div>${likesCount} Likes</div>
@@ -877,6 +912,69 @@ document.addEventListener('DOMContentLoaded', () => {
             closeAllPostMenus();
         }
     });
+
+    // --- Notifications Logic ---
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationsDropdown = document.getElementById('notificationsDropdown');
+    const notificationsList = document.getElementById('notificationsList');
+
+    if (notificationBtn && notificationsDropdown) {
+        notificationBtn.addEventListener('click', (e) => {
+            if (notificationsDropdown.contains(e.target)) return;
+            
+            notificationsDropdown.classList.toggle('show');
+            if (notificationsDropdown.classList.contains('show')) {
+                fetchNotifications();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notificationBtn.contains(e.target)) {
+                notificationsDropdown.classList.remove('show');
+            }
+        });
+    }
+
+    function getNotificationText(type) {
+        switch(type.toLowerCase()) {
+            case 'like': return 'liked your post';
+            case 'comment': return 'commented on your post';
+            case 'share': return 'shared your post';
+            case 'post': return 'added a new post';
+            case 'friendrequest': return 'sent you a friend request';
+            case 'requestaccepted': return 'accepted your friend request';
+            default: return 'interacted with your profile';
+        }
+    }
+
+    function fetchNotifications() {
+        if (!notificationsList) return;
+        notificationsList.innerHTML = '<div style="padding: 15px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
+        
+        fetch('../../../app/Controllers/Explore/explore_controller.php?action=get_notifications')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (!data.notifications || data.notifications.length === 0) {
+                        notificationsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #64748b;">No new notifications</div>';
+                        return;
+                    }
+                    
+                    notificationsList.innerHTML = data.notifications.map(notif => `
+                        <div class="notification-item ${notif.IsRead == 0 ? 'unread' : ''}">
+                            <img src="${resolveAvatarUrl(notif.ProfilePic)}" class="notification-avatar" onerror="this.src='${FALLBACK_AVATAR}'">
+                            <div class="notification-content">
+                                <div><strong>${escapeHtml(notif.Username)}</strong> ${getNotificationText(notif.Type)}</div>
+                                <div class="notification-time">${formatTimeAgo(notif.CreatedAt)}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(err => {
+                notificationsList.innerHTML = '<div style="padding: 15px; text-align: center; color: #ef4444;">Failed to load notifications</div>';
+            });
+    }
 
     loadStories();
     loadPosts();

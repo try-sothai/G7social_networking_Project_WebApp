@@ -242,6 +242,26 @@ class FriendModel {
     }
     
     /**
+     * Get all notifications for a user
+     */
+    public function getNotifications($user_id, $limit = 20) {
+        $sql = "SELECT 
+                    n.NotificationID, n.Type, n.IsRead, n.CreatedAt, 
+                    u.Username, u.ProfilePic 
+                FROM notifications n
+                JOIN users u ON n.TriggerID = u.UserID
+                WHERE n.UserID = :user_id
+                ORDER BY n.CreatedAt DESC
+                LIMIT :limit";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
      * Get unread notifications count
      */
     public function getUnreadNotificationsCount($user_id) {

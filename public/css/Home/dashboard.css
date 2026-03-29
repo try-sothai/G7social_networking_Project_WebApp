@@ -181,6 +181,82 @@ header {
     transform: scale(1.05);
 }
 
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 20px;
+    border: 2px solid white;
+}
+
+.notifications-dropdown {
+    position: absolute;
+    top: 55px;
+    right: 0;
+    width: 340px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    display: none;
+    z-index: 1000;
+    cursor: default;
+    text-align: left;
+    border: 1px solid #e2e8f0;
+}
+
+.notifications-dropdown.show {
+    display: block;
+}
+
+.notification-list {
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: background 0.2s;
+    cursor: pointer;
+    color: #1e293b;
+    text-decoration: none;
+}
+
+.notification-item:hover {
+    background: #f8fafc;
+}
+
+.notification-item.unread {
+    background: #eff6ff;
+}
+
+.notification-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notification-content {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
 .user-profile {
     display: flex;
     align-items: center;
@@ -1568,6 +1644,55 @@ body.dark-mode {
     background-color: #0f172a;
     background-image: radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.22) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.12) 0px, transparent 55%);
     color: #e2e8f0;
+}
+
+/* Shared Post Styles */
+.shared-post-card {
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 12px;
+    margin-bottom: 15px;
+}
+
+.shared-post-header {
+    padding: 12px 15px;
+    background: rgba(241, 245, 249, 0.5);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+body.dark-mode .notifications-dropdown {
+    background: #1e293b;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+body.dark-mode .notification-header {
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+body.dark-mode .notification-item {
+    border-bottom-color: rgba(148, 163, 184, 0.1);
+    color: #e2e8f0;
+}
+body.dark-mode .notification-item:hover {
+    background: #0f172a;
+}
+body.dark-mode .notification-item.unread {
+    background: rgba(59, 130, 246, 0.15);
+}
+body.dark-mode .notification-badge {
+    border-color: #1e293b;
+}
+
+body.dark-mode .shared-post-card {
+    border-color: rgba(148, 163, 184, 0.3);
+    background: transparent;
+}
+
+body.dark-mode .shared-post-header {
+    background: rgba(15, 23, 42, 0.4);
+    border-bottom-color: rgba(148, 163, 184, 0.3);
 }
 
 body.dark-mode .sidebar {

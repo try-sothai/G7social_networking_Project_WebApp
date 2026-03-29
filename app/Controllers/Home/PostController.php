@@ -311,12 +311,37 @@ if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $postId = (int)($_POST['post_id'] ?? 0);
     if ($postId > 0) {
         try {
-            $stmt = $conn->prepare("SELECT * FROM posts WHERE PostID = ?");
+            $stmt = $conn->prepare("
+                SELECT p.*, u.Username, u.ProfilePic 
+                FROM posts p 
+                JOIN users u ON p.UserID = u.UserID 
+                WHERE p.PostID = ?
+            ");
             $stmt->execute([$postId]);
             $postToShare = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($postToShare) {
-                $newContent = "🔄 Shared a post:\n\n" . $postToShare['Content'];
+                $contentToShare = $postToShare['Content'];
+                
+                // បើសិនជា Share បន្តពីការ Share របស់គេ ឱ្យទាញយកម្ចាស់ដើមពិតប្រាកដ
+                if (str_starts_with($contentToShare, '[SHARED_POST]')) {
+                    $parsed = json_decode(substr($contentToShare, 13), true);
+                    if ($parsed) {
+                        $shareData = [
+                            'original_user' => $parsed['original_user'],
+                            'original_avatar' => $parsed['original_avatar'],
+                            'original_content' => $parsed['original_content']
+                        ];
+                    }
+                } else {
+                    $shareData = [
+                        'original_user' => $postToShare['Username'],
+                        'original_avatar' => $postToShare['ProfilePic'],
+                        'original_content' => $contentToShare
+                    ];
+                }
+                
+                $newContent = "[SHARED_POST]" . json_encode($shareData, JSON_UNESCAPED_UNICODE);
                 $imagePath = $postToShare['ImagePath'];
                 $postModel->createPost($current_user_id, $newContent, $imagePath);
                 $conn->prepare("INSERT INTO post_shares (PostID, UserID) VALUES (?, ?)")->execute([$postId, $current_user_id]);

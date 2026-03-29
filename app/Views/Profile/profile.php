@@ -219,13 +219,27 @@ if ($profilePicPath === '') {
                                 ENT_QUOTES,
                                 'UTF-8'
                             );
+                            
+                            $content = (string)$post['content'];
+                            $isShare = false;
+                            $shareData = null;
+                            if (str_starts_with($content, '[SHARED_POST]')) {
+                                $isShare = true;
+                                $shareData = json_decode(substr($content, 13), true);
+                                $content = '';
+                            }
                         ?>
                         <article class="post-card profile-post-card">
                             <div class="post-header">
                                 <div class="post-user">
                                     <img src="<?php echo htmlspecialchars($profileAvatarPath); ?>" alt="<?php echo htmlspecialchars($u_d['Username']); ?>">
                                     <div>
-                                        <h4 style="font-weight: 800;"><?php echo htmlspecialchars($u_d['Username']); ?></h4>
+                                        <h4 style="display: flex; align-items: center; gap: 6px; font-weight: 800;">
+                                            <?php echo htmlspecialchars($u_d['Username']); ?>
+                                            <?php if ($isShare): ?>
+                                                <span style="color: #64748b; font-weight: 500; font-size: 13px;"><i class="fa-solid fa-share" style="margin-right: 4px;"></i>shared a post</span>
+                                            <?php endif; ?>
+                                        </h4>
                                         <span class="post-time"><?php echo htmlspecialchars($post['time_ago']); ?></span>
                                     </div>
                                 </div>
@@ -234,6 +248,7 @@ if ($profilePicPath === '') {
                                         <i class="fa-solid fa-ellipsis-h text"></i>
                                     </button>
                                     <div class="post-menu-dropdown">
+                                        <?php if (!$isShare): ?>
                                         <button
                                             type="button"
                                             class="post-menu-item"
@@ -244,6 +259,7 @@ if ($profilePicPath === '') {
                                         >
                                             Edit Post
                                         </button>
+                                        <?php endif; ?>
                                         <button
                                             type="button"
                                             class="post-menu-item danger"
@@ -256,8 +272,22 @@ if ($profilePicPath === '') {
                                 </div>
                             </div>
 
-                            <?php if (trim((string)$post['content']) !== ''): ?>
-                                <div class="post-content"><?php echo htmlspecialchars($post['content']); ?></div>
+                            <?php if (trim($content) !== ''): ?>
+                                <div class="post-content"><?php echo htmlspecialchars($content); ?></div>
+                            <?php endif; ?>
+
+                            <?php if ($isShare && is_array($shareData)): ?>
+                                <div class="shared-post-card" style="border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; overflow: hidden; margin: 12px 0 15px;">
+                                    <div class="shared-post-header" style="padding: 12px 15px; background: rgba(148, 163, 184, 0.05); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; gap: 10px;">
+                                        <img src="<?php echo htmlspecialchars(!empty($shareData['original_avatar']) ? '../../../public/img/' . $shareData['original_avatar'] : 'https://via.placeholder.com/50'); ?>" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
+                                        <div>
+                                            <h4 style="margin: 0; font-weight: 700; font-size: 14px;"><?php echo htmlspecialchars($shareData['original_user'] ?? 'User'); ?></h4>
+                                            <span style="font-size: 11px; color: #64748b;">Original Post</span>
+                                        </div>
+                                    </div>
+                                    <?php if (!empty($shareData['original_content'])): ?>
+                                        <div class="post-content" style="padding: 12px 15px; margin-bottom: 0;"><?php echo htmlspecialchars($shareData['original_content']); ?></div>
+                                    <?php endif; ?>
                             <?php endif; ?>
 
                             <?php if (count($post['media_items']) > 1): ?>
@@ -280,6 +310,10 @@ if ($profilePicPath === '') {
                                 <?php else: ?>
                                     <img class="post-image" src="<?php echo htmlspecialchars($post['media_items'][0]['media']); ?>" alt="Post media">
                                 <?php endif; ?>
+                            <?php endif; ?>
+                            
+                            <?php if ($isShare && is_array($shareData)): ?>
+                                </div>
                             <?php endif; ?>
 
                             <div class="post-actions">

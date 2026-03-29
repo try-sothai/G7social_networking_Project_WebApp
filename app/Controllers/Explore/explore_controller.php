@@ -2,6 +2,7 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Explore/ProfileModel.php';
+require_once '../../Models/Friends/FriendModel.php'; // Add FriendModel for notifications
 
 header('Content-Type: application/json');
 
@@ -13,6 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $model = new ProfileModel($conn);
+$friendModel = new FriendModel($conn); // Create an instance of FriendModel
 $user_id = $_SESSION['user_id'];
 
 // Handle GET requests
@@ -29,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     
                     // Add like status and comments for each post
                     foreach ($posts as &$post) {
-                        $post['liked'] = $model->checkLikeStatus($post['id'], $user_id);
-                        $post['comments'] = $model->getComments($post['id']);
-                        $post['like_count'] = $model->getLikeCount($post['id']);
-                        $post['comment_count'] = $model->getCommentCount($post['id']);
+                        $post['liked'] = $model->checkLikeStatus($post['PostID'], $user_id);
+                        $post['comments'] = $model->getComments($post['PostID']);
+                        $post['like_count'] = $model->getLikeCount($post['PostID']);
+                        $post['comment_count'] = $model->getCommentCount($post['PostID']);
                     }
                     
                     echo json_encode(['success' => true, 'posts' => $posts]);
@@ -44,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 
             case 'get_notifications':
                 try {
-                    $notifications = $model->getNotifications($user_id);
-                    $unread_count = $model->getUnreadNotificationCount($user_id);
+                    $notifications = $friendModel->getNotifications($user_id); // Use FriendModel
+                    $unread_count = $friendModel->getUnreadNotificationsCount($user_id); // Use FriendModel
                     echo json_encode(['success' => true, 'notifications' => $notifications, 'unread_count' => $unread_count]);
                 } catch (Exception $e) {
                     error_log("Error in get_notifications: " . $e->getMessage());

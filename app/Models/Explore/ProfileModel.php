@@ -116,7 +116,7 @@ public function getExplorePosts($category = null, $limit = 20) {
 
 public function checkLikeStatus($post_id, $user_id) {
     try {
-        $stmt = $this->conn->prepare("SELECT * FROM interactions WHERE PostID = ? AND UserID = ? AND Type = 'like'");
+        $stmt = $this->conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type = 'like'");
         $stmt->execute([$post_id, $user_id]);
         return $stmt->rowCount() > 0;
     } catch (PDOException $e) {
