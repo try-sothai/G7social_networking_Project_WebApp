@@ -21,7 +21,7 @@ class GroupController {
     public function index() {
         // Check authentication
         if (!isset($_SESSION['user_id'])) {
-            header("Location: /G7social_networking/app/Views/Login/login_gmail.php");
+            header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
             exit();
         }
         
@@ -92,7 +92,7 @@ class GroupController {
      */
     public function createGroup() {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: /G7social_networking/app/Views/Login/login_gmail.php");
+            header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
             exit();
         }
         
@@ -149,7 +149,7 @@ class GroupController {
                 
                 if (is_numeric($group_id)) {
                     $_SESSION['success_message'] = 'Group created successfully!';
-                    header("Location: /G7social_networking/app/Views/Groups/groups.php?success=created");
+                    header("Location: " . BASE_URL . "app/Views/Groups/groups.php?success=created");
                     exit();
                 } else {
                     $errors[] = $group_id;

@@ -2,13 +2,13 @@
 // app/Views/Groups/create_group.php
 
 session_start();
+require_once dirname(__DIR__, 3) . '/config/db_config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /G7social_networking/app/Views/Login/login_gmail.php");
+    header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
     exit();
 }
 
-require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
 
 $controller = new GroupController($conn);

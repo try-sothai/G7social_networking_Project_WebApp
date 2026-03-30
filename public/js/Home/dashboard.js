@@ -33,8 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickStatusMessage = document.getElementById('quick-status-message');
     const quickStatusAddPhotoBtn = document.getElementById('quick-status-add-photo');
 
-    const STORY_API = '/g7social_networking/app/Controllers/Home/StoryController.php';
-    const POST_API = '/g7social_networking/app/Controllers/Home/PostController.php';
+    const APP_ROOT = window.location.pathname.includes('/app/')
+        ? window.location.pathname.split('/app/')[0]
+        : '';
+    const STORY_API = `${APP_ROOT}/app/Controllers/Home/StoryController.php`;
+    const POST_API = `${APP_ROOT}/app/Controllers/Home/PostController.php`;
     const FALLBACK_AVATAR = 'https://ui-avatars.com/api/?background=cbd5e1&color=1e293b&name=User';
     const FALLBACK_STORY = 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=300&q=60';
     const MAX_POST_IMAGES = 4;
