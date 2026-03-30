@@ -13,24 +13,19 @@ if (isset($_POST['signup'])) {
     
     if (!empty($username_val) && !empty($email_val) && !empty($pass_val)) {
         try {
-            // ២. ពិនិត្យមើល Email ស្ទួន (ប្រើ 'Email' តាមឈ្មោះ Column ក្នុង DB)
             $checkEmail = $conn->prepare("SELECT Email FROM users WHERE Email = :Email");
             $checkEmail->bindParam(':Email', $email_val);
             $checkEmail->execute();
 
             if ($checkEmail->rowCount() > 0) {
                 $error = "This Email is already registered!";
-            } else {
-                // $hashed_password = password_hash($pass_val, PASSWORD_DEFAULT);
-                // ៣. បញ្ចូលទិន្នន័យ (កែពី 'name' មកជា 'Username' ឱ្យត្រូវតាម Table Structure របស់អ្នក)
+            } else {               
                 $stmt = $conn->prepare("INSERT INTO users (Username, Email, Password) VALUES (:Username, :Email, :Password)");
                 $stmt->bindParam(':Username', $username_val);
                 $stmt->bindParam(':Email', $email_val);
-                
-                // $stmt->bindParam(':Password', $hashed_password);
+
                 $stmt->bindParam(':Password', $pass_val);
                 
-                // កែសម្រួលក្នុង sign_up_email.php ត្រង់ផ្នែក $stmt->execute()
                 if ($stmt->execute()){
                     // ចាប់យក ID ដែលទើបតែបង្កើតថ្មីៗ
                     $new_user_id = $conn->lastInsertId(); 
