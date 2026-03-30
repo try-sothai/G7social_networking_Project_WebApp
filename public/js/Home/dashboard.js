@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickStatusInput = document.getElementById('quick-status-input');
     const quickStatusMessage = document.getElementById('quick-status-message');
     const quickStatusAddPhotoBtn = document.getElementById('quick-status-add-photo');
+    const headerSearchInput = document.getElementById('header-search-input');
 
     const APP_ROOT = window.location.pathname.includes('/app/')
         ? window.location.pathname.split('/app/')[0]
@@ -803,6 +804,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 .finally(() => {
                     if (submitBtn) submitBtn.disabled = false;
                 });
+        });
+    }
+
+    if (headerSearchInput) {
+        headerSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const searchTerm = headerSearchInput.value.trim();
+                if (searchTerm) {
+                    // Redirect to explore page with search query
+                    window.location.href = `../Explore/explore.php?q=${encodeURIComponent(searchTerm)}`;
+                }
+            }
         });
     }
 

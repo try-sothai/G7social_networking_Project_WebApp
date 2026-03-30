@@ -5,8 +5,20 @@ let isLoading = false;
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - initializing explore page');
-    loadPosts();
     setupEventListeners();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('q');
+    const searchInput = document.getElementById('searchInput');
+
+    if (searchQuery) {
+        if (searchInput) {
+            searchInput.value = searchQuery;
+        }
+        searchPosts(searchQuery);
+    } else {
+        loadPosts();
+    }
 });
 
 function setupEventListeners() {
@@ -122,7 +134,9 @@ function searchPosts(searchTerm) {
     const container = document.getElementById('postsContainer');
     container.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
     
-    fetch(`explore_controller.php?action=get_posts&category=${encodeURIComponent(searchTerm)}`)
+    const url = `../../../app/Controllers/Explore/explore_controller.php?action=get_posts&category=${encodeURIComponent(searchTerm)}`;
+
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             if (data.success) {

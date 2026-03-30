@@ -73,7 +73,7 @@
             <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
                 <i class="fa-solid fa-search text"></i>
-                <input type="text" placeholder="Search for anything...">
+                <input type="text" id="header-search-input" placeholder="Search for anything...">
             </div>
 
             <div class="header-actions">

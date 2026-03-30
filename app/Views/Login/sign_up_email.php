@@ -26,8 +26,8 @@ if (isset($_POST['signup'])) {
         $error = 'Username must be between 3 and 50 characters.';
     } elseif ($pass_val !== $confirm_val) {
         $error = 'Password and Confirm Password do not match.';
-    } elseif (strlen($pass_val) < 8 || !preg_match('/[A-Za-z]/', $pass_val) || !preg_match('/\d/', $pass_val)) {
-        $error = 'Password must be at least 8 characters and include letters and numbers.';
+    } elseif (strlen($pass_val) < 8) {
+        $error = 'Password must be at least 8 characters.';
     } else {
         try {
             $checkEmail = $conn->prepare('SELECT UserID FROM users WHERE Email = :Email LIMIT 1');
