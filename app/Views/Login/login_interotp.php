@@ -27,6 +27,7 @@ if(isset($_POST['verify'])){
         $update->execute();
 
         echo "<script>alert('Login successful!'); window.location='dashboard.php';</script>";
+        echo "<script>alert('Login successful!'); window.location='../Home/dashboard.php';</script>";
     } else {
         $error = "Invalid OTP code! Please try again.";
     }
