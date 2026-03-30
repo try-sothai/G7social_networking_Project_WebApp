@@ -161,6 +161,45 @@ class GroupController {
         
         return [];
     }
+
+    public function updateGroup() {
+        if (!isset($_SESSION['user_id'])) {
+            return ['success' => false, 'message' => 'Not authenticated'];
+        }
+
+        $group_id = isset($_POST['group_id']) ? intval($_POST['group_id']) : 0;
+        $group_name = trim($_POST['group_name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $privacy = $_POST['privacy'] ?? 'Public';
+        $category = $_POST['category'] ?? 'Other';
+        $owner_id = (int)$_SESSION['user_id'];
+
+        if ($group_id <= 0 || $group_name === '') {
+            return ['success' => false, 'message' => 'Invalid group data'];
+        }
+
+        $ok = $this->groupModel->updateGroupForOwner($group_id, $owner_id, $group_name, $description, $privacy, $category);
+        return $ok
+            ? ['success' => true, 'message' => 'Group updated successfully']
+            : ['success' => false, 'message' => 'Unable to update group'];
+    }
+
+    public function deleteGroup() {
+        if (!isset($_SESSION['user_id'])) {
+            return ['success' => false, 'message' => 'Not authenticated'];
+        }
+
+        $group_id = isset($_POST['group_id']) ? intval($_POST['group_id']) : 0;
+        $owner_id = (int)$_SESSION['user_id'];
+        if ($group_id <= 0) {
+            return ['success' => false, 'message' => 'Invalid group ID'];
+        }
+
+        $ok = $this->groupModel->deleteGroupForOwner($group_id, $owner_id);
+        return $ok
+            ? ['success' => true, 'message' => 'Group deleted successfully']
+            : ['success' => false, 'message' => 'Unable to delete group'];
+    }
     
     /**
      * Upload image helper

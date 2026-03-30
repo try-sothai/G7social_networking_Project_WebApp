@@ -21,6 +21,16 @@
     $upcomingEvents = $eventModel->getUpcomingEvents();
     $myEvents = $eventModel->getEventsByUserId($user_id);
     $allEvents = $eventModel->getAllEvents();
+    $eventFlash = '';
+    if (isset($_GET['success']) && $_GET['success'] === 'event_created') {
+        $eventFlash = 'Event created successfully.';
+    } elseif (isset($_GET['success']) && $_GET['success'] === 'event_updated') {
+        $eventFlash = 'Event updated successfully.';
+    } elseif (isset($_GET['success']) && $_GET['success'] === 'event_deleted') {
+        $eventFlash = 'Event deleted successfully.';
+    } elseif (isset($_GET['error'])) {
+        $eventFlash = 'Unable to process event request.';
+    }
 
     function formatEventDate($datetime) {
         $eventDate = new DateTime($datetime);
@@ -151,7 +161,12 @@ if ($profilePicPath === '') {
         </button>
     </div>
 
-    <div class="main-content">
+        <div class="main-content">
+        <?php if ($eventFlash !== ''): ?>
+            <div style="margin: 12px 16px; padding: 10px 12px; border-radius: 10px; background: #0f172a; color: #fff;">
+                <?php echo htmlspecialchars($eventFlash); ?>
+            </div>
+        <?php endif; ?>
         <header>
             <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
@@ -232,6 +247,7 @@ if ($profilePicPath === '') {
                     <p class="no-events-message" style="text-align: center; padding: 2rem;">You have no events yet.</p>
                 <?php else: ?>
                     <?php foreach ($myEvents as $event): ?>
+                        <?php $eventId = (int)($event['EventID'] ?? $event['id'] ?? $event['ID'] ?? 0); ?>
                         <div class="event-card">
                             <div class="event-image">
                                 <img src="<?php echo !empty($event['ImagePath']) ? '../../../public/' . htmlspecialchars($event['ImagePath']) : 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'; ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
@@ -247,6 +263,16 @@ if ($profilePicPath === '') {
                                     <span><i class="fa-regular fa-clock"></i> <?php echo (new DateTime($event['EventDateTime']))->format('g:i A'); ?></span>
                                     <span><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($event['Location']); ?></span>
                                 </div>
+                                <?php if ($eventId > 0): ?>
+                                    <div class="event-actions" style="display:flex; gap:8px; margin-top:12px;">
+                                        <a href="create_event.php?mode=edit&id=<?php echo $eventId; ?>" class="btn-status interested" style="text-decoration:none; display:inline-flex; align-items:center;">Edit</a>
+                                        <form action="../../Controllers/Events/EventController.php" method="POST" onsubmit="return confirm('Delete this event?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="event_id" value="<?php echo $eventId; ?>">
+                                            <button type="submit" class="btn-status" style="background:#ef4444; color:#fff;">Delete</button>
+                                        </form>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>

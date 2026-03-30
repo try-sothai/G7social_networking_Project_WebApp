@@ -8,6 +8,22 @@ require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
 
 // Initialize controller and get data
 $controller = new GroupController($conn);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    $result = ['success' => false, 'message' => 'Invalid action'];
+
+    if ($action === 'update_group') {
+        $result = $controller->updateGroup();
+    } elseif ($action === 'delete_group') {
+        $result = $controller->deleteGroup();
+    }
+
+    $query = $result['success'] ? 'success=' . urlencode($action) : 'error=' . urlencode($result['message']);
+    header('Location: groups.php?' . $query);
+    exit();
+}
+
 $data = $controller->index();
 
 // Extract data for view
@@ -21,7 +37,12 @@ $searchKeyword = $data['searchKeyword'];
 $successMessage = '';
 if (isset($_GET['success']) && $_GET['success'] === 'created') {
     $successMessage = 'Group created successfully!';
+} elseif (isset($_GET['success']) && $_GET['success'] === 'update_group') {
+    $successMessage = 'Group updated successfully!';
+} elseif (isset($_GET['success']) && $_GET['success'] === 'delete_group') {
+    $successMessage = 'Group deleted successfully!';
 }
+$errorMessage = isset($_GET['error']) ? (string)$_GET['error'] : '';
 
 $defaultAvatar = 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&length=2';
 $defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
@@ -111,6 +132,16 @@ if ($profilePicPath === '') {
                 <p>Discover and join groups that match your interests.</p>
             </div>
         </div>
+        <?php if ($successMessage !== ''): ?>
+            <div style="margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: #065f46; color: #fff;">
+                <?php echo htmlspecialchars($successMessage); ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($errorMessage !== ''): ?>
+            <div style="margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: #991b1b; color: #fff;">
+                <?php echo htmlspecialchars($errorMessage); ?>
+            </div>
+        <?php endif; ?>
 
         <div class="content-body">
             <div class="groups-layout">
@@ -145,6 +176,7 @@ if ($profilePicPath === '') {
                             <?php foreach ($groups as $group): 
                                 $memberCount = $group['member_count'];
                                 $isMember = $group['is_member'] > 0;
+                                $isOwner = ((int)($group['CreatedBy'] ?? 0) === (int)($_SESSION['user_id'] ?? 0));
                                 $groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/img/groups/' . $group['GroupAvatar']) 
                                     ? '../../../public/img/groups/' . $group['GroupAvatar'] 
                                     : $defaultAvatar . '&name=' . urlencode(substr($group['GroupName'], 0, 2));
@@ -171,6 +203,21 @@ if ($profilePicPath === '') {
                                                 Join Group
                                             <?php endif; ?>
                                         </button>
+                                        <?php if ($isOwner): ?>
+                                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                                <button type="button"
+                                                        class="btn-join"
+                                                        style="background:#1d4ed8;color:#fff;"
+                                                        onclick='openGroupEdit(<?php echo (int)$group['GroupID']; ?>, <?php echo json_encode((string)$group['GroupName']); ?>, <?php echo json_encode((string)($group['GroupDescription'] ?? '')); ?>, <?php echo json_encode((string)$group['Privacy']); ?>, <?php echo json_encode((string)($group['Category'] ?? 'Other')); ?>)'>
+                                                    Edit
+                                                </button>
+                                                <form action="groups.php" method="POST" onsubmit="return confirm('Delete this group?');">
+                                                    <input type="hidden" name="action" value="delete_group">
+                                                    <input type="hidden" name="group_id" value="<?php echo (int)$group['GroupID']; ?>">
+                                                    <button type="submit" class="btn-join" style="background:#ef4444;color:#fff;">Delete</button>
+                                                </form>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -221,9 +268,33 @@ if ($profilePicPath === '') {
     <div class="overlay"></div>
 
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+    <form id="group-edit-form" action="groups.php" method="POST" style="display:none;">
+        <input type="hidden" name="action" value="update_group">
+        <input type="hidden" name="group_id" id="edit-group-id">
+        <input type="hidden" name="group_name" id="edit-group-name">
+        <input type="hidden" name="description" id="edit-group-description">
+        <input type="hidden" name="privacy" id="edit-group-privacy">
+        <input type="hidden" name="category" id="edit-group-category">
+    </form>
 
     <script src="../../../public/js/Groups/groups.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script>
+        function openGroupEdit(groupId, groupName, description, privacy, category) {
+            const nameVal = prompt('Group name:', groupName || '');
+            if (nameVal === null || nameVal.trim() === '') return;
+            const descVal = prompt('Description:', description || '') ?? '';
+            const privacyVal = confirm('Set group as Private?\\nPress OK = Private, Cancel = Public') ? 'Private' : 'Public';
+            const categoryVal = prompt('Category:', category || 'Other') || 'Other';
+
+            document.getElementById('edit-group-id').value = String(groupId || 0);
+            document.getElementById('edit-group-name').value = nameVal.trim();
+            document.getElementById('edit-group-description').value = descVal.trim();
+            document.getElementById('edit-group-privacy').value = privacyVal;
+            document.getElementById('edit-group-category').value = categoryVal.trim();
+            document.getElementById('group-edit-form').submit();
+        }
+    </script>
     <script>
         const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
         const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
