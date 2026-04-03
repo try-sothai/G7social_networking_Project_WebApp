@@ -35,9 +35,70 @@ function parsePostMediaList($imagePathValue) {
     return [$raw];
 }
 
+function buildAppUrl(string $path): string {
+    $clean = trim(str_replace('\\', '/', $path));
+    if ($clean === '') {
+        return '';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $clean) || str_starts_with($clean, 'data:')) {
+        return $clean;
+    }
+
+    if (!str_starts_with($clean, '/')) {
+        $clean = '/' . ltrim($clean, '/');
+    }
+
+    if (str_starts_with($clean, BASE_URL)) {
+        return $clean;
+    }
+
+    return rtrim(BASE_URL, '/') . $clean;
+}
+
+function normalizePostMediaPath($path) {
+    $raw = trim(str_replace('\\', '/', (string)$path));
+    if ($raw === '') {
+        return '';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $raw) || str_starts_with($raw, 'data:')) {
+        return $raw;
+    }
+
+    $base = basename($raw);
+    if ($base === '') {
+        return '';
+    }
+
+    return buildAppUrl('/public/uploads/posts/' . $base);
+}
+
+function normalizeProfileImagePath($path) {
+    $raw = trim(str_replace('\\', '/', (string)$path));
+    if ($raw === '') {
+        return 'https://via.placeholder.com/150';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $raw) || str_starts_with($raw, 'data:')) {
+        return $raw;
+    }
+
+    if (str_contains($raw, '/public/img/')) {
+        $parts = explode('/public/img/', $raw, 2);
+        $raw = $parts[1] ?? $raw;
+    }
+
+    return buildAppUrl('/public/img/' . ltrim($raw, '/'));
+}
+
 function isVideoMedia($path) {
     $lower = strtolower((string)$path);
-    return str_ends_with($lower, '.mp4') || str_ends_with($lower, '.webm') || str_ends_with($lower, '.ogg');
+    return str_ends_with($lower, '.mp4')
+        || str_ends_with($lower, '.webm')
+        || str_ends_with($lower, '.ogg')
+        || str_ends_with($lower, '.mov')
+        || str_ends_with($lower, '.m4v');
 }
 
 function formatTimeAgo($dateTime) {
@@ -54,18 +115,27 @@ function formatTimeAgo($dateTime) {
     return date('M j, Y', $ts);
 }
 
-$profileAvatarPath = !empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])
-    ? '../../../public/img/' . $u_d['ProfilePic']
-    : 'https://i.pravatar.cc/150?u=' . ((int)($u_d['UserID'] ?? $user_id));
+$profileAvatarPath = 'https://i.pravatar.cc/150?u=' . ((int)($u_d['UserID'] ?? $user_id));
+if (!empty($u_d['ProfilePic'])) {
+    $profileAvatarCandidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($profileAvatarCandidate)) {
+        $profileAvatarPath = normalizeProfileImagePath((string)$u_d['ProfilePic']);
+    }
+}
 
 $profileFeedPosts = [];
 foreach ($userPosts as $postRow) {
     $mediaList = parsePostMediaList($postRow['ImagePath'] ?? '');
     $mediaItems = [];
     foreach ($mediaList as $mediaPath) {
+        $normalizedMediaPath = normalizePostMediaPath($mediaPath);
+        if ($normalizedMediaPath === '') {
+            continue;
+        }
+
         $mediaItems[] = [
-            'media' => (string)$mediaPath,
-            'is_video' => isVideoMedia($mediaPath),
+            'media' => $normalizedMediaPath,
+            'is_video' => isVideoMedia($normalizedMediaPath),
         ];
     }
 
@@ -81,7 +151,7 @@ $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
     $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = normalizeProfileImagePath((string)$u_d['ProfilePic']);
     }
 }
 if ($profilePicPath === '') {
@@ -228,6 +298,13 @@ if ($profilePicPath === '') {
                                 $shareData = json_decode(substr($content, 13), true);
                                 $content = '';
                             }
+
+                            $sharedOriginalUser = is_array($shareData)
+                                ? trim((string)($shareData['original_user'] ?? ''))
+                                : '';
+                            if ($sharedOriginalUser === '') {
+                                $sharedOriginalUser = 'Original user';
+                            }
                         ?>
                         <article class="post-card profile-post-card">
                             <div class="post-header">
@@ -279,9 +356,9 @@ if ($profilePicPath === '') {
                             <?php if ($isShare && is_array($shareData)): ?>
                                 <div class="shared-post-card" style="border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; overflow: hidden; margin: 12px 0 15px;">
                                     <div class="shared-post-header" style="padding: 12px 15px; background: rgba(148, 163, 184, 0.05); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; gap: 10px;">
-                                        <img src="<?php echo htmlspecialchars(!empty($shareData['original_avatar']) ? '../../../public/img/' . $shareData['original_avatar'] : 'https://via.placeholder.com/50'); ?>" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
+                                        <img src="<?php echo htmlspecialchars(normalizeProfileImagePath($shareData['original_avatar'] ?? '')); ?>" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
                                         <div>
-                                            <h4 style="margin: 0; font-weight: 700; font-size: 14px;"><?php echo htmlspecialchars($shareData['original_user'] ?? 'User'); ?></h4>
+                                            <h4 style="margin: 0; font-weight: 700; font-size: 14px;"><?php echo htmlspecialchars($sharedOriginalUser); ?></h4>
                                             <span style="font-size: 11px; color: #64748b;">Original Post</span>
                                         </div>
                                     </div>
@@ -369,10 +446,10 @@ if ($profilePicPath === '') {
 
                 <label for="edit-post-media-input" class="story-file-label">
                     <i class="fa-solid fa-image"></i>
-                    <span>Change / Add Images</span>
+                    <span>Change / Add Media</span>
                 </label>
-                <input type="file" id="edit-post-media-input" name="new_media[]" accept="image/*" multiple>
-                <div class="story-file-name" id="edit-post-selected-file-name">No new image selected</div>
+                <input type="file" id="edit-post-media-input" name="new_media[]" accept="image/*,video/*" multiple>
+                <div class="story-file-name" id="edit-post-selected-file-name">No new media selected</div>
 
                 <div class="post-editor-area active">
                     <div class="post-editor-preview" id="edit-post-preview"></div>
@@ -394,6 +471,5 @@ if ($profilePicPath === '') {
         const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
         const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
     </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
 </body>
 </html>

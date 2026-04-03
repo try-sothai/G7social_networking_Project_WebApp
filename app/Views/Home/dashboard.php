@@ -43,6 +43,39 @@
             }
         })();
     </script>
+    <style>
+        .stories-wrapper {
+            width: 100%;
+            overflow-x: auto !important;
+            overflow-y: hidden;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-secondary, #9ca3af) var(--background-secondary, #f1f5f9);
+        }
+        .stories-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+        .stories-wrapper::-webkit-scrollbar-track {
+            background: var(--background-secondary, #f1f5f9);
+            border-radius: 4px;
+        }
+        .stories-wrapper::-webkit-scrollbar-thumb {
+            background-color: var(--text-secondary, #9ca3af);
+            border-radius: 4px;
+        }
+        .stories-container {
+            display: flex;
+            flex-wrap: nowrap !important;
+            gap: 16px;
+            width: max-content;
+            padding: 4px;
+        }
+        .stories-container .story-card {
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body>
 
@@ -100,18 +133,20 @@
             </div>
         </header>
 
-        <div class="stories-container" id="stories-container">
-            <div class="story-card add-story" id="open-add-story">
-                <div class="add-story-icon-wrap">
-                    <i class="fa-solid fa-circle-plus" style="color: rgb(119, 72, 255);"></i>
+        <div class="stories-wrapper">
+            <div class="stories-container" id="stories-container">
+                <div class="story-card add-story" id="open-add-story">
+                    <div class="add-story-icon-wrap">
+                        <i class="fa-solid fa-circle-plus" style="color: rgb(119, 72, 255);"></i>
+                    </div>
+                    <span class="story-name">Add Story</span>
                 </div>
-                <span class="story-name">Add Story</span>
             </div>
         </div>
 
         <div class="feed-grid">
             <div class="feed-left">
-                <form id="quick-status-form" class="create-post-card">
+                <form id="quick-status-form" class="create-post-card" enctype="multipart/form-data">
                     <div class="quick-status-top">
                         <a href="../Profile/profile.php" class="quick-status-avatar-link">
                             <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile" class="quick-status-avatar">
@@ -124,6 +159,11 @@
                             placeholder="What's on your mind, <?php echo htmlspecialchars($u_d['Username']); ?>?"
                         ></textarea>
                     </div>
+
+                    <!-- Media Preview Container -->
+                    <div id="quick-status-preview" style="display: flex; gap: 10px; flex-wrap: wrap; margin: 0 15px 10px 15px;"></div>
+                    <input type="file" id="quick-status-media-input" name="post_media[]" accept="image/*,video/*" multiple style="display: none;">
+                    
                     <div class="quick-status-actions">
                         <button type="button" class="quick-status-secondary" id="quick-status-add-photo">
                             <i class="fa-solid fa-photo-film"></i> Photo/Video Post
@@ -244,5 +284,100 @@
     <script src="../../../public/js/Home/dashboard.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <script src="../../../public/js/Home/responsive.js"></script>
+
+    <!-- Script for Quick Status Media Preview -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const photoBtn = document.getElementById('quick-status-add-photo');
+            const fileInput = document.getElementById('quick-status-media-input');
+            const previewContainer = document.getElementById('quick-status-preview');
+            const form = document.getElementById('quick-status-form');
+
+            if (photoBtn && fileInput) {
+                // Click on button opens file dialog
+                photoBtn.addEventListener('click', () => fileInput.click());
+
+                fileInput.addEventListener('change', function() {
+                    previewContainer.innerHTML = ''; 
+                    const files = Array.from(this.files);
+                    
+                    if (files.length > 4) {
+                        alert('You can only upload up to 4 media files per post.');
+                        this.value = '';
+                        return;
+                    }
+
+                    files.forEach((file) => {
+                        const fileReader = new FileReader();
+                        const previewWrapper = document.createElement('div');
+                        previewWrapper.style.position = 'relative';
+                        previewWrapper.style.width = '80px';
+                        previewWrapper.style.height = '80px';
+                        previewWrapper.style.borderRadius = '8px';
+                        previewWrapper.style.overflow = 'hidden';
+                        previewWrapper.style.border = '1px solid var(--border-color, #e5e7eb)';
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '4px';
+                        removeBtn.style.right = '4px';
+                        removeBtn.style.background = 'rgba(0,0,0,0.6)';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.width = '20px';
+                        removeBtn.style.height = '20px';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.style.display = 'flex';
+                        removeBtn.style.alignItems = 'center';
+                        removeBtn.style.justifyContent = 'center';
+                        removeBtn.style.fontSize = '12px';
+                        
+                        removeBtn.onclick = function(e) {
+                            e.preventDefault();
+                            previewWrapper.remove();
+                            // Remove file from input
+                            const newDt = new DataTransfer();
+                            Array.from(fileInput.files).forEach((f) => {
+                                if (f.name !== file.name || f.size !== file.size) {
+                                    newDt.items.add(f);
+                                }
+                            });
+                            fileInput.files = newDt.files;
+                        };
+
+                        fileReader.onload = function(e) {
+                            if (file.type.startsWith('image/')) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.style.width = '100%';
+                                img.style.height = '100%';
+                                img.style.objectFit = 'cover';
+                                previewWrapper.appendChild(img);
+                            } else if (file.type.startsWith('video/')) {
+                                const video = document.createElement('video');
+                                video.src = e.target.result;
+                                video.style.width = '100%';
+                                video.style.height = '100%';
+                                video.style.objectFit = 'cover';
+                                previewWrapper.appendChild(video);
+                            }
+                            previewWrapper.appendChild(removeBtn);
+                            previewContainer.appendChild(previewWrapper);
+                        };
+                        fileReader.readAsDataURL(file);
+                    });
+                });
+            }
+
+            // Clear preview when form is successfully submitted/reset
+            if (form) {
+                form.addEventListener('reset', () => {
+                    previewContainer.innerHTML = '';
+                });
+            }
+        });
+    </script>
 </body>
 </html>

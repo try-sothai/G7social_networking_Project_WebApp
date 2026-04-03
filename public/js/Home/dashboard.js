@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const viewedPostIds = new Set();
     let postViewObserver = null;
+    let postVideoObserver = null;
 
     function escapeHtml(value) {
         return String(value || '')
@@ -75,27 +76,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resolveMediaUrl(mediaPath) {
         const raw = String(mediaPath || '').replace(/\\/g, '/').trim();
-        if (!raw) return FALLBACK_STORY;
-        if (/^(https?:)?\/\//i.test(raw) || raw.startsWith('data:')) return raw;
-
-        // Normalize legacy DB paths like "../../../public/uploads/posts/file.mp4"
-        if (raw.startsWith('../../../public/')) {
-            const rootPrefix = window.location.pathname.includes('/app/')
-                ? window.location.pathname.split('/app/')[0]
-                : '';
-            return `${rootPrefix}/public/${raw.replace('../../../public/', '')}`;
+        if (!raw) {
+            return FALLBACK_STORY;
+        }
+        // If it's already a full URL or a data URI, return it as is.
+        if (raw.startsWith('http') || raw.startsWith('data:')) {
+            return raw;
         }
 
-        if (raw.startsWith('/public/')) {
-            const rootPrefix = window.location.pathname.includes('/app/')
-                ? window.location.pathname.split('/app/')[0]
-                : '';
-            return `${rootPrefix}${raw}`;
-        }
-
+        // For relative paths like "../../../public/uploads/...",
+        // use the URL constructor to resolve it against the current page's location.
+        // This is the most reliable way to get the correct full URL.
         try {
             return new URL(raw, window.location.href).href;
-        } catch (error) {
+        } catch (e) {
+            // If constructor fails, return the raw path as a fallback.
             return raw;
         }
     }
@@ -294,26 +289,27 @@ document.addEventListener('DOMContentLoaded', () => {
         let mediaHtml = mediaList.length > 1
             ? `<div class="post-media-grid">${mediaList.map((media, index) => (
                 isVideo(media)
-                    ? `<video class="post-image post-image-grid" controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
+                    ? `<video class="post-image post-image-grid" muted playsinline loop preload="metadata"><source src="${escapeHtml(media)}"></video>`
                     : `<img src="${escapeHtml(media)}" class="post-image post-image-grid" alt="Post media ${index + 1}">`
             )).join('')}</div>`
             : (() => {
                 const media = mediaList[0] || '';
                 if (!media) return '';
                 return isVideo(media)
-                    ? `<video class="post-image" controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
+                    ? `<video class="post-image" muted playsinline loop preload="metadata"><source src="${escapeHtml(media)}"></video>`
                     : `<img src="${escapeHtml(media)}" class="post-image" alt="Post media">`;
             })();
             
         let sharedHtml = '';
         if (isShare && shareData) {
+            const originalUser = shareData.original_user || 'Original user';
             const origAvatar = resolveAvatarUrl(shareData.original_avatar || '');
             sharedHtml = `
                 <div class="shared-post-card">
                     <div class="shared-post-header">
-                        <img src="${escapeHtml(origAvatar)}" alt="${escapeHtml(shareData.original_user)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
+                        <img src="${escapeHtml(origAvatar)}" alt="${escapeHtml(originalUser)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
                         <div>
-                            <h4 style="font-weight: 700; font-size: 14px; margin: 0;">${escapeHtml(shareData.original_user)}</h4>
+                            <h4 style="font-weight: 700; font-size: 14px; margin: 0;">${escapeHtml(originalUser)}</h4>
                             <span class="post-time" style="font-size: 11px;">Original Post</span>
                         </div>
                     </div>
@@ -384,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
         postFeedList.innerHTML = posts.map(postCardTemplate).join('');
         bindPostEvents();
         bindPostViewTracking();
+        bindVideoAutoplay();
     }
 
     function sendPostView(postId) {
@@ -418,6 +415,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { threshold: [0.55] });
 
         cards.forEach((card) => postViewObserver.observe(card));
+    }
+
+    function bindVideoAutoplay() {
+        const videos = document.querySelectorAll('.post-card video');
+        if (videos.length === 0) return;
+
+        if (postVideoObserver) {
+            postVideoObserver.disconnect();
+        }
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.7
+        };
+
+        postVideoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target;
+                if (entry.isIntersecting) {
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {});
+                    }
+                } else {
+                    video.pause();
+                }
+            });
+        }, observerOptions);
+
+        videos.forEach(video => {
+            postVideoObserver.observe(video);
+            // Add a click listener to toggle mute
+            video.addEventListener('click', () => {
+                video.muted = !video.muted;
+            });
+        });
     }
 
     function loadPosts() {
@@ -663,10 +697,6 @@ document.addEventListener('DOMContentLoaded', () => {
         openCreatePostBtn.addEventListener('click', openPostComposer);
     }
 
-    if (quickStatusAddPhotoBtn) {
-        quickStatusAddPhotoBtn.addEventListener('click', openPostComposer);
-    }
-
     if (closeCreatePostBtn) {
         closeCreatePostBtn.addEventListener('click', closePostComposer);
     }
@@ -764,12 +794,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quickStatusForm) {
         quickStatusForm.addEventListener('submit', (event) => {
             event.preventDefault();
-            if (!quickStatusInput) return;
+            const content = quickStatusInput ? quickStatusInput.value.trim() : '';
+            const quickStatusFileInput = document.getElementById('quick-status-media-input');
+            const files = quickStatusFileInput ? Array.from(quickStatusFileInput.files || []) : [];
 
-            const content = quickStatusInput.value.trim();
-            if (!content) {
-                if (quickStatusMessage) quickStatusMessage.textContent = 'Please write something first.';
-                quickStatusInput.focus();
+            if (!content && files.length === 0) {
+                if (quickStatusMessage) quickStatusMessage.textContent = 'Please write something or add a photo/video.';
+                if (quickStatusInput) quickStatusInput.focus();
+                return;
+            }
+            
+            if (files.length > 4) {
+                if (quickStatusMessage) quickStatusMessage.textContent = 'You can upload up to 4 media files per post.';
                 return;
             }
 
@@ -780,6 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = new FormData();
             payload.append('action', 'create');
             payload.append('content', content);
+            files.forEach((file) => payload.append('post_media[]', file));
 
             fetch(POST_API, {
                 method: 'POST',
@@ -794,7 +831,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    quickStatusInput.value = '';
+                    if (quickStatusInput) quickStatusInput.value = '';
+                    if (quickStatusFileInput) {
+                        quickStatusFileInput.value = '';
+                        const dt = new DataTransfer();
+                        quickStatusFileInput.files = dt.files;
+                    }
+                    const previewContainer = document.getElementById('quick-status-preview');
+                    if (previewContainer) previewContainer.innerHTML = '';
+
                     if (quickStatusMessage) quickStatusMessage.textContent = 'Status posted successfully.';
                     loadPosts();
                 })
