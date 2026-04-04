@@ -5,6 +5,7 @@ session_start();
 
 require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
+require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 // Initialize controller and get data
 $controller = new GroupController($conn);
@@ -67,64 +68,36 @@ if ($profilePicPath === '') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Groups/groups.css">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Home/newPost.css">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>      
-        <nav class="menu">
-            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item active"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AddFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a> 
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>          
-        </nav>
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'groups']); ?>
     
     <div class="main-content">
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text"></i>
-                <form method="GET" action="" id="searchForm" style="flex: 1;">
-                    <input type="text" name="search" placeholder="Search for groups..." 
-                           value="<?php echo htmlspecialchars($searchKeyword); ?>"
-                           style="width: 100%; border: none; outline: none; background: transparent;">
-                </form>
-            </div>
-            
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                </div>
-                <div class="user-profile">
-                    <span style="font-weight: 700;"><?php echo htmlspecialchars($userData['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img src="<?php 
-                            $path = '../../../public/img/' . ($userData['ProfilePic'] ?? '');
-                            if (!empty($userData['ProfilePic']) && file_exists($path)) {
-                                echo $path;
-                            } else {
-                                echo 'https://ui-avatars.com/api/?background=6366f1&color=fff&name=' . urlencode($userData['Username']);
-                            }
-                        ?>" alt="Profile">
-                    </a>
-                </div>
-            </div>
-        </header>
+        <?php
+            ob_start();
+        ?>
+            <form method="GET" action="" id="searchForm" style="flex: 1;">
+                <input type="text" name="search" placeholder="Search for groups..."
+                    value="<?php echo htmlspecialchars($searchKeyword); ?>"
+                    style="width: 100%; border: none; outline: none; background: transparent;">
+            </form>
+        <?php
+            $groupsSearchHtml = ob_get_clean();
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <span class="app-shell-notification-dot"></span>
+        <?php
+            $groupsNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'search_html' => $groupsSearchHtml,
+                'notification_html' => $groupsNotificationHtml,
+                'user_name' => (string)$userData['Username'],
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
         
         <div class="page-header">
             <div>
@@ -146,7 +119,7 @@ if ($profilePicPath === '') {
         <div class="content-body">
             <div class="groups-layout">
                 <div class="groups-main-content">
-                    <div class="create-post-card" id="open-create-post">
+                    <div class="create-post-card js-open-create-post" data-open-create-post>
                         <div class="create-post-header">
                             <img src="<?php 
                                 $path = '../../../public/img/' . ($userData['ProfilePic'] ?? '');
@@ -265,7 +238,7 @@ if ($profilePicPath === '') {
         </div>
     </div>
     
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
 
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <form id="group-edit-form" action="groups.php" method="POST" style="display:none;">
@@ -295,12 +268,8 @@ if ($profilePicPath === '') {
             document.getElementById('group-edit-form').submit();
         }
     </script>
-    <script>
-        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
-    </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>
 </html>

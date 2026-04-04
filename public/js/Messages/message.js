@@ -37,7 +37,7 @@ class MessageChat {
             activeUserImg: document.getElementById('active-user-img'),
             activeUserStatus: document.querySelector('.header-status'),
             activeUserOnlineDot: document.querySelector('.online-status'),
-            myAvatar: document.getElementById('my-avatar-img')
+            myAvatar: document.getElementById('my-avatar-img')ist')
         };
     }
     
@@ -173,8 +173,7 @@ class MessageChat {
                 : '';
             
             return `
-                <div class="contact-item" data-user-id="${friend.UserID}" onclick="chatApp.selectUser('${friend.UserID}', '${this.escapeHtml(friend.Username)}', '${userImg}', this)">
-                    <img src="${userImg}" class="contact-avatar">
+                <div
                     <div class="contact-info">
                         <div class="name-row">
                             <span class="contact-name">${this.escapeHtml(friend.Username)}</span>
@@ -189,7 +188,16 @@ class MessageChat {
         }).join('');
     }
     
-    selectUser(id, name, img, itemElement) {
+    s    if (event) {
+ptu
+            event.stopPropagation();
+        }
+
+        // Handle mobile view sliding
+        if (window.innerWidth <= 768 && this.elements.chatActive) {
+            this.elements.chatActive.classList.add('mobile-active');
+        }
+
         // remove active class from previous selection
         document.querySelectorAll('.contact-item.active').forEach(el => el.classList.remove('active'));
 

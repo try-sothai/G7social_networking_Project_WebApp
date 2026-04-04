@@ -4,6 +4,7 @@
     require_once '../../Helpers/functions.php';
     require_once '../../Models/Profile/ProfileModel.php';
     require_once '../../Models/Messages/MessageModel.php';
+    require_once __DIR__ . '/../Component/dashboard_shell.php';
 
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
@@ -35,7 +36,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous"> 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Messages/message.css">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <style>
         /* Mobile Chat Responsive Fix */
         .mobile-back-btn {
@@ -78,53 +79,29 @@
     </style>
 </head>
 <body>
-    <div class="sidebar"> 
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-        
-        <nav class="menu"> 
-            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AddFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item active"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>      
-        </nav>
-
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'messages']); ?>
 
     <div class="main-content">
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text"></i>
-                <input type="text" id="search-input" placeholder="Search friends...">
-            </div>
-            
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <?php if ($unreadCount > 0): ?>
-                        <span class="notification-badge"><?php echo $unreadCount; ?></span>
-                    <?php endif; ?>
-                </div>
-                <div class="user-profile">
-                    <span id="current-user-name" data-id="<?= $user_id ?>"><?= htmlspecialchars($u_d['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img id="my-avatar-img" src="<?= !empty($u_d['ProfilePic']) ? '../../../public/img/' . $u_d['ProfilePic'] : 'https://via.placeholder.com/50' ?>" alt="Profile">
-                    </a>
-                </div>
-            </div>
-        </header>
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <?php if ($unreadCount > 0): ?>
+                <span class="notification-badge"><?php echo $unreadCount; ?></span>
+            <?php endif; ?>
+        <?php
+            $messagesNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'search_input_id' => 'search-input',
+                'search_placeholder' => 'Search friends...',
+                'notification_html' => $messagesNotificationHtml,
+                'user_name' => (string)$u_d['Username'],
+                'user_name_class' => '',
+                'user_name_attrs' => 'id="current-user-name" data-id="' . (int)$user_id . '"',
+                'profile_image' => $profilePicPath,
+                'profile_image_attrs' => 'id="my-avatar-img"',
+            ]);
+        ?>
 
         <div class="chat-container">
             <div class="chat-sidebar">
@@ -186,34 +163,11 @@
         </div>            
     </div>
 
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const userList = document.getElementById('user-list-container');
-            const chatActive = document.getElementById('chat-active');
-            const backBtn = document.getElementById('mobile-back-to-list');
-
-            // បង្ហាញផ្ទាំងឆាតពេលចុចលើឈ្មោះមិត្តភក្តិ (សម្រាប់តែទូរស័ព្ទ)
-            if (userList) {
-                userList.addEventListener('click', (e) => {
-                    const item = e.target.closest('div');
-                    if (item && !item.classList.contains('loading-state') && window.innerWidth <= 768) {
-                        chatActive.classList.add('mobile-active');
-                    }
-                });
-            }
-            // លាក់ផ្ទាំងឆាតវិញពេលចុចប៊ូតុង Back
-            if (backBtn) {
-                backBtn.addEventListener('click', () => {
-                    chatActive.classList.remove('mobile-active');
-                });
-            }
-        });
-    </script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
     <script>
         const API_PATH = '../../Controllers/Messages/ChatController.php';
-        const CURRENT_USER_ID = <?= json_encode($user_id) ?>;
         const MY_AVATAR = <?= json_encode(!empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : 'https://via.placeholder.com/40') ?>;
         window.APP_CONFIG = <?php echo getJsConfig(); ?>;
     </script>
@@ -221,11 +175,7 @@
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
-    <script>
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
-    </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>
 </html>

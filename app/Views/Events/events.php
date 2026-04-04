@@ -4,6 +4,7 @@
     require_once '../../../config/db_config.php';
 
     require_once '../../Models/Profile/ProfileModel.php';
+    require_once __DIR__ . '/../Component/dashboard_shell.php';
     // សុវត្ថិភាព
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
@@ -48,6 +49,56 @@
         }
         return $eventDate->format('M j, Y'); // e.g., Mar 22, 2026
     }
+
+    function resolveEventImageUrl($imagePath) {
+        $raw = trim(str_replace('\\', '/', (string)$imagePath));
+        $fallback = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80';
+
+        if ($raw === '') {
+            return $fallback;
+        }
+
+        if (str_starts_with($raw, 'data:')) {
+            return $raw;
+        }
+
+        if (preg_match('#^(https?:)?//#i', $raw)) {
+            $urlParts = parse_url($raw);
+            $pathPart = (string)($urlParts['path'] ?? '');
+            if ($pathPart !== '' && str_contains($pathPart, '/public/')) {
+                $parts = explode('/public/', $pathPart, 2);
+                $raw = $parts[1] ?? $pathPart;
+            } else {
+                return $raw;
+            }
+        }
+
+        if (str_contains($raw, '/public/')) {
+            $parts = explode('/public/', $raw, 2);
+            $raw = $parts[1] ?? $raw;
+        }
+
+        $normalized = ltrim($raw, '/');
+        $candidates = [$normalized];
+
+        if (str_starts_with($normalized, 'events/')) {
+            $candidates[] = 'uploads/' . $normalized;
+        }
+
+        if ($normalized !== '' && !str_contains($normalized, '/')) {
+            $candidates[] = 'uploads/events/' . $normalized;
+        }
+
+        foreach (array_unique(array_filter($candidates)) as $candidate) {
+            $absolutePath = __DIR__ . '/../../../public/' . $candidate;
+            if (is_file($absolutePath)) {
+                return '../../../public/' . $candidate;
+            }
+        }
+
+        return $fallback;
+    }
+
     $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
     $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
@@ -58,6 +109,10 @@ if (!empty($u_d['ProfilePic'])) {
 if ($profilePicPath === '') {
     $profilePicPath = 'https://via.placeholder.com/150';
 }
+$eventsCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Events/events.css') ?: time());
+$dashboardCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Home/dashboard.css') ?: time());
+$dashboardJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/dashboard.js') ?: time());
+$responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/responsive.js') ?: time());
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -67,30 +122,9 @@ if ($profilePicPath === '') {
     <title>Events</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Events/events.css">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="../../../public/css/Events/events.css?v=<?php echo $eventsCssVersion; ?>">
+    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo $dashboardCssVersion; ?>">
     <style>
-        .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #1e293b;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.4);
-            transition: all 0.25s ease;
-            cursor: pointer;
-            margin-left: 8px;
-            box-sizing: border-box;
-        }
-        .icon-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
-            transform: scale(1.07);
-            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.25);
-        }
         .tab {
             cursor: pointer;
             border-radius: 12px;
@@ -106,16 +140,6 @@ if ($profilePicPath === '') {
         .events-list.hidden {
             display: none;
         }
-        .dark-mode .icon-btn {
-            background: rgba(255,255,255,0.12);
-            color: #e2e8f0;
-            border-color: rgba(226,232,240,0.3);
-        }
-        .dark-mode .icon-btn.active {
-            background: linear-gradient(135deg, #f97316, #fb923c);
-            color: #fff;
-        }
-
         .toast {
             position: fixed;
             bottom: 20px;
@@ -139,34 +163,15 @@ if ($profilePicPath === '') {
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-        
-        <nav class="menu">
-            <a href="../Home/dashboard.php" class="item "><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item active"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>       
-        </nav>
+    <?php lc_shell_render_sidebar(['active' => 'events']); ?>
 
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
-
-        <div class="main-content">
+    <div class="main-content">
         <?php if ($eventFlash !== ''): ?>
             <div style="margin: 12px 16px; padding: 10px 12px; border-radius: 10px; background: #0f172a; color: #fff;">
                 <?php echo htmlspecialchars($eventFlash); ?>
             </div>
         <?php endif; ?>
+        <?php if (false): ?>
         <header>
             <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
             <div class="search-bar">
@@ -196,6 +201,21 @@ if ($profilePicPath === '') {
                 </div>
             </div>
         </header>
+        <?php endif; ?>
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <span class="app-shell-notification-dot"></span>
+        <?php
+            $eventsNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'notification_html' => $eventsNotificationHtml,
+                'notification_button_class' => 'notifications-btn',
+                'user_name' => (string)$u_d['Username'],
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
                 
                 <div class="events-container">
             <div id="toast" class="toast"></div>
@@ -218,7 +238,7 @@ if ($profilePicPath === '') {
                 <?php foreach ($eventsToRender as $event): ?>
                     <div class="event-card">
                             <div class="event-image">
-                                <img src="<?php echo !empty($event['ImagePath']) ? '../../../public/' . htmlspecialchars($event['ImagePath']) : 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'; ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
+                                <img src="<?php echo htmlspecialchars(resolveEventImageUrl($event['ImagePath'] ?? '')); ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
                             </div>
                             <div class="event-details">
                                 <div class="event-info-top">
@@ -250,7 +270,7 @@ if ($profilePicPath === '') {
                         <?php $eventId = (int)($event['EventID'] ?? $event['id'] ?? $event['ID'] ?? 0); ?>
                         <div class="event-card">
                             <div class="event-image">
-                                <img src="<?php echo !empty($event['ImagePath']) ? '../../../public/' . htmlspecialchars($event['ImagePath']) : 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80'; ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
+                                <img src="<?php echo htmlspecialchars(resolveEventImageUrl($event['ImagePath'] ?? '')); ?>" alt="<?php echo htmlspecialchars($event['Title']); ?>">
                             </div>
                             <div class="event-details">
                                 <div class="event-info-top">
@@ -283,12 +303,10 @@ if ($profilePicPath === '') {
 
         </div>
     </div>
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const createPostBtn = document.querySelector('.btn-create');
-            
             const bellBtn = document.querySelector('.notifications-btn');
 
             const upcomingTab = document.querySelector('.events-tabs .tab:first-child');
@@ -345,13 +363,9 @@ if ($profilePicPath === '') {
             });
         });
     </script>
-    <script>
-        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
-    </script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
     <script src="../../../public/js/common/theme-toggle.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
+    <script src="../../../public/js/Home/responsive.js?v=<?php echo $responsiveJsVersion; ?>"></script>
+    <script src="../../../public/js/Home/dashboard.js?v=<?php echo $dashboardJsVersion; ?>"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@
 
     require_once '../../Models/Profile/ProfileModel.php'; // For user data
     require_once '../../Models/Friends/FriendModel.php'; // For notifications
+    require_once __DIR__ . '/../Component/dashboard_shell.php';
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
@@ -34,7 +35,7 @@
     <title>LocalConnect V2 - Creative Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <script>
         (function () {
             const key = 'localconnect_theme';
@@ -78,60 +79,32 @@
     </style>
 </head>
 <body>
-
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-
-        <nav class="menu">
-            <a href="dashboard.php" class="item active"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>
-        </nav>
-
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'home']); ?>
 
     <div class="main-content">
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text"></i>
-                <input type="text" id="header-search-input" placeholder="Search for anything...">
-            </div>
-
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;" id="notificationBtn">
-                    <i class="fa-solid fa-bell"></i>
-                    <?php if ($unread_notifications > 0): ?>
-                        <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
-                    <?php endif; ?>
-                    <div class="notifications-dropdown" id="notificationsDropdown">
-                        <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">
-                            Notifications
-                        </div>
-                        <div id="notificationsList" class="notification-list"></div>
-                    </div>
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <?php if ($unread_notifications > 0): ?>
+                <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+            <?php endif; ?>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">
+                    Notifications
                 </div>
-                <div class="user-profile">
-                    <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile">
-                    </a>
-                </div>
+                <div id="notificationsList" class="notification-list"></div>
             </div>
-        </header>
+        <?php
+            $homeNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'search_input_id' => 'header-search-input',
+                'notification_html' => $homeNotificationHtml,
+                'notification_button_id' => 'notificationBtn',
+                'user_name' => (string)$u_d['Username'],
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
 
         <div class="stories-wrapper">
             <div class="stories-container" id="stories-container">
@@ -202,7 +175,7 @@
         </div>
     </div>
 
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
 
     <div class="story-modal-overlay" id="add-story-modal">
         <div class="story-modal-card">
@@ -276,14 +249,10 @@
         </div>
     </div>
 
-    <script>
-        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
-    </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 
     <!-- Script for Quick Status Media Preview -->
     <script>

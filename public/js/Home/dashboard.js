@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedFileName = document.getElementById('selected-file-name');
     const storyModalMessage = document.getElementById('story-modal-message');
 
-    const openCreatePostBtn = document.getElementById('open-create-post');
+    const createPostTriggers = Array.from(document.querySelectorAll('[data-open-create-post], .js-open-create-post'));
     const createPostModal = document.getElementById('create-post-modal');
     const closeCreatePostBtn = document.getElementById('close-create-post');
     const createPostForm = document.getElementById('create-post-form');
@@ -33,6 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickStatusMessage = document.getElementById('quick-status-message');
     const quickStatusAddPhotoBtn = document.getElementById('quick-status-add-photo');
     const headerSearchInput = document.getElementById('header-search-input');
+    const hasStoryRail = Boolean(storyContainer && addStoryModal);
+    const hasCreatePostComposer = Boolean(
+        createPostModal
+        && createPostForm
+        && postMediaInput
+        && postSelectedFileName
+        && postEditorArea
+        && postEditorPreview
+        && postModalMessage
+    );
 
     const APP_ROOT = window.location.pathname.includes('/app/')
         ? window.location.pathname.split('/app/')[0]
@@ -191,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function bindStoryEvents() {
+        if (!hasStoryRail) return;
+
         const addStoryCard = document.getElementById('open-add-story');
         if (addStoryCard) {
             addStoryCard.onclick = () => {
@@ -231,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderStories(stories) {
+        if (!storyContainer) return;
         const uniqueLatestStories = latestStoryPerUser(Array.isArray(stories) ? stories : []);
         const orderedStories = sortStoriesForDisplay(uniqueLatestStories);
         const cards = [addStoryCardTemplate()];
@@ -242,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadStories() {
+        if (!hasStoryRail) return;
         fetch(`${STORY_API}?action=fetch`)
             .then((res) => res.json())
             .then((data) => {
@@ -455,6 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadPosts() {
+        if (!postFeedList) return;
         fetch(`${POST_API}?action=fetch`)
             .then((res) => res.json())
             .then((data) => {
@@ -664,37 +679,50 @@ document.addEventListener('DOMContentLoaded', () => {
         resetPostComposer();
     }
 
-    closeAddStoryBtn.onclick = () => addStoryModal.classList.remove('active');
+    if (closeAddStoryBtn && addStoryModal) {
+        closeAddStoryBtn.addEventListener('click', () => addStoryModal.classList.remove('active'));
+    }
 
-    addStoryModal.onclick = (event) => {
-        if (event.target === addStoryModal) addStoryModal.classList.remove('active');
-    };
+    if (addStoryModal) {
+        addStoryModal.addEventListener('click', (event) => {
+            if (event.target === addStoryModal) addStoryModal.classList.remove('active');
+        });
+    }
 
-    storyMediaInput.addEventListener('change', () => {
-        const file = storyMediaInput.files && storyMediaInput.files[0];
-        selectedFileName.textContent = file ? file.name : 'No file chosen';
-    });
+    if (storyMediaInput && selectedFileName) {
+        storyMediaInput.addEventListener('change', () => {
+            const file = storyMediaInput.files && storyMediaInput.files[0];
+            selectedFileName.textContent = file ? file.name : 'No file chosen';
+        });
+    }
 
-    addStoryForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const file = storyMediaInput.files && storyMediaInput.files[0];
-        if (!file) {
-            storyModalMessage.textContent = 'Please choose a file first.';
-            return;
-        }
+    if (addStoryForm && storyMediaInput && storyModalMessage) {
+        addStoryForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const file = storyMediaInput.files && storyMediaInput.files[0];
+            if (!file) {
+                storyModalMessage.textContent = 'Please choose a file first.';
+                return;
+            }
 
-        storyModalMessage.textContent = '';
-        addStoryForm.setAttribute('action', 'story_editor.php');
-        addStoryForm.setAttribute('method', 'post');
-        addStoryForm.submit();
-    });
+            storyModalMessage.textContent = '';
+            addStoryForm.setAttribute('action', 'story_editor.php');
+            addStoryForm.setAttribute('method', 'post');
+            addStoryForm.submit();
+        });
+    }
 
-    if (openAddStoryBtn) {
+    if (openAddStoryBtn && addStoryModal) {
         openAddStoryBtn.onclick = () => addStoryModal.classList.add('active');
     }
 
-    if (openCreatePostBtn) {
-        openCreatePostBtn.addEventListener('click', openPostComposer);
+    if (hasCreatePostComposer) {
+        createPostTriggers.forEach((trigger) => {
+            trigger.addEventListener('click', (event) => {
+                event.preventDefault();
+                openPostComposer();
+            });
+        });
     }
 
     if (closeCreatePostBtn) {
@@ -707,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (postMediaInput) {
+    if (hasCreatePostComposer) {
         postMediaInput.addEventListener('change', () => {
             const files = Array.from(postMediaInput.files || []);
             postSelectedFileName.textContent = files.length > 0
@@ -742,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (createPostForm) {
+    if (hasCreatePostComposer) {
         createPostForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const files = Array.from(postMediaInput.files || []);
@@ -1038,8 +1066,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    loadStories();
-    loadPosts();
-    setInterval(loadStories, 15000);
-    setInterval(loadPosts, 30000);
+    if (hasStoryRail) {
+        loadStories();
+        setInterval(loadStories, 15000);
+    }
+
+    if (postFeedList) {
+        loadPosts();
+        setInterval(loadPosts, 30000);
+    }
 });
