@@ -3,6 +3,7 @@ session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Friends/FriendModel.php';
+require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
@@ -60,7 +61,7 @@ function time_ago($datetime) {
     <title>LocalConnect - Friend Requests</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <style>
         /* Friends Section */
         .friends-container {
@@ -344,53 +345,26 @@ function time_ago($datetime) {
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-        <nav class="menu">
-            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="item active"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>     
-        </nav>
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'friends']); ?>
 
     <div class="main-content">
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text"></i>
-                <input type="text" placeholder="Search for anything...">
-            </div>
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn notifications-btn" style="position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <?php if ($unread_notifications > 0): ?>
-                        <span style="position: absolute; top: -5px; right: -5px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                    <?php endif; ?>
-                </div>
-                <div class="user-profile">
-                    <strong class="user-name"><?php echo htmlspecialchars($user_data['Username']); ?></strong>
-                    <a href="../Profile/profile.php">
-                        <img src="<?php 
-                            $path = '../../../public/img/' . $user_data['ProfilePic'];
-                            echo (!empty($user_data['ProfilePic']) && file_exists($path)) ? $path : 'https://via.placeholder.com/50';
-                        ?>" alt="Profile">
-                    </a>
-                </div>
-            </div>
-        </header>
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <?php if ($unread_notifications > 0): ?>
+                <span class="app-shell-notification-dot"></span>
+            <?php endif; ?>
+        <?php
+            $friendRequestNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'notification_html' => $friendRequestNotificationHtml,
+                'notification_button_class' => 'notifications-btn',
+                'user_name' => (string)$user_data['Username'],
+                'user_name_class' => 'user-name',
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
 
         <div class="friends-container">
             <div class="friends-tabs">
@@ -495,7 +469,7 @@ function time_ago($datetime) {
     </div>
     </div>
 
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
     <div id="toast" class="toast"></div>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script src="../../../public/js/common/theme-toggle.js"></script>
@@ -550,12 +524,8 @@ function time_ago($datetime) {
             }, 3000);
         }
     </script>
-        <script>
-        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($user_data['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath ?? 'https://via.placeholder.com/150'); ?>;
-    </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($user_data['Username'] ?? 'User'), $profilePicPath ?? 'https://via.placeholder.com/150'); ?>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>
 </html>

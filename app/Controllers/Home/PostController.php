@@ -15,7 +15,7 @@ $postModel = new PostModel($conn);
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 $uploadDirAbs = __DIR__ . '/../../../public/uploads/posts/';
-$uploadDirDb = '../../../public/uploads/posts/';
+$uploadDirDb = rtrim(BASE_URL, '/') . '/public/uploads/posts/';
 
 function ensureDirExists(string $path): void {
     if (!is_dir($path)) {
@@ -62,6 +62,29 @@ function ensurePostViewsTable(PDO $conn): void {
             UNIQUE KEY uniq_post_viewer (PostID, UserID)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+}
+
+function ensurePostMediaColumnCapacity(PDO $conn): void {
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+
+    try {
+        $stmt = $conn->query("SHOW COLUMNS FROM posts LIKE 'ImagePath'");
+        $column = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+        if (!$column) {
+            return;
+        }
+
+        $type = strtolower((string)($column['Type'] ?? ''));
+        if (str_contains($type, 'char(') || str_contains($type, 'varchar(')) {
+            $conn->exec("ALTER TABLE posts MODIFY COLUMN ImagePath TEXT NULL");
+        }
+    } catch (PDOException $e) {
+        // Continue without blocking posting if schema upgrade is unavailable.
+    }
 }
 
 function normalizeUploadedMedia(array $fileField): array {
@@ -164,12 +187,36 @@ function uploadMediaFiles(array $uploadedFiles, int $current_user_id, string $up
     return ['ok' => true, 'paths' => $savedMedia];
 }
 
+function normalizeShareAvatarValue($avatarValue): string {
+    $raw = trim(str_replace('\\', '/', (string)$avatarValue));
+    if ($raw === '') {
+        return '';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $raw) || str_starts_with($raw, 'data:')) {
+        return $raw;
+    }
+
+    return basename($raw);
+}
+
 if ($action === 'fetch') {
     try {
+        ensurePostMediaColumnCapacity($conn);
         ensurePostViewsTable($conn);
         $posts = $postModel->getRecentPosts(25);
         if (is_array($posts)) {
             foreach ($posts as &$post) {
+                $mediaList = parseMediaList($post['ImagePath'] ?? '');
+                if (count($mediaList) > 0) {
+                    $post['ImagePath'] = mediaListToDbValue(array_map(
+                        fn($mediaPath) => safeMediaPath($uploadDirDb, (string)$mediaPath),
+                        $mediaList
+                    ));
+                } else {
+                    $post['ImagePath'] = '';
+                }
+
                 $postId = (int)$post['PostID'];
                 try {
                     // Likes count
@@ -198,7 +245,7 @@ if ($action === 'fetch') {
                     $post['ViewsCount'] = (int)$stmt->fetchColumn();
                     
                     // Fetch comments
-                    $stmt = $conn->prepare("SELECT c.CommentText, u.Username, u.ProfilePic FROM post_comments c JOIN users u ON c.UserID = u.UserID WHERE c.PostID = ? ORDER BY c.CreatedAt ASC");
+                    $stmt = $conn->prepare("SELECT c.CommentText, u.UserID, u.Username, u.ProfilePic FROM post_comments c JOIN users u ON c.UserID = u.UserID WHERE c.PostID = ? ORDER BY c.CreatedAt ASC");
                     $stmt->execute([$postId]);
                     $post['Comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } catch (PDOException $e) {
@@ -216,6 +263,7 @@ if ($action === 'fetch') {
 }
 
 if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    ensurePostMediaColumnCapacity($conn);
     $content = sanitizePostContent((string)($_POST['content'] ?? ''));
     $uploadedFiles = isset($_FILES['post_media']) ? normalizeUploadedMedia($_FILES['post_media']) : [];
     $savedMedia = [];
@@ -253,11 +301,6 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $savedMedia = $uploaded['paths'];
         $mediaValue = mediaListToDbValue($savedMedia);
-        if (strlen($mediaValue) > 255) {
-            deleteMediaFiles($uploadDirAbs, $savedMedia);
-            echo json_encode(['status' => 'error', 'message' => 'Too many media files selected. Please upload fewer files.']);
-            exit;
-        }
     }
 
     try {
@@ -328,15 +371,22 @@ if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     $parsed = json_decode(substr($contentToShare, 13), true);
                     if ($parsed) {
                         $shareData = [
-                            'original_user' => $parsed['original_user'],
-                            'original_avatar' => $parsed['original_avatar'],
-                            'original_content' => $parsed['original_content']
+                            'original_user' => (string)($parsed['original_user'] ?? $postToShare['Username']),
+                            'original_avatar' => normalizeShareAvatarValue($parsed['original_avatar'] ?? $postToShare['ProfilePic']),
+                            'original_content' => (string)($parsed['original_content'] ?? $contentToShare)
                         ];
+
+                        if ($shareData['original_user'] === '') {
+                            $shareData['original_user'] = (string)$postToShare['Username'];
+                        }
+                        if ($shareData['original_avatar'] === '') {
+                            $shareData['original_avatar'] = normalizeShareAvatarValue($postToShare['ProfilePic'] ?? '');
+                        }
                     }
                 } else {
                     $shareData = [
                         'original_user' => $postToShare['Username'],
-                        'original_avatar' => $postToShare['ProfilePic'],
+                        'original_avatar' => normalizeShareAvatarValue($postToShare['ProfilePic']),
                         'original_content' => $contentToShare
                     ];
                 }
@@ -381,6 +431,7 @@ if ($action === 'view' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    ensurePostMediaColumnCapacity($conn);
     $postId = (int)($_POST['post_id'] ?? 0);
     if ($postId <= 0) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid post.']);
@@ -440,11 +491,6 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $finalMedia = array_values(array_merge($keepMedia, $newSavedMedia));
     $mediaValue = mediaListToDbValue($finalMedia);
-    if (strlen($mediaValue) > 255) {
-        deleteMediaFiles($uploadDirAbs, $newSavedMedia);
-        echo json_encode(['status' => 'error', 'message' => 'Too many media files selected. Please upload fewer files.']);
-        exit;
-    }
 
     try {
         $postModel->updatePostForUser($postId, $current_user_id, $content, $mediaValue);

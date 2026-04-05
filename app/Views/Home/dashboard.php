@@ -5,6 +5,7 @@
 
     require_once '../../Models/Profile/ProfileModel.php'; // For user data
     require_once '../../Models/Friends/FriendModel.php'; // For notifications
+    require_once __DIR__ . '/../Component/dashboard_shell.php';
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
@@ -34,7 +35,7 @@
     <title>LocalConnect V2 - Creative Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <script>
         (function () {
             const key = 'localconnect_theme';
@@ -43,75 +44,82 @@
             }
         })();
     </script>
+    <style>
+        .stories-wrapper {
+            width: 100%;
+            overflow-x: auto !important;
+            overflow-y: hidden;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-secondary, #9ca3af) var(--background-secondary, #f1f5f9);
+        }
+        .stories-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+        .stories-wrapper::-webkit-scrollbar-track {
+            background: var(--background-secondary, #f1f5f9);
+            border-radius: 4px;
+        }
+        .stories-wrapper::-webkit-scrollbar-thumb {
+            background-color: var(--text-secondary, #9ca3af);
+            border-radius: 4px;
+        }
+        .stories-container {
+            display: flex;
+            flex-wrap: nowrap !important;
+            gap: 16px;
+            width: max-content;
+            padding: 4px;
+        }
+        .stories-container .story-card {
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body>
-
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-
-        <nav class="menu">
-            <a href="dashboard.php" class="item active"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="../Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>
-        </nav>
-
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'home']); ?>
 
     <div class="main-content">
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text"></i>
-                <input type="text" placeholder="Search for anything...">
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <?php if ($unread_notifications > 0): ?>
+                <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+            <?php endif; ?>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">
+                    Notifications
+                </div>
+                <div id="notificationsList" class="notification-list"></div>
             </div>
+        <?php
+            $homeNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'search_input_id' => 'header-search-input',
+                'notification_html' => $homeNotificationHtml,
+                'notification_button_id' => 'notificationBtn',
+                'user_name' => (string)$u_d['Username'],
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
 
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;" id="notificationBtn">
-                    <i class="fa-solid fa-bell"></i>
-                    <?php if ($unread_notifications > 0): ?>
-                        <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
-                    <?php endif; ?>
-                    <div class="notifications-dropdown" id="notificationsDropdown">
-                        <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">
-                            Notifications
-                        </div>
-                        <div id="notificationsList" class="notification-list"></div>
+        <div class="stories-wrapper">
+            <div class="stories-container" id="stories-container">
+                <div class="story-card add-story" id="open-add-story">
+                    <div class="add-story-icon-wrap">
+                        <i class="fa-solid fa-circle-plus" style="color: rgb(119, 72, 255);"></i>
                     </div>
+                    <span class="story-name">Add Story</span>
                 </div>
-                <div class="user-profile">
-                    <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile">
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <div class="stories-container" id="stories-container">
-            <div class="story-card add-story" id="open-add-story">
-                <div class="add-story-icon-wrap">
-                    <i class="fa-solid fa-circle-plus" style="color: rgb(119, 72, 255);"></i>
-                </div>
-                <span class="story-name">Add Story</span>
             </div>
         </div>
 
         <div class="feed-grid">
             <div class="feed-left">
-                <form id="quick-status-form" class="create-post-card">
+                <form id="quick-status-form" class="create-post-card" enctype="multipart/form-data">
                     <div class="quick-status-top">
                         <a href="../Profile/profile.php" class="quick-status-avatar-link">
                             <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile" class="quick-status-avatar">
@@ -124,6 +132,11 @@
                             placeholder="What's on your mind, <?php echo htmlspecialchars($u_d['Username']); ?>?"
                         ></textarea>
                     </div>
+
+                    <!-- Media Preview Container -->
+                    <div id="quick-status-preview" style="display: flex; gap: 10px; flex-wrap: wrap; margin: 0 15px 10px 15px;"></div>
+                    <input type="file" id="quick-status-media-input" name="post_media[]" accept="image/*,video/*" multiple style="display: none;">
+                    
                     <div class="quick-status-actions">
                         <button type="button" class="quick-status-secondary" id="quick-status-add-photo">
                             <i class="fa-solid fa-photo-film"></i> Photo/Video Post
@@ -162,7 +175,7 @@
         </div>
     </div>
 
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
 
     <div class="story-modal-overlay" id="add-story-modal">
         <div class="story-modal-card">
@@ -236,13 +249,104 @@
         </div>
     </div>
 
-    <script>
-        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
-    </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
+
+    <!-- Script for Quick Status Media Preview -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const photoBtn = document.getElementById('quick-status-add-photo');
+            const fileInput = document.getElementById('quick-status-media-input');
+            const previewContainer = document.getElementById('quick-status-preview');
+            const form = document.getElementById('quick-status-form');
+
+            if (photoBtn && fileInput) {
+                // Click on button opens file dialog
+                photoBtn.addEventListener('click', () => fileInput.click());
+
+                fileInput.addEventListener('change', function() {
+                    previewContainer.innerHTML = ''; 
+                    const files = Array.from(this.files);
+                    
+                    if (files.length > 4) {
+                        alert('You can only upload up to 4 media files per post.');
+                        this.value = '';
+                        return;
+                    }
+
+                    files.forEach((file) => {
+                        const fileReader = new FileReader();
+                        const previewWrapper = document.createElement('div');
+                        previewWrapper.style.position = 'relative';
+                        previewWrapper.style.width = '80px';
+                        previewWrapper.style.height = '80px';
+                        previewWrapper.style.borderRadius = '8px';
+                        previewWrapper.style.overflow = 'hidden';
+                        previewWrapper.style.border = '1px solid var(--border-color, #e5e7eb)';
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '4px';
+                        removeBtn.style.right = '4px';
+                        removeBtn.style.background = 'rgba(0,0,0,0.6)';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.width = '20px';
+                        removeBtn.style.height = '20px';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.style.display = 'flex';
+                        removeBtn.style.alignItems = 'center';
+                        removeBtn.style.justifyContent = 'center';
+                        removeBtn.style.fontSize = '12px';
+                        
+                        removeBtn.onclick = function(e) {
+                            e.preventDefault();
+                            previewWrapper.remove();
+                            // Remove file from input
+                            const newDt = new DataTransfer();
+                            Array.from(fileInput.files).forEach((f) => {
+                                if (f.name !== file.name || f.size !== file.size) {
+                                    newDt.items.add(f);
+                                }
+                            });
+                            fileInput.files = newDt.files;
+                        };
+
+                        fileReader.onload = function(e) {
+                            if (file.type.startsWith('image/')) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.style.width = '100%';
+                                img.style.height = '100%';
+                                img.style.objectFit = 'cover';
+                                previewWrapper.appendChild(img);
+                            } else if (file.type.startsWith('video/')) {
+                                const video = document.createElement('video');
+                                video.src = e.target.result;
+                                video.style.width = '100%';
+                                video.style.height = '100%';
+                                video.style.objectFit = 'cover';
+                                previewWrapper.appendChild(video);
+                            }
+                            previewWrapper.appendChild(removeBtn);
+                            previewContainer.appendChild(previewWrapper);
+                        };
+                        fileReader.readAsDataURL(file);
+                    });
+                });
+            }
+
+            // Clear preview when form is successfully submitted/reset
+            if (form) {
+                form.addEventListener('reset', () => {
+                    previewContainer.innerHTML = '';
+                });
+            }
+        });
+    </script>
 </body>
 </html>

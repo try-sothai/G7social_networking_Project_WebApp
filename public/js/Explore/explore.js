@@ -2,6 +2,12 @@
 let currentCategory = 'All';
 let isLoading = false;
 
+function getProfileUrl(userId) {
+    const id = Number(userId || 0);
+    if (!id) return '../Profile/profile.php';
+    return `../Profile/profile.php?user_id=${encodeURIComponent(id)}`;
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - initializing explore page');
@@ -122,7 +128,7 @@ function searchPosts(searchTerm) {
     const container = document.getElementById('postsContainer');
     container.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
     
-    fetch(`explore_controller.php?action=get_posts&category=${encodeURIComponent(searchTerm)}`)
+    fetch(`../../../app/Controllers/Explore/explore_controller.php?action=get_posts&category=${encodeURIComponent(searchTerm)}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -164,15 +170,18 @@ function createPostElement(post) {
     
     const MediaPath = post.ImagePath ? `${window.APP_CONFIG.baseUrl}/${post.ImagePath}` : null;
     const profilePic = post.ProfilePic ? `${window.APP_CONFIG.imagePath}${post.ProfilePic}` : 'https://via.placeholder.com/50';
+    const profileUrl = getProfileUrl(post.UserID || 0);
     const postDate = new Date(post.CreatedAt).toLocaleDateString('km-KH');
     
     postDiv.innerHTML = `
         <div class="post-header">
-            <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" onerror="this.src='https://via.placeholder.com/50'">
-            <div class="post-user-info">
-                <h4>${escapeHtml(post.Username)}</h4>
-                <p>${postDate}</p>
-            </div>
+            <a href="${escapeHtml(profileUrl)}" class="post-user-link" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;">
+                <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" onerror="this.src='https://via.placeholder.com/50'">
+                <div class="post-user-info">
+                    <h4>${escapeHtml(post.Username)}</h4>
+                    <p>${postDate}</p>
+                </div>
+            </a>
         </div>
         <div class="post-content">
             <p>${escapeHtml(post.Content)}</p>
@@ -228,12 +237,14 @@ function renderComments(comments) {
     
     return comments.map(comment => `
         <div class="comment">
+            <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" class="post-user-link" style="display:flex; align-items:flex-start; gap:10px; text-decoration:none; color:inherit;">
             <img src="${comment.ProfilePic ? `${window.APP_CONFIG.imagePath}${comment.ProfilePic}` : 'https://via.placeholder.com/32'}" alt="${escapeHtml(comment.Username)}" onerror="this.src='https://via.placeholder.com/32'">
             <div class="comment-content">
                 <strong>${escapeHtml(comment.Username)}</strong>
                 <p>${escapeHtml(comment.CommentText || comment.Comment)}</p>
                 <small style="color: #6b7280;">${new Date(comment.CreatedAt).toLocaleTimeString()}</small>
             </div>
+            </a>
         </div>
     `).join('');
 }
@@ -243,7 +254,7 @@ function toggleLike(postId, button) {
     formData.append('action', 'like');
     formData.append('post_id', postId);
     
-    fetch('explore_controller.php', {
+    fetch('../../../app/Controllers/Explore/explore_controller.php', {
         method: 'POST',
         body: formData
     })
@@ -283,7 +294,7 @@ function addComment(postId) {
     formData.append('post_id', postId);
     formData.append('comment', comment);
     
-    fetch('explore_controller.php', {
+    fetch('../../../app/Controllers/Explore/explore_controller.php', {
         method: 'POST',
         body: formData
     })
@@ -313,7 +324,7 @@ function toggleNotifications() {
 }
 
 function loadNotifications() {
-    fetch('explore_controller.php?action=get_notifications')
+    fetch('../../../app/Controllers/Explore/explore_controller.php?action=get_notifications')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -335,13 +346,13 @@ function displayNotifications(notifications) {
     
     container.innerHTML = notifications.map(notif => `
         <div class="notification-item ${notif.IsRead == 0 ? 'unread' : ''}" data-id="${notif.NotificationID}">
-            <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="${escapeHtml(getProfileUrl(notif.TriggerID || notif.UserID || 0))}" class="post-user-link" style="display: flex; gap: 10px; align-items: center; text-decoration:none; color:inherit;">
                 <img src="${window.APP_CONFIG.imagePath}${notif.ProfilePic}" style="width: 30px; height: 30px; border-radius: 50%;" onerror="this.src='https://via.placeholder.com/30'">
                 <div>
                     <p style="margin: 0; font-size: 13px;"><strong>${escapeHtml(notif.Username)}</strong> បាន ${notif.Type} លើផុសរបស់អ្នក</p>
                     <small style="color: #6b7280;">${new Date(notif.CreatedAt).toLocaleString()}</small>
                 </div>
-            </div>
+            </a>
         </div>
     `).join('');
 }

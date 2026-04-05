@@ -6,6 +6,15 @@ function getImageUrl($imagePath = '') {
     return BASE_URL . 'public/img/' . ltrim($imagePath, '/');
 }
 
+function getProfileUrl($userId = 0) {
+    $id = (int)$userId;
+    if ($id > 0) {
+        return BASE_URL . 'app/Views/Profile/profile.php?user_id=' . urlencode((string)$id);
+    }
+
+    return BASE_URL . 'app/Views/Profile/profile.php';
+}
+
 // Get JavaScript config for global use
 function getJsConfig() {
     return json_encode([

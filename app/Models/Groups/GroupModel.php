@@ -144,6 +144,44 @@ class GroupModel {
     }
     
     /**
+     * Get group members
+     */
+    public function getGroupMembers($group_id) {
+        try {
+            $query = "SELECT u.UserID, u.Username, u.ProfilePic, gm.Role, gm.JoinedAt 
+                      FROM `group_members` gm 
+                      INNER JOIN users u ON gm.UserID = u.UserID 
+                      WHERE gm.GroupID = :group_id AND gm.Status = 'Approved' 
+                      ORDER BY gm.Role ASC, gm.JoinedAt DESC";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':group_id', $group_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in getGroupMembers: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Remove a member from group
+     */
+    public function removeMember($group_id, $user_id) {
+        try {
+            $query = "DELETE FROM `group_members` WHERE GroupID = :group_id AND UserID = :user_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':group_id', $group_id, PDO::PARAM_INT);
+            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error in removeMember: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Create new group
      */
     public function createGroup($data) {

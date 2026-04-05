@@ -35,10 +35,17 @@ class MessageChat {
             callVideoBtn: document.getElementById('call-video-btn'),
             activeUserName: document.getElementById('active-user-name'),
             activeUserImg: document.getElementById('active-user-img'),
+            activeUserProfileLink: document.getElementById('active-user-profile-link'),
             activeUserStatus: document.querySelector('.header-status'),
             activeUserOnlineDot: document.querySelector('.online-status'),
             myAvatar: document.getElementById('my-avatar-img')
         };
+    }
+
+    getProfileUrl(userId) {
+        const id = Number(userId || 0);
+        if (!id) return '../Profile/profile.php';
+        return `../Profile/profile.php?user_id=${encodeURIComponent(id)}`;
     }
     
     initEventListeners() {
@@ -174,14 +181,16 @@ class MessageChat {
             
             return `
                 <div class="contact-item" data-user-id="${friend.UserID}" onclick="chatApp.selectUser('${friend.UserID}', '${this.escapeHtml(friend.Username)}', '${userImg}', this)">
-                    <img src="${userImg}" class="contact-avatar">
-                    <div class="contact-info">
-                        <div class="name-row">
-                            <span class="contact-name">${this.escapeHtml(friend.Username)}</span>
-                            <small>${this.formatTimeShort(friend.last_message_time)}</small>
+                    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0; color:inherit;">
+                        <img src="${userImg}" class="contact-avatar">
+                        <div class="contact-info">
+                            <div class="name-row">
+                                <span class="contact-name">${this.escapeHtml(friend.Username)}</span>
+                                <small>${this.formatTimeShort(friend.last_message_time)}</small>
+                            </div>
+                            <p class="last-message">${this.escapeHtml(lastMessage)}</p>
+                            ${onlineBadge}
                         </div>
-                        <p class="last-message">${this.escapeHtml(lastMessage)}</p>
-                        ${onlineBadge}
                     </div>
                     ${unreadBadge}
                 </div>
@@ -210,6 +219,9 @@ class MessageChat {
         
         this.elements.activeUserName.innerText = name;
         this.elements.activeUserImg.src = img;
+        if (this.elements.activeUserProfileLink) {
+            this.elements.activeUserProfileLink.href = this.getProfileUrl(id);
+        }
         if (this.elements.activeUserStatus) {
             this.elements.activeUserStatus.innerText = this.activeReceiverOnline ? 'Online' : 'Offline';
         }
@@ -259,9 +271,10 @@ class MessageChat {
                 </div>
             ` : '';
 
+            const otherUserProfileUrl = this.getProfileUrl(m.SenderID);
             return `
                 <div class="message-wrapper ${isMe ? 'me' : 'them'}" id="message-${m.MessageID}">
-                    ${!isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
+                    ${!isMe ? `<a href="${otherUserProfileUrl}" style="display:inline-flex;" title="View profile"><img src="${avatar}" class="msg-avatar"></a>` : ''}
                     <div class="message-content">
                         <div class="msg-bubble ${m.MessageType === 'audio' ? 'msg-bubble-audio' : ''}">${messageContent}</div>
                         <span class="msg-time">${timeStr}</span>

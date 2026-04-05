@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/ProfileModel.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -48,13 +49,13 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
                 <div class="story-top">
                     <div class="story-progress"><span id="story-progress-fill"></span></div>
                     <div class="story-user-row">
-                        <div class="story-user">
+                        <a id="story-user-link" href="<?php echo htmlspecialchars(getProfileUrl($user_id)); ?>" class="story-user" style="text-decoration:none; color:inherit;">
                             <img id="story-avatar" src="" alt="User">
                             <div>
                                 <div id="story-username">User</div>
                                 <div id="story-time">Just now</div>
                             </div>
-                        </div>
+                        </a>
 
                         <div class="story-actions">
                             <button id="story-play-pause-btn" class="story-menu-btn" type="button" aria-label="Pause story">

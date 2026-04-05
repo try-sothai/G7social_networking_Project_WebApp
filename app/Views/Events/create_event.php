@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
@@ -9,9 +10,40 @@ if (!isset($_SESSION['user_id'])) {
 
 // Dummy data for user profile - replace with actual data fetching
 require_once '../../Models/Profile/ProfileModel.php';
+require_once '../../Models/Events/EventModel.php';
 $model = new ProfileModel($conn);
 $user_id = $_SESSION['user_id'];
 $u_d = $model->getUserData($user_id);
+/** @var EventModel $eventModel */
+$eventModel = new EventModel($conn);
+$profilePicPath = '';
+if (!empty($u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    }
+}
+if ($profilePicPath === '') {
+    $profilePicPath = 'https://i.pravatar.cc/150?u=' . $user_id;
+}
+
+$createEventCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Events/create_event.css') ?: time());
+$dashboardCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Home/dashboard.css') ?: time());
+$dashboardJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/dashboard.js') ?: time());
+$responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/responsive.js') ?: time());
+
+$isEditMode = (isset($_GET['mode']) && $_GET['mode'] === 'edit');
+$editingEvent = null;
+if ($isEditMode) {
+    $eventId = (int)($_GET['id'] ?? 0);
+    if ($eventId > 0) {
+        $editingEvent = $eventModel->getEventByIdForUser($eventId, $user_id);
+    }
+    if (!$editingEvent) {
+        header('Location: events.php?error=not_found');
+        exit();
+    }
+}
 
 $alert = null;
 if (isset($_GET['error'])) {
@@ -22,9 +54,13 @@ if (isset($_GET['error'])) {
         $alert = ['type' => 'error', 'text' => 'Image upload failed. Please try again with a different file.'];
     } elseif ($error === 'db_error') {
         $alert = ['type' => 'error', 'text' => 'Unable to save event. Please try again later.'];
+    } elseif ($error === 'past_date') {
+        $alert = ['type' => 'error', 'text' => 'Event date and time cannot be in the past.'];
     }
 } elseif (isset($_GET['success']) && $_GET['success'] === 'event_created') {
     $alert = ['type' => 'success', 'text' => 'Event created successfully!'];
+} elseif (isset($_GET['success']) && $_GET['success'] === 'event_updated') {
+    $alert = ['type' => 'success', 'text' => 'Event updated successfully!'];
 }
 ?>
 <!DOCTYPE html>
@@ -32,11 +68,11 @@ if (isset($_GET['error'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Event</title>
+    <title><?php echo $isEditMode ? 'Edit Event' : 'Create New Event'; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
-    <link rel="stylesheet" href="../../../public/css/Events/create_event.css">
+    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo $dashboardCssVersion; ?>">
+    <link rel="stylesheet" href="../../../public/css/Events/create_event.css?v=<?php echo $createEventCssVersion; ?>">
     <style>
         .alert-box {
             margin: 1rem 2rem 0;
@@ -56,27 +92,7 @@ if (isset($_GET['error'])) {
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-        
-        <nav class="menu">
-            <a href="../Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="../Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="../Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="events.php" class="item active"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="../Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="../Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="../Report/userReport.php" class="item"><i class="fa-solid fa-chart-simple"></i> Report</a>
-        </nav>
-
-        <button class="btn-create">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'events']); ?>
 
     <div class="main-content">
         <?php if ($alert): ?>
@@ -84,58 +100,46 @@ if (isset($_GET['error'])) {
                 <?php echo htmlspecialchars($alert['text']); ?>
             </div>
         <?php endif; ?>
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text-muted"></i>
-                <input type="text" placeholder="Search for anything...">
-            </div>
-            
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                </div>
-                <div class="user-profile">
-                <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img src="<?php 
-                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
-                                echo '../../../public/img/' . $u_d['ProfilePic'];
-                            } else {
-                                echo 'https://i.pravatar.cc/150?u=' . $user_id;
-                            }
-                        ?>" alt="Profile">
-                    </a>
-                </div>
-            </div>
-        </header>
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <span class="app-shell-notification-dot"></span>
+        <?php
+            $createEventNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'notification_html' => $createEventNotificationHtml,
+                'user_name' => (string)$u_d['Username'],
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
 
         <div class="create-event-container">
-            <h1>Create New Event</h1>
+            <h1><?php echo $isEditMode ? 'Edit Event' : 'Create New Event'; ?></h1>
             <form action="../../Controllers/Events/EventController.php" method="POST" class="create-event-form" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="create">
+                <input type="hidden" name="action" value="<?php echo $isEditMode ? 'update' : 'create'; ?>">
+                <?php if ($isEditMode): ?>
+                    <input type="hidden" name="event_id" value="<?php echo (int)($editingEvent['EventID'] ?? $editingEvent['id'] ?? $editingEvent['ID'] ?? 0); ?>">
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label for="title">Event Title</label>
-                    <input type="text" id="title" name="title" placeholder="e.g., Community Yoga in the Park" required>
+                    <input type="text" id="title" name="title" placeholder="e.g., Community Yoga in the Park" value="<?php echo htmlspecialchars($editingEvent['Title'] ?? ''); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea id="description" name="description" rows="4" placeholder="Tell everyone about your event..."></textarea>
+                    <textarea id="description" name="description" rows="4" placeholder="Tell everyone about your event..."><?php echo htmlspecialchars($editingEvent['Description'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="location">Location</label>
-                    <input type="text" id="location" name="location" placeholder="e.g., Golden Gate Park, San Francisco" required>
+                    <input type="text" id="location" name="location" placeholder="e.g., Golden Gate Park, San Francisco" value="<?php echo htmlspecialchars($editingEvent['Location'] ?? ''); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="event_datetime">Date and Time</label>
-                    <input type="datetime-local" id="event_datetime" name="event_datetime" required>
+                    <input type="datetime-local" id="event_datetime" name="event_datetime" value="<?php echo !empty($editingEvent['EventDateTime']) ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($editingEvent['EventDateTime']))) : ''; ?>" min="<?php echo date('Y-m-d\TH:i'); ?>" required>
                 </div>
                 
                 <div class="form-group">
@@ -145,15 +149,18 @@ if (isset($_GET['error'])) {
 
                 <div class="form-actions">
                     <a href="events.php" class="btn-cancel">Cancel</a>
-                    <button type="submit" class="btn-submit">Create Event</button>
+                    <button type="submit" class="btn-submit"><?php echo $isEditMode ? 'Update Event' : 'Create Event'; ?></button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
+    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
+    <script src="../../../public/js/Home/dashboard.js?v=<?php echo $dashboardJsVersion; ?>"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <script src="../../../public/js/Home/responsive.js?v=<?php echo $responsiveJsVersion; ?>"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const alertBox = document.querySelector('.alert-box');

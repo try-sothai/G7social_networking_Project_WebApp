@@ -5,6 +5,7 @@ require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
 require_once '../../Models/Report/ReportModel.php';
 require_once '../../Models/Profile/ProfileModel.php';
+require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 
 // Security: Check if user is logged in
@@ -55,13 +56,13 @@ $topActiveUsers = $reportModel->getTopActiveUsers(5);
 
 // Fetch actual counts for Likes, Comments, Shares
 try {
-    $stmtLikes = $conn->query("SELECT COUNT(*) FROM post_likes");
+    $stmtLikes = $conn->query("SELECT COUNT(*) FROM interactions WHERE Type IN ('like', 'love', 'haha')");
     $totalLikes = $stmtLikes->fetchColumn();
 
-    $stmtComments = $conn->query("SELECT COUNT(*) FROM post_comments");
+    $stmtComments = $conn->query("SELECT COUNT(*) FROM interactions WHERE Type = 'comment'");
     $totalComments = $stmtComments->fetchColumn();
 
-    $stmtShares = $conn->query("SELECT COUNT(*) FROM post_shares");
+    $stmtShares = $conn->query("SELECT COUNT(*) FROM shares");
     $totalShares = $stmtShares->fetchColumn();
 } catch (PDOException $e) {
     $totalLikes = 0; $totalComments = 0; $totalShares = 0;
@@ -98,55 +99,26 @@ function timeAgo($datetime) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Report/userReport.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/home/dashboard.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-section">
-            <i class="fa-solid fa-cube"></i>
-            <span>LocalConnect</span>
-        </div>
-        
-        <nav class="menu">
-            <a href="<?= BASE_URL ?>app/Views/Home/dashboard.php" class="item"><i class="fa-solid fa-home"></i> Home</a>
-            <a href="<?= BASE_URL ?>app/Views/Explore/explore.php" class="item"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="<?= BASE_URL ?>app/Views/Groups/groups.php" class="item"><i class="fa-solid fa-people-group"></i> Groups</a>
-            <a href="<?= BASE_URL ?>app/Views/Events/events.php" class="item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-            <a href="<?= BASE_URL ?>app/Views/Friends/AllFriends.php" class="item"><i class="fa-solid fa-user-friends"></i> Friends</a>
-            <a href="<?= BASE_URL ?>app/Views/Messages/message.php" class="item"><i class="fa-solid fa-message"></i> Messages</a>
-            <a href="<?= BASE_URL ?>app/Views/Report/userReport.php" class="item active"><i class="fa-solid fa-chart-simple"></i> Report</a> 
-        </nav>
-
-        <button class="btn-create" id="open-create-post" type="button">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Create New Post</span>
-        </button>
-    </div>
+    <?php lc_shell_render_sidebar(['active' => 'report']); ?>
     
     <div class="main-content">
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text"></i>
-                <input type="text" placeholder="Search for anything...">
-            </div>
-            
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn" style="position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                </div>
-                <div class="user-profile">
-                    <span style="font-weight: 700;"><?php echo htmlspecialchars($u_d['Username']); ?></span>
-                    <a href="../Profile/profile.php">
-                        <img src="<?php echo htmlspecialchars($profilePicPath); ?>" alt="Profile">
-                    </a>
-                </div>
-            </div>
-        </header>
+        <?php
+            ob_start();
+        ?>
+            <i class="fa-solid fa-bell"></i>
+            <span class="app-shell-notification-dot"></span>
+        <?php
+            $reportNotificationHtml = ob_get_clean();
+            lc_shell_render_header([
+                'notification_html' => $reportNotificationHtml,
+                'user_name' => (string)$u_d['Username'],
+                'profile_image' => $profilePicPath,
+            ]);
+        ?>
         <div class="container">
             <!-- Header -->
             <div class="report-header">
@@ -323,7 +295,7 @@ function timeAgo($datetime) {
         </div>
     </div>
 
-    <div class="overlay"></div>
+    <?php lc_shell_render_overlay(); ?>
 
     <script>
         // Engagement Chart Data
@@ -418,12 +390,8 @@ function timeAgo($datetime) {
     </script>
     <script src="<?= BASE_URL ?>public/js/common/theme-toggle.js"></script>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
-    <script>
-        const CURRENT_USER_ID = <?php echo (int)($_SESSION['user_id'] ?? 0); ?>;
-        const CURRENT_USER_NAME = <?php echo json_encode((string)($u_d['Username'] ?? 'User')); ?>;
-        const CURRENT_USER_AVATAR = <?php echo json_encode($profilePicPath); ?>;
-    </script>
-    <script src="../../../public/js/Home/dashboard.js"></script>
-    <script src="../../../public/js/Home/responsive.js"></script>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
+    <script src="<?= htmlspecialchars(lc_public_asset('js/Home/dashboard.js')) ?>"></script>
+    <script src="<?= htmlspecialchars(lc_public_asset('js/Home/responsive.js')) ?>"></script>
 </body>
 </html>

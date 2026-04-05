@@ -27,6 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
+    function isVideo(mediaPath) {
+        const raw = String(mediaPath || '').trim().toLowerCase();
+        if (!raw) return false;
+        const clean = raw.split('?')[0].split('#')[0];
+        return clean.endsWith('.mp4')
+            || clean.endsWith('.webm')
+            || clean.endsWith('.ogg')
+            || clean.endsWith('.mov')
+            || clean.endsWith('.m4v');
+    }
+
     function closeAllPostMenus() {
         document.querySelectorAll('.post-menu-wrap.active').forEach((node) => {
             node.classList.remove('active');
@@ -38,8 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const existingHtml = editPostState.keepMedia.map((media, idx) => `
             <div class="post-editor-thumb">
-                <img src="${escapeHtml(media)}" alt="Current image ${idx + 1}">
-                <button type="button" class="post-thumb-remove" data-role="remove-existing-image" data-index="${idx}" title="Remove image">
+                ${isVideo(media)
+                    ? `<video controls preload="metadata"><source src="${escapeHtml(media)}"></video>`
+                    : `<img src="${escapeHtml(media)}" alt="Current media ${idx + 1}">`
+                }
+                <button type="button" class="post-thumb-remove" data-role="remove-existing-image" data-index="${idx}" title="Remove media">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -49,8 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const objectUrl = URL.createObjectURL(file);
             return `
                 <div class="post-editor-thumb">
-                    <img src="${escapeHtml(objectUrl)}" alt="New image ${idx + 1}">
-                    <button type="button" class="post-thumb-remove" data-role="remove-new-image" data-index="${idx}" title="Remove new image">
+                    ${file.type.startsWith('video/')
+                        ? `<video controls preload="metadata"><source src="${escapeHtml(objectUrl)}"></video>`
+                        : `<img src="${escapeHtml(objectUrl)}" alt="New media ${idx + 1}">`
+                    }
+                    <button type="button" class="post-thumb-remove" data-role="remove-new-image" data-index="${idx}" title="Remove new media">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -60,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const all = existingHtml.concat(newHtml);
         editPostPreview.innerHTML = all.length > 0
             ? `<div class="post-editor-preview-grid">${all.join('')}</div>`
-            : '<div class="empty-post-preview">No image selected.</div>';
+            : '<div class="empty-post-preview">No media selected.</div>';
     }
 
     function openEditPostModal(postId, content, mediaList) {
@@ -71,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (editPostIdInput) editPostIdInput.value = String(editPostState.postId);
         if (editPostContentInput) editPostContentInput.value = content || '';
-        if (editPostSelectedFileName) editPostSelectedFileName.textContent = 'No new image selected';
+        if (editPostSelectedFileName) editPostSelectedFileName.textContent = 'No new media selected';
         if (editPostModalMessage) editPostModalMessage.textContent = '';
         if (editPostMediaInput) editPostMediaInput.value = '';
 
@@ -160,12 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (editPostSelectedFileName) {
                 editPostSelectedFileName.textContent = editPostState.newFiles.length > 0
-                    ? `${editPostState.newFiles.length} new image${editPostState.newFiles.length > 1 ? 's' : ''} selected`
-                    : 'No new image selected';
+                    ? `${editPostState.newFiles.length} new media file${editPostState.newFiles.length > 1 ? 's' : ''} selected`
+                    : 'No new media selected';
             }
             if (editPostModalMessage) {
                 editPostModalMessage.textContent = selected.length > allowedSlots
-                    ? `Only ${MAX_POST_IMAGES} images are allowed per post.`
+                    ? `Only ${MAX_POST_IMAGES} media files are allowed per post.`
                     : '';
             }
             renderEditPostPreview();
@@ -203,12 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
 
             const finalCount = editPostState.keepMedia.length + editPostState.newFiles.length;
-            if (finalCount === 0) {
-                editPostModalMessage.textContent = 'Please keep at least one image.';
+            const editContent = (editPostContentInput && editPostContentInput.value) ? editPostContentInput.value.trim() : '';
+            if (finalCount === 0 && !editContent) {
+                editPostModalMessage.textContent = 'Please keep at least one media file or write some text.';
                 return;
             }
             if (finalCount > MAX_POST_IMAGES) {
-                editPostModalMessage.textContent = `You can keep up to ${MAX_POST_IMAGES} images.`;
+                editPostModalMessage.textContent = `You can keep up to ${MAX_POST_IMAGES} media files.`;
                 return;
             }
 

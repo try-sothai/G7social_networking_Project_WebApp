@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mediaWrap = document.getElementById('story-media');
     const avatar = document.getElementById('story-avatar');
     const username = document.getElementById('story-username');
+    const userLink = document.getElementById('story-user-link');
     const time = document.getElementById('story-time');
     const progress = document.getElementById('story-progress-fill');
 
@@ -55,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (h < 24) return `${h}h`;
         const day = Math.floor(h / 24);
         return `${day}d`;
+    }
+
+    function getProfileUrl(userId) {
+        const id = Number(userId || 0);
+        if (!id) return '../Profile/profile.php';
+        return `../Profile/profile.php?user_id=${encodeURIComponent(id)}`;
     }
 
     function clearAutoTimer() {
@@ -176,6 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
         username.textContent = story.Username || 'User';
         time.textContent = `${timeAgo(story.CreatedAt)} ago`;
         avatar.src = resolveProfileImage(story.ProfilePic);
+        if (userLink) {
+            userLink.href = getProfileUrl(story.UserID || 0);
+        }
 
         const media = story.StoryMedia || '';
         mediaWrap.innerHTML = isVideo(media)

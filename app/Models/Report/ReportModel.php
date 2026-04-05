@@ -156,6 +156,7 @@ class ReportModel {
         // Get recent likes
         $stmt = $this->db->prepare("
             SELECT 
+                u.UserID,
                 u.Username,
                 u.ProfilePic,
                 'liked' as action,
@@ -180,6 +181,7 @@ class ReportModel {
         // Get recent comments
         $stmt = $this->db->prepare("
             SELECT 
+                u.UserID,
                 u.Username,
                 u.ProfilePic,
                 'commented on' as action,
@@ -205,6 +207,7 @@ class ReportModel {
         // Get new followers
         $stmt = $this->db->prepare("
             SELECT 
+                u.UserID,
                 u.Username,
                 u.ProfilePic,
                 'started following you' as action,

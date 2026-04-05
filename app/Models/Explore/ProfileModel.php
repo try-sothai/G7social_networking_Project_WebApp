@@ -49,7 +49,7 @@ class ProfileModel {
     // កែសម្រួល getComments ឱ្យទាញពី interactions
     public function getComments($post_id) {
         $stmt = $this->conn->prepare("
-            SELECT i.CommentText as Comment, i.CreatedAt, u.Username, u.ProfilePic 
+            SELECT i.CommentText as Comment, i.CreatedAt, u.UserID, u.Username, u.ProfilePic 
             FROM interactions i 
             JOIN users u ON i.UserID = u.UserID 
             WHERE i.PostID = ? AND i.Type = 'comment' 
@@ -63,7 +63,7 @@ class ProfileModel {
     // Add these methods to your ProfileModel class
 
 public function getLikeCount($post_id) {
-    $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM interactions WHERE PostID = ? AND Type = 'like'");
+    $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM interactions WHERE PostID = ? AND Type IN ('like', 'love', 'haha')");
     $stmt->execute([$post_id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     return $result ? (int)$result['count'] : 0;
@@ -116,7 +116,7 @@ public function getExplorePosts($category = null, $limit = 20) {
 
 public function checkLikeStatus($post_id, $user_id) {
     try {
-        $stmt = $this->conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type = 'like'");
+        $stmt = $this->conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
         $stmt->execute([$post_id, $user_id]);
         return $stmt->rowCount() > 0;
     } catch (PDOException $e) {
@@ -124,6 +124,13 @@ public function checkLikeStatus($post_id, $user_id) {
         return false;
     }
 }
+
+    // ហៅ Stored Procedure ទាញយក Feed ដែលបានបង្កើតក្នុង Database
+    public function getUserFeed($user_id, $limit = 10) {
+        $stmt = $this->conn->prepare("CALL GetUserFeed(:user_id, :limit)");
+        $stmt->execute([':user_id' => $user_id, ':limit' => $limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     public function createPost($user_id, $content, $image_path = null) {
         $stmt = $this->conn->prepare("INSERT INTO posts (UserID, Content, ImagePath, CreatedAt) VALUES (?, ?, ?, NOW())");
