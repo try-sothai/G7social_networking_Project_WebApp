@@ -205,7 +205,6 @@ if ($profilePicPath === '') {
                                                     <?php endif; ?>
                                                 </button>
                                             <?php endif; ?>
-                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -256,6 +255,14 @@ if ($profilePicPath === '') {
     <?php lc_shell_render_overlay(); ?>
 
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+    <form id="group-edit-form" action="groups.php" method="POST" style="display:none;">
+        <input type="hidden" name="action" value="update_group">
+        <input type="hidden" name="group_id" id="edit-group-id">
+        <input type="hidden" name="group_name" id="edit-group-name">
+        <input type="hidden" name="description" id="edit-group-description">
+        <input type="hidden" name="privacy" id="edit-group-privacy">
+        <input type="hidden" name="category" id="edit-group-category">
+    </form>
 
     <script src="../../../public/js/Groups/groups.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>

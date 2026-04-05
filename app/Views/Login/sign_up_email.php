@@ -2,51 +2,64 @@
 session_start();
 require_once '../../../config/db_config.php';
 
-$message = "";
-$error = "";
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$message = '';
+$error = '';
 
 if (isset($_POST['signup'])) {
-    // ១. ទទួលទិន្នន័យពី Form (ប្រើអក្សរតូចធំឱ្យត្រូវតាម name="..." ក្នុង input)
-    $username_val = trim(htmlspecialchars($_POST['Username'])); 
-    $email_val    = trim(htmlspecialchars($_POST['Email']));
-    $pass_val     = trim(htmlspecialchars($_POST['Password']));
-    
-    if (!empty($username_val) && !empty($email_val) && !empty($pass_val)) {
+    $csrf = $_POST['csrf_token'] ?? '';
+    $username_val = trim($_POST['Username'] ?? '');
+    $email_val = trim($_POST['Email'] ?? '');
+    $pass_val = trim($_POST['Password'] ?? '');
+    $confirm_val = trim($_POST['ConfirmPassword'] ?? '');
+
+    if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
+        $error = 'Invalid request token. Please refresh and try again.';
+    } elseif ($username_val === '' || $email_val === '' || $pass_val === '' || $confirm_val === '') {
+        $error = 'Please fill in all fields!';
+    } elseif (!filter_var($email_val, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
+    } elseif (strlen($username_val) < 3 || strlen($username_val) > 50) {
+        $error = 'Username must be between 3 and 50 characters.';
+    } elseif ($pass_val !== $confirm_val) {
+        $error = 'Password and Confirm Password do not match.';
+    } elseif (strlen($pass_val) < 8) {
+        $error = 'Password must be at least 8 characters.';
+    } else {
         try {
-            $checkEmail = $conn->prepare("SELECT Email FROM users WHERE Email = :Email");
-            $checkEmail->bindParam(':Email', $email_val);
+            $checkEmail = $conn->prepare('SELECT UserID FROM users WHERE Email = :Email LIMIT 1');
+            $checkEmail->bindValue(':Email', $email_val, PDO::PARAM_STR);
             $checkEmail->execute();
 
-            if ($checkEmail->rowCount() > 0) {
-                $error = "This Email is already registered!";
-            } else {               
-                $stmt = $conn->prepare("INSERT INTO users (Username, Email, Password) VALUES (:Username, :Email, :Password)");
-                $stmt->bindParam(':Username', $username_val);
-                $stmt->bindParam(':Email', $email_val);
+            if ($checkEmail->fetch()) {
+                $error = 'This Email is already registered!';
+            } else {
+                $passwordHash = password_hash($pass_val, PASSWORD_DEFAULT);
 
-                $stmt->bindParam(':Password', $pass_val);
-                
-                if ($stmt->execute()){
-                    // ចាប់យក ID ដែលទើបតែបង្កើតថ្មីៗ
-                    $new_user_id = $conn->lastInsertId(); 
-                    
-                    // បង្កើត Session ភ្លាមៗដើម្បីឱ្យឆាតដើរ
+                $stmt = $conn->prepare('INSERT INTO users (Username, Email, Password) VALUES (:Username, :Email, :Password)');
+                $stmt->bindValue(':Username', $username_val, PDO::PARAM_STR);
+                $stmt->bindValue(':Email', $email_val, PDO::PARAM_STR);
+                $stmt->bindValue(':Password', $passwordHash, PDO::PARAM_STR);
+
+                if ($stmt->execute()) {
+                    $new_user_id = (int) $conn->lastInsertId();
+                    session_regenerate_id(true);
                     $_SESSION['user_id'] = $new_user_id;
                     $_SESSION['username'] = $username_val;
-                    
-                    $message = "Account **" . $username_val . "** Created Successfully!";
-                    // បាញ់ទៅកាន់ Dashboard តែម្ដង
-                    // header("Refresh: 2; url=../Home/dashboard.php"); 
-                } else {
-                    $error = "Failed to create account.";
+                    $_SESSION['Email'] = $email_val;
+
+                    header('Location: ' . BASE_URL . 'app/Views/Home/dashboard.php');
+                    exit();
                 }
+
+                $error = 'Failed to create account.';
             }
         } catch (PDOException $e) {
-            // បើនៅ Error វានឹងបង្ហាញសារប្រាប់យើងនៅទីនេះ
-            $error = "Database Error: " . $e->getMessage();
+            $error = 'Unable to create account right now. Please try again.';
         }
-    } else {
-        $error = "Please fill in all fields!";
     }
 }
 ?>
@@ -67,22 +80,23 @@ if (isset($_POST['signup'])) {
     <p class="auth-subtitle">Connect with your community</p>
 
     <div class="auth-tabs">
-        <a href="sign_up_email.php" class="auth-tab active"><span>📧</span> Email</a>
-        <a href="sign_up_phone.php" class="auth-tab"><span>📞</span> Phone</a>
+        <a href="sign_up_email.php" class="auth-tab active"><span>??</span> Email</a>
+        <a href="sign_up_phone.php" class="auth-tab"><span>??</span> Phone</a>
     </div>
 
     <?php if($message): ?>
-        <div class="auth-msg success">✅ <?php echo $message; ?></div>
+        <div class="auth-msg success">? <?php echo htmlspecialchars($message); ?></div>
     <?php endif; ?>
 
     <?php if($error): ?>
-        <div class="auth-msg error">❌ <?php echo $error; ?></div>
+        <div class="auth-msg error">? <?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
-    <form class="auth-form" action="" method="POST">
+    <form class="auth-form" action="" method="POST" autocomplete="off">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
         <div class="form-group">
             <label>Username</label>
-            <input type="text" name="Username" placeholder="Enter your Username" required autofocus>
+            <input type="text" name="Username" placeholder="Enter your Username" minlength="3" maxlength="50" required autofocus>
         </div>
 
         <div class="form-group">
@@ -91,7 +105,11 @@ if (isset($_POST['signup'])) {
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="Password" placeholder="Enter your Password" required>
+            <input type="password" name="Password" placeholder="Enter your Password" minlength="8" required>
+        </div>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" name="ConfirmPassword" placeholder="Re-enter your Password" minlength="8" required>
         </div>
 
         <button type="submit" name="signup" class="btn-primary">Sign Up</button>

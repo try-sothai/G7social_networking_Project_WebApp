@@ -1,35 +1,83 @@
 <?php
 session_start();
-require_once '../../../config/db_config.php'; // call db_config.php to connect to the database
+require_once '../../../config/db_config.php';
 
-if(isset($_POST['login'])) {
-    $Email = trim($_POST['Email']);
-    $Password = trim($_POST['Password']);
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-    if(!empty($Email) && !empty($Password)){
-        try {
-            // write SQL statement to check if the Email exists in the database
-            $stmt = $conn->prepare("SELECT * FROM users WHERE Email = :Email LIMIT 1");
-            $stmt->bindParam(':Email', $Email);
-            $stmt->execute();
-            
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+$error = '';
+$maxAttempts = 5;
+$lockoutSeconds = 300;
 
-            // កែសម្រួលក្នុង login_gmail.php ត្រង់ផ្នែកពិនិត្យ User
-        if($user){
-            // កែពី 'id' មកជា 'UserID' (ឱ្យត្រូវតាម DB Column របស់បង)
-            $_SESSION['user_id'] = $user['UserID']; 
-            $_SESSION['Email']   = $user['Email'];
-            $_SESSION['username'] = $user['Username']; // ទុកប្រើបង្ហាញឈ្មោះលើ Header
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['login_locked_until'])) {
+    $_SESSION['login_locked_until'] = 0;
+}
 
-            header("Location: ../Home/dashboard.php");
-            exit();
-        } else {
-                // if the Email does not exist, show an alert message
-                // echo "<script>alert('Not found Email This is it!');</script>"; 
+if (isset($_POST['login'])) {
+    $csrf = $_POST['csrf_token'] ?? '';
+    $now = time();
+
+    if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
+        $error = 'Invalid request token. Please refresh and try again.';
+    } elseif ($_SESSION['login_locked_until'] > $now) {
+        $remaining = (int) ($_SESSION['login_locked_until'] - $now);
+        $error = 'Too many failed attempts. Try again in ' . $remaining . ' seconds.';
+    } else {
+        $Email = trim($_POST['Email'] ?? '');
+        $Password = trim($_POST['Password'] ?? '');
+
+        if (filter_var($Email, FILTER_VALIDATE_EMAIL) && $Password !== '') {
+            try {
+                $stmt = $conn->prepare('SELECT UserID, Username, Email, Password FROM users WHERE Email = :Email LIMIT 1');
+                $stmt->bindValue(':Email', $Email, PDO::PARAM_STR);
+                $stmt->execute();
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $passwordOk = false;
+                if ($user && isset($user['Password'])) {
+                    $stored = (string) $user['Password'];
+
+                    if (password_verify($Password, $stored)) {
+                        $passwordOk = true;
+                    } elseif (hash_equals($stored, $Password)) {
+                        // Legacy plain-text fallback + auto-migrate to hashed password.
+                        $passwordOk = true;
+                        $newHash = password_hash($Password, PASSWORD_DEFAULT);
+                        $upgradeStmt = $conn->prepare('UPDATE users SET Password = :Password WHERE UserID = :UserID LIMIT 1');
+                        $upgradeStmt->bindValue(':Password', $newHash, PDO::PARAM_STR);
+                        $upgradeStmt->bindValue(':UserID', (int) $user['UserID'], PDO::PARAM_INT);
+                        $upgradeStmt->execute();
+                    }
+                }
+
+                if ($user && $passwordOk) {
+                    session_regenerate_id(true);
+                    $_SESSION['login_attempts'] = 0;
+                    $_SESSION['login_locked_until'] = 0;
+
+                    $_SESSION['user_id'] = (int) $user['UserID'];
+                    $_SESSION['Email'] = $user['Email'];
+                    $_SESSION['username'] = $user['Username'];
+
+                    header('Location: ' . BASE_URL . 'app/Views/Home/dashboard.php');
+                    exit();
+                }
+
+                $_SESSION['login_attempts']++;
+                if ($_SESSION['login_attempts'] >= $maxAttempts) {
+                    $_SESSION['login_locked_until'] = $now + $lockoutSeconds;
+                    $_SESSION['login_attempts'] = 0;
+                }
+                $error = 'Invalid email or password.';
+            } catch (PDOException $e) {
+                $error = 'Login failed. Please try again.';
             }
-        } catch(PDOException $e) {
-            echo "Error: " . $e->getMessage();
+        } else {
+            $error = 'Please enter a valid email and password.';
         }
     }
 }
@@ -51,22 +99,27 @@ if(isset($_POST['login'])) {
 
     <div class="auth-tabs">
         <a href="login_gmail.php" class="auth-tab active">
-            <span>📧</span> Email
+            <span>??</span> Email
         </a>
         <a href="login_phone.php" class="auth-tab">
-            <span>📞</span> Phone
+            <span>??</span> Phone
         </a>
     </div>
 
-     <form class="auth-form" action="" method="POST">
+    <?php if ($error): ?>
+        <div class="auth-msg error"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
+     <form class="auth-form" action="" method="POST" autocomplete="off">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
         <div class="form-group">
             <label>Email</label>
-            <input type="Email" name="Email" placeholder="Enter your Email address" required>
+            <input type="email" name="Email" placeholder="Enter your Email address" required>
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="Password" placeholder="Enter your Password" required>
-        </div>   
+            <input type="password" name="Password" placeholder="Enter your Password" minlength="8" required>
+        </div>
         <button type="submit" name="login" class="btn-primary">Log In</button>
     </form>
 

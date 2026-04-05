@@ -11,8 +11,20 @@ function getProfileUrl(userId) {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - initializing explore page');
-    loadPosts();
     setupEventListeners();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('q');
+    const searchInput = document.getElementById('searchInput');
+
+    if (searchQuery) {
+        if (searchInput) {
+            searchInput.value = searchQuery;
+        }
+        searchPosts(searchQuery);
+    } else {
+        loadPosts();
+    }
 });
 
 function setupEventListeners() {

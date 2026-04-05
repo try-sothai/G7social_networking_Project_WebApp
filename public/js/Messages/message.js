@@ -189,16 +189,25 @@ class MessageChat {
                                 <small>${this.formatTimeShort(friend.last_message_time)}</small>
                             </div>
                             <p class="last-message">${this.escapeHtml(lastMessage)}</p>
-                            ${onlineBadge}
                         </div>
                     </div>
+                    ${onlineBadge}
                     ${unreadBadge}
                 </div>
             `;
         }).join('');
     }
     
-    selectUser(id, name, img, itemElement) {
+    selectUser(id, name, img, itemElement, event) {
+        if (event) {
+            event.stopPropagation();
+        }
+
+        // Handle mobile view sliding
+        if (window.innerWidth <= 768 && this.elements.chatActive) {
+            this.elements.chatActive.classList.add('mobile-active');
+        }
+
         // remove active class from previous selection
         document.querySelectorAll('.contact-item.active').forEach(el => el.classList.remove('active'));
 

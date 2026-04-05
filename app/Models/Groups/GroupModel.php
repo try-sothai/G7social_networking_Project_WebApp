@@ -353,5 +353,62 @@ class GroupModel {
             return [];
         }
     }
+
+    public function updateGroupForOwner($group_id, $owner_id, $group_name, $description, $privacy, $category) {
+        try {
+            $query = "UPDATE `groups`
+                      SET GroupName = :group_name,
+                          GroupDescription = :description,
+                          Privacy = :privacy,
+                          Category = :category
+                      WHERE GroupID = :group_id AND CreatedBy = :owner_id";
+            $stmt = $this->conn->prepare($query);
+            return $stmt->execute([
+                ':group_name' => $group_name,
+                ':description' => $description,
+                ':privacy' => $privacy,
+                ':category' => $category,
+                ':group_id' => $group_id,
+                ':owner_id' => $owner_id
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in updateGroupForOwner: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteGroupForOwner($group_id, $owner_id) {
+        try {
+            $this->conn->beginTransaction();
+
+            $check = $this->conn->prepare("SELECT GroupID FROM `groups` WHERE GroupID = :group_id AND CreatedBy = :owner_id LIMIT 1");
+            $check->execute([
+                ':group_id' => $group_id,
+                ':owner_id' => $owner_id
+            ]);
+            if (!$check->fetch(PDO::FETCH_ASSOC)) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $deleteMembers = $this->conn->prepare("DELETE FROM `group_members` WHERE GroupID = :group_id");
+            $deleteMembers->execute([':group_id' => $group_id]);
+
+            $deleteGroup = $this->conn->prepare("DELETE FROM `groups` WHERE GroupID = :group_id AND CreatedBy = :owner_id");
+            $deleteGroup->execute([
+                ':group_id' => $group_id,
+                ':owner_id' => $owner_id
+            ]);
+
+            $this->conn->commit();
+            return true;
+        } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            error_log("Error in deleteGroupForOwner: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>
