@@ -205,6 +205,7 @@ if ($profilePicPath === '') {
                                                     <?php endif; ?>
                                                 </button>
                                             <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
