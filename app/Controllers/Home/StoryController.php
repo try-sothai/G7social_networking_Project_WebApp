@@ -166,8 +166,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if ($file['size'] > (25 * 1024 * 1024)) {
-        echo json_encode(['status' => 'error', 'message' => 'File is too large (max 25MB).']);
+    if ($file['size'] > (100 * 1024 * 1024)) {
+        echo json_encode(['status' => 'error', 'message' => 'File is too large (max 100MB).']);
         exit;
     }
 

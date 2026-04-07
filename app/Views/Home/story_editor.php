@@ -32,15 +32,30 @@ if (!is_dir($tempDirAbs)) {
 $error = '';
 $tempMediaDb = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['story_media'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
+    $error = 'The file size exceeds the server limit (post_max_size). Please check your php.ini.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['story_media'])) {
     $file = $_FILES['story_media'];
 
     if (!isset($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
-        $error = 'Please choose an image or video first.';
-    } elseif ($file['size'] > (25 * 1024 * 1024)) {
-        $error = 'File is too large (max 25MB).';
+        if (isset($file['error']) && ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE)) {
+            $error = 'File exceeds the maximum upload size limit.';
+        } else {
+            $error = 'Please choose a valid image or video first.';
+        }
+    } elseif ($file['size'] > (100 * 1024 * 1024)) {
+        $error = 'File is too large (max 100MB).';
     } else {
-        $fileType = mime_content_type($file['tmp_name']);
+        $fileType = @mime_content_type($file['tmp_name']);
+        if (!$fileType || $fileType === 'application/octet-stream') {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $extToMime = [
+                'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+                'webp' => 'image/webp', 'mp4' => 'video/mp4', 'webm' => 'video/webm',
+                'ogg' => 'video/ogg', 'mov' => 'video/quicktime'
+            ];
+            $fileType = $extToMime[$ext] ?? $fileType;
+        }
         if (!in_array($fileType, $allowedTypes, true)) {
             $error = 'Unsupported file type.';
         } else {

@@ -11,6 +11,11 @@ if (!$current_user_id) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
+    echo json_encode(['status' => 'error', 'message' => 'The file size exceeds the server limit. Please check your php.ini settings (post_max_size and upload_max_filesize).']);
+    exit;
+}
+
 $postModel = new PostModel($conn);
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -28,7 +33,7 @@ function sanitizePostContent(string $content): string {
     return mb_substr($clean, 0, 800, 'UTF-8');
 }
 
-function isAllowedPostMime(string $tmpPath): bool {
+function isAllowedPostMime(string $tmpPath, string $originalName = ''): bool {
     $allowed = [
         'image/jpeg',
         'image/png',
@@ -39,17 +44,30 @@ function isAllowedPostMime(string $tmpPath): bool {
         'video/ogg',
         'video/quicktime'
     ];
-    $type = mime_content_type($tmpPath);
+    $type = @mime_content_type($tmpPath);
+    if (!$type || $type === 'application/octet-stream') {
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $extMap = [
+            'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+            'webp' => 'image/webp', 'mp4' => 'video/mp4', 'webm' => 'video/webm',
+            'ogg' => 'video/ogg', 'mov' => 'video/quicktime'
+        ];
+        $type = $extMap[$ext] ?? $type;
+    }
     return in_array($type, $allowed, true);
 }
 
-function isVideoMime(string $tmpPath): bool {
-    $type = (string)mime_content_type($tmpPath);
+function isVideoMime(string $tmpPath, string $originalName = ''): bool {
+    $type = (string)@mime_content_type($tmpPath);
+    if (!$type || $type === 'application/octet-stream') {
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        return in_array($ext, ['mp4', 'webm', 'ogg', 'mov'], true);
+    }
     return str_starts_with($type, 'video/');
 }
 
-function getMaxPostFileSize(string $tmpPath): int {
-    return isVideoMime($tmpPath) ? (100 * 1024 * 1024) : (15 * 1024 * 1024);
+function getMaxPostFileSize(string $tmpPath, string $originalName = ''): int {
+    return isVideoMime($tmpPath, $originalName) ? (100 * 1024 * 1024) : (15 * 1024 * 1024);
 }
 
 function ensurePostViewsTable(PDO $conn): void {
@@ -93,7 +111,7 @@ function normalizeUploadedMedia(array $fileField): array {
     }
 
     if (!is_array($fileField['name'])) {
-        if ((int)($fileField['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        if ((int)($fileField['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             return [[
                 'name' => (string)($fileField['name'] ?? ''),
                 'tmp_name' => (string)($fileField['tmp_name'] ?? ''),
@@ -108,7 +126,7 @@ function normalizeUploadedMedia(array $fileField): array {
     $count = count($fileField['name']);
     for ($i = 0; $i < $count; $i++) {
         $error = (int)($fileField['error'][$i] ?? UPLOAD_ERR_NO_FILE);
-        if ($error !== UPLOAD_ERR_OK) {
+        if ($error === UPLOAD_ERR_NO_FILE) {
             continue;
         }
 
@@ -275,12 +293,22 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     foreach ($uploadedFiles as $file) {
-        if ($file['tmp_name'] === '' || !isAllowedPostMime($file['tmp_name'])) {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+                $serverLimit = ini_get('upload_max_filesize');
+                echo json_encode(['status' => 'error', 'message' => 'File "' . htmlspecialchars($file['name']) . '" exceeds the server upload size limit (' . $serverLimit . ').']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Error uploading file "' . htmlspecialchars($file['name']) . '". Code: ' . $file['error']]);
+            }
+            exit;
+        }
+
+        if ($file['tmp_name'] === '' || !isAllowedPostMime($file['tmp_name'], $file['name'])) {
             echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, WEBP, MP4, WEBM, OGG, and MOV files are allowed.']);
             exit;
         }
 
-        if ($file['size'] > getMaxPostFileSize($file['tmp_name'])) {
+        if ($file['size'] > getMaxPostFileSize($file['tmp_name'], $file['name'])) {
             echo json_encode(['status' => 'error', 'message' => 'Images must be 15MB or less, and videos must be 100MB or less.']);
             exit;
         }
@@ -460,11 +488,21 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $newFiles = isset($_FILES['new_media']) ? normalizeUploadedMedia($_FILES['new_media']) : [];
     foreach ($newFiles as $file) {
-        if ($file['tmp_name'] === '' || !isAllowedPostMime($file['tmp_name'])) {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+                $serverLimit = ini_get('upload_max_filesize');
+                echo json_encode(['status' => 'error', 'message' => 'File "' . htmlspecialchars($file['name']) . '" exceeds the server upload size limit (' . $serverLimit . ').']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Error uploading file "' . htmlspecialchars($file['name']) . '". Code: ' . $file['error']]);
+            }
+            exit;
+        }
+
+        if ($file['tmp_name'] === '' || !isAllowedPostMime($file['tmp_name'], $file['name'])) {
             echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, WEBP, MP4, WEBM, OGG, and MOV files are allowed.']);
             exit;
         }
-        if ($file['size'] > getMaxPostFileSize($file['tmp_name'])) {
+        if ($file['size'] > getMaxPostFileSize($file['tmp_name'], $file['name'])) {
             echo json_encode(['status' => 'error', 'message' => 'Images must be 15MB or less, and videos must be 100MB or less.']);
             exit;
         }
