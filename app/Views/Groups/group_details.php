@@ -293,6 +293,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
         
         window.CURRENT_USER_ID = <?php echo $user_id; ?>;
         window.CURRENT_USER_AVATAR = '<?php echo $profilePicPath; ?>';
+        window.CURRENT_GROUP_ID = <?php echo $group_id; ?>;
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>

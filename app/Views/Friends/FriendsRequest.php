@@ -358,6 +358,8 @@ function time_ago($datetime) {
         <?php
             $friendRequestNotificationHtml = ob_get_clean();
             lc_shell_render_header([
+                'search_input_id' => 'searchRequests',
+                'search_placeholder' => 'Search requests...',
                 'notification_html' => $friendRequestNotificationHtml,
                 'notification_button_class' => 'notifications-btn',
                 'user_name' => (string)$user_data['Username'],
@@ -394,7 +396,7 @@ function time_ago($datetime) {
                     <?php else: ?>
                         <div class="requests-grid">
                             <?php foreach ($received_requests as $request): ?>
-                                <div class="request-card" data-request-id="<?php echo $request['UserID']; ?>">
+                                <div class="request-card" data-request-id="<?php echo $request['UserID']; ?>" data-name="<?php echo strtolower(htmlspecialchars($request['Username'])); ?>">
                                     <div class="request-avatar">
                                         <img src="<?php 
                                             $path = '../../../public/img/' . $request['ProfilePic'];
@@ -439,7 +441,7 @@ function time_ago($datetime) {
                     <?php else: ?>
                         <div class="requests-grid">
                             <?php foreach ($sent_requests as $request): ?>
-                                <div class="request-card sent">
+                                <div class="request-card sent" data-name="<?php echo strtolower(htmlspecialchars($request['Username'])); ?>">
                                     <div class="request-avatar">
                                         <img src="<?php 
                                             $path = '../../../public/img/' . $request['ProfilePic'];
@@ -474,6 +476,27 @@ function time_ago($datetime) {
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <script>
+        // Search requests functionality
+        const searchInput = document.getElementById('searchRequests');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                const requestCards = document.querySelectorAll('.request-card');
+                
+                requestCards.forEach(card => {
+                    const name = card.getAttribute('data-name') || '';
+                    if (name.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
+
         function handleRequest(userId, action) {
             const button = event.target.closest('button');
             const originalText = button.innerHTML;

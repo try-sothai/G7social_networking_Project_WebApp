@@ -171,37 +171,6 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
                 <?php echo htmlspecialchars($eventFlash); ?>
             </div>
         <?php endif; ?>
-        <?php if (false): ?>
-        <header>
-            <button class="icon-btn menu-toggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="search-bar">
-                <i class="fa-solid fa-search text-muted"></i>
-                <input type="text" placeholder="Search for anything...">
-            </div>
-            
-            <div class="header-actions">
-                <div class="icon-btn search-toggle-btn"><i class="fa-solid fa-search"></i></div>
-                <div class="icon-btn theme-toggle"><i class="fa-solid fa-moon"></i></div>
-                <div class="icon-btn notifications-btn" style="position: relative;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                </div>
-                <div class="user-profile">
-                    <span style="font-weight: 700;">Dara S.</span>
-                    <a href="../Profile/profile.php">
-                    <img src="<?php 
-                            $path = '../../../public/img/' . $u_d['ProfilePic'];
-                            if (!empty($u_d['ProfilePic']) && file_exists($path)) {
-                                echo $path;
-                            } else {
-                                echo 'https://via.placeholder.com/50'; // ដាក់រូប default បើអត់មានរូបពិត
-                            }
-                        ?>" alt="Profile">
-                </a>
-                </div>
-            </div>
-        </header>
-        <?php endif; ?>
         <?php
             ob_start();
         ?>
@@ -210,6 +179,7 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
         <?php
             $eventsNotificationHtml = ob_get_clean();
             lc_shell_render_header([
+                'search_input_id' => 'events-search-input',
                 'notification_html' => $eventsNotificationHtml,
                 'notification_button_class' => 'notifications-btn',
                 'user_name' => (string)$u_d['Username'],
@@ -358,6 +328,26 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
             }
 
             switchTab('upcoming');
+            
+            // Search functionality for Events (Real-time filter)
+            const searchInput = document.getElementById('events-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const term = e.target.value.toLowerCase().trim();
+                    const cards = document.querySelectorAll('.events-list .event-card');
+                    
+                    cards.forEach(card => {
+                        const textContent = card.innerText.toLowerCase();
+                        card.style.display = textContent.includes(term) ? '' : 'none';
+                    });
+                });
+                
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            }
 
             const toastEl = document.getElementById('toast');
             function showToast(message) {

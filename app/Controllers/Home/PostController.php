@@ -82,6 +82,21 @@ function ensurePostViewsTable(PDO $conn): void {
     ");
 }
 
+function ensurePostGroupColumn(PDO $conn): void {
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+    try {
+        $stmt = $conn->query("SHOW COLUMNS FROM posts LIKE 'GroupID'");
+        if (!$stmt->fetch()) {
+            $conn->exec("ALTER TABLE posts ADD COLUMN GroupID INT NULL DEFAULT NULL");
+        }
+    } catch (PDOException $e) {
+    }
+}
+
 function ensurePostMediaColumnCapacity(PDO $conn): void {
     static $checked = false;
     if ($checked) {
@@ -222,7 +237,9 @@ if ($action === 'fetch') {
     try {
         ensurePostMediaColumnCapacity($conn);
         ensurePostViewsTable($conn);
-        $posts = $postModel->getRecentPosts(25);
+        ensurePostGroupColumn($conn);
+        $groupId = (int)($_GET['group_id'] ?? 0);
+        $posts = $postModel->getRecentPosts(25, $groupId);
         if (is_array($posts)) {
             foreach ($posts as &$post) {
                 $mediaList = parseMediaList($post['ImagePath'] ?? '');
@@ -282,6 +299,7 @@ if ($action === 'fetch') {
 
 if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     ensurePostMediaColumnCapacity($conn);
+    ensurePostGroupColumn($conn);
     $content = sanitizePostContent((string)($_POST['content'] ?? ''));
     $uploadedFiles = isset($_FILES['post_media']) ? normalizeUploadedMedia($_FILES['post_media']) : [];
     $savedMedia = [];
@@ -331,8 +349,9 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $mediaValue = mediaListToDbValue($savedMedia);
     }
 
+    $groupId = (int)($_POST['group_id'] ?? 0);
     try {
-        $postModel->createPost($current_user_id, $content, $mediaValue);
+        $postModel->createPost($current_user_id, $content, $mediaValue, $groupId);
         echo json_encode(['status' => 'success', 'message' => 'Post published successfully.']);
     } catch (PDOException $e) {
         deleteMediaFiles($uploadDirAbs, $savedMedia);
@@ -421,7 +440,8 @@ if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $newContent = "[SHARED_POST]" . json_encode($shareData, JSON_UNESCAPED_UNICODE);
                 $imagePath = $postToShare['ImagePath'];
-                $postModel->createPost($current_user_id, $newContent, $imagePath);
+                $groupId = (int)($_POST['group_id'] ?? 0);
+                $postModel->createPost($current_user_id, $newContent, $imagePath, $groupId);
                 $conn->prepare("INSERT INTO post_shares (PostID, UserID) VALUES (?, ?)")->execute([$postId, $current_user_id]);
                 echo json_encode(['status' => 'success']);
             } else {

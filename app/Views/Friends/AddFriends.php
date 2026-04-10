@@ -90,42 +90,6 @@ if ($profilePicPath === '') {
             margin-bottom: 30px;
         }
 
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            flex: 1;
-            padding: 12px 20px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        .search-box input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .search-box button {
-            padding: 12px 24px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .search-box button:hover {
-            background: #1d4ed8;
-        }
-
         .search-results {
             display: none;
             margin-bottom: 30px;
@@ -363,6 +327,8 @@ if ($profilePicPath === '') {
         <?php
             $addFriendsNotificationHtml = ob_get_clean();
             lc_shell_render_header([
+                'search_input_id' => 'addfriends-search-input',
+                'search_placeholder' => 'Search by name, email, or location...',
                 'notification_html' => $addFriendsNotificationHtml,
                 'user_name' => (string)$user_data['Username'],
                 'profile_image' => $profilePicPath,
@@ -379,10 +345,6 @@ if ($profilePicPath === '') {
             <div class="friends-card">
                 <!-- Search Section -->
                 <div class="search-section">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search by name, email, or location...">
-                        <button onclick="searchUsers()"><i class="fa-solid fa-search"></i> Search</button>
-                    </div>
                     
                     <div id="searchResults" class="search-results">
                         <h3>Search Results</h3>
@@ -442,7 +404,9 @@ if ($profilePicPath === '') {
         let searchTimeout;
         
         function searchUsers() {
-            const searchTerm = document.getElementById('searchInput').value.trim();
+            const input = document.getElementById('addfriends-search-input');
+            if (!input) return;
+            const searchTerm = input.value.trim();
             
             if (searchTerm.length < 2) {
                 showToast('Please enter at least 2 characters', 'error');
@@ -554,16 +518,22 @@ if ($profilePicPath === '') {
         }
         
         // Auto-search on input
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                if (this.value.trim().length >= 2) {
-                    searchUsers();
-                } else if (this.value.trim().length === 0) {
-                    document.getElementById('searchResults').classList.remove('active');
-                }
-            }, 500);
-        });
+        const searchInput = document.getElementById('addfriends-search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.trim().length >= 2) {
+                        searchUsers();
+                    } else if (this.value.trim().length === 0) {
+                        document.getElementById('searchResults').classList.remove('active');
+                    }
+                }, 500);
+            });
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
         
         // Theme toggle
         document.querySelector('.theme-toggle').addEventListener('click', () => {

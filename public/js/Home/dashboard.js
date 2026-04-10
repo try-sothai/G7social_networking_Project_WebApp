@@ -470,7 +470,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadPosts() {
         if (!postFeedList) return;
-        fetch(`${POST_API}?action=fetch`)
+        let url = `${POST_API}?action=fetch`;
+        if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
+            url += `&group_id=${window.CURRENT_GROUP_ID}`;
+        }
+        fetch(url)
             .then((res) => res.json())
             .then((data) => {
                 if (data.status === 'success') {
@@ -651,6 +655,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payload = new FormData();
                 payload.append('action', 'share');
                 payload.append('post_id', postId);
+                if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
+                    payload.append('group_id', window.CURRENT_GROUP_ID);
+                }
                 fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
                     if(data.status === 'success') loadPosts();
                 });
@@ -794,6 +801,9 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('action', 'create');
             files.forEach((file) => payload.append('post_media[]', file));
             payload.append('content', content);
+            if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
+                payload.append('group_id', window.CURRENT_GROUP_ID);
+            }
 
             fetch(POST_API, {
                 method: 'POST',

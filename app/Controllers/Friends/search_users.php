@@ -1,26 +1,35 @@
 <?php
-// app/Controllers/Friends/search_users.php
 session_start();
-require_once '../../../config/db_config.php';
-require_once '../../Models/Friends/FriendModel.php';
+require_once __DIR__ . '/../../../config/db_config.php';
+require_once __DIR__ . '/../../Models/Friends/FriendModel.php';
 
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'users' => []]);
+    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
-$search_term = $_GET['q'] ?? '';
+$searchTerm = isset($_GET['q']) ? trim($_GET['q']) : '';
 
-if (strlen($search_term) < 2) {
-    echo json_encode(['success' => false, 'users' => []]);
+if (strlen($searchTerm) < 2) {
+    echo json_encode(['success' => false, 'message' => 'Search term too short']);
     exit();
 }
 
-$friendModel = new FriendModel($conn);
-$users = $friendModel->searchUsers($user_id, $search_term);
-
-echo json_encode(['success' => true, 'users' => $users]);
+try {
+    $friendModel = new FriendModel($conn);
+    $users = $friendModel->searchUsers($user_id, $searchTerm);
+    
+    echo json_encode([
+        'success' => true,
+        'users' => $users
+    ]);
+} catch (PDOException $e) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database error: ' . $e->getMessage()
+    ]);
+}
 ?>

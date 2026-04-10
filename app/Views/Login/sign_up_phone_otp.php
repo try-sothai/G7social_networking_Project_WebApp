@@ -53,14 +53,15 @@ if (isset($_POST['signup'])) {
     <title>Social7 - Sign Up</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../../public/css/Login/auth.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <div class="auth-card">
     <h1 class="auth-logo">Social7</h1>
     <p class="auth-subtitle">Verify OTP for <strong><?php echo $phone; ?></strong></p>
     <div class="auth-tabs">
-        <a href="sign_up_email.php" class="auth-tab"><span>📧</span> Email</a>
-        <a href="sign_up_phone.php" class="auth-tab active"><span>📞</span> Phone</a>
+        <a href="sign_up_email.php" class="auth-tab"><span><i class="fa-regular fa-envelope"></i></span> Email</a>
+        <a href="sign_up_phone.php" class="auth-tab active"><span><i class="fa-solid fa-phone"></i></span> Phone</a>
     </div>
     <?php if($message) echo "<div class='auth-msg success'>✅ $message</div>"; ?>
     <?php if($error) echo "<div class='auth-msg error'>❌ $error</div>"; ?>
@@ -87,10 +88,10 @@ if (isset($_POST['signup'])) {
 
     <div class="auth-divider">or</div>
 
-    <button type="button" class="btn-social">
+    <button type="button" class="btn-social" onclick="window.location.href='../../Controllers/Auth/google_auth.php'">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
     </button>
-    <button type="button" class="btn-social">
+    <button type="button" class="btn-social" onclick="window.location.href='../../Controllers/Auth/facebook_auth.php'">
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 

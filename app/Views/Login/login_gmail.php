@@ -10,6 +10,10 @@ $error = '';
 $maxAttempts = 5;
 $lockoutSeconds = 300;
 
+if (isset($_GET['error'])) {
+    $error = htmlspecialchars(str_replace('_', ' ', $_GET['error']));
+}
+
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 0;
 }
@@ -91,6 +95,7 @@ if (isset($_POST['login'])) {
 <title>Social7 - Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../../public/css/Login/auth.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <div class="auth-card">
@@ -99,10 +104,10 @@ if (isset($_POST['login'])) {
 
     <div class="auth-tabs">
         <a href="login_gmail.php" class="auth-tab active">
-            <span>??</span> Email
+            <span><i class="fa-regular fa-envelope"></i></span> Email
         </a>
         <a href="login_phone.php" class="auth-tab">
-            <span>??</span> Phone
+            <span><i class="fa-solid fa-phone"></i></span> Phone
         </a>
     </div>
 
@@ -125,10 +130,10 @@ if (isset($_POST['login'])) {
 
     <div class="auth-divider">or</div>
 
-    <button type="button" class="btn-social">
+    <button type="button" class="btn-social" onclick="window.location.href='../../Controllers/Auth/google_auth.php'">
         <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
     </button>
-    <button type="button" class="btn-social">
+    <button type="button" class="btn-social" onclick="window.location.href='../../Controllers/Auth/facebook_auth.php'">
         <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
     </button>
 

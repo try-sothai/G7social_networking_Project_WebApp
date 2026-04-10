@@ -5,18 +5,21 @@
 
     require_once '../../Models/Profile/ProfileModel.php'; // For user data
     require_once '../../Models/Friends/FriendModel.php'; // For notifications
+    require_once '../../Models/Groups/GroupModel.php'; // For trending groups
     require_once __DIR__ . '/../Component/dashboard_shell.php';
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
     }
     $model = new ProfileModel($conn);
+    $groupModel = new GroupModel($conn);
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
     $stats = $model->getProfileStats($user_id);
     $friendModel = new FriendModel($conn); // Create an instance of FriendModel
     $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id); // Use FriendModel
     $profilePicPath = '';
+    $trendingGroups = $groupModel->getPopularGroups($user_id, 3);
     if (!empty($u_d['ProfilePic'])) {
         $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
         if (is_file($candidate)) {
@@ -155,20 +158,23 @@
                 <div class="section-card">
                     <h3 class="section-title">Trending Groups</h3>
                     <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 45px; height: 45px; border-radius: 12px; background: #ffe4e6; display: flex; align-items: center; justify-content: center; font-size: 20px;">Art</div>
-                            <div>
-                                <div style="font-weight: 700; font-size: 14px;">Digital Artists</div>
-                                <div style="font-size: 12px; color: var(--text);">4.2k members</div>
+                        <?php if (!empty($trendingGroups)): ?>
+                            <?php foreach ($trendingGroups as $tGroup): 
+                                $groupAvatar = !empty($tGroup['GroupAvatar']) && file_exists('../../../public/img/groups/' . $tGroup['GroupAvatar']) 
+                                    ? '../../../public/img/groups/' . $tGroup['GroupAvatar'] 
+                                    : 'https://ui-avatars.com/api/?background=random&color=fff&bold=true&name=' . urlencode(substr($tGroup['GroupName'], 0, 2));
+                            ?>
+                            <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="window.location.href='../Groups/group_details.php?id=<?php echo $tGroup['GroupID']; ?>'">
+                                <img src="<?php echo $groupAvatar; ?>" style="width: 45px; height: 45px; border-radius: 12px; object-fit: cover;" alt="Group Avatar">
+                                <div>
+                                    <div style="font-weight: 700; font-size: 14px;"><?php echo htmlspecialchars($tGroup['GroupName']); ?></div>
+                                    <div style="font-size: 12px; color: var(--text);"><?php echo number_format($tGroup['member_count']); ?> members</div>
+                                </div>
                             </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 45px; height: 45px; border-radius: 12px; background: #fef9c3; display: flex; align-items: center; justify-content: center; font-size: 20px;">Dev</div>
-                            <div>
-                                <div style="font-weight: 700; font-size: 14px;">Web Developers</div>
-                                <div style="font-size: 12px; color: var(--text);">12.8k members</div>
-                            </div>
-                        </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">No trending groups yet</div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

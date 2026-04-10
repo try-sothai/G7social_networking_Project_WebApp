@@ -92,7 +92,7 @@
         <?php
             $messagesNotificationHtml = ob_get_clean();
             lc_shell_render_header([
-                'search_input_id' => 'search-input',
+                'search_input_id' => 'message-header-search',
                 'search_placeholder' => 'Search friends...',
                 'notification_html' => $messagesNotificationHtml,
                 'user_name' => (string)$u_d['Username'],
@@ -105,9 +105,6 @@
 
         <div class="chat-container">
             <div class="chat-sidebar">
-                <div class="chat-search">
-                    <input type="text" id="search-input-sidebar" placeholder="Search friends...">
-                </div>
                 <div class="contact-list" id="user-list-container">
                     <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading friends...</div>
                 </div>
@@ -184,6 +181,21 @@
             if (backBtn) {
                 backBtn.addEventListener('click', () => {
                     chatActive.classList.remove('mobile-active');
+                });
+            }
+            
+            // Real-time friend search using header input
+            const msgSearchInput = document.getElementById('message-header-search');
+            if (msgSearchInput) {
+                msgSearchInput.addEventListener('input', function() {
+                    const term = this.value.toLowerCase().trim();
+                    const items = document.querySelectorAll('#user-list-container > div:not(.loading-state)');
+                    items.forEach(item => {
+                        item.style.display = item.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
+                    });
+                });
+                msgSearchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') e.preventDefault();
                 });
             }
         });
