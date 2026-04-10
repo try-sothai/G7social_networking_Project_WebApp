@@ -10,11 +10,24 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+$current_user_id = $_SESSION['user_id'];
+$profile_user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : $current_user_id;
+$is_own_profile = ($current_user_id === $profile_user_id);
+
 $model = new ProfileModel($conn);
-$user_id = $_SESSION['user_id'];
-$u_d = $model->getUserData($user_id);
-$stats = $model->getProfileStats($user_id);
-$userPosts = $model->getUserPosts($user_id, 80);
+// Current user data (for header/sidebar)
+$current_u_d = $model->getUserData($current_user_id);
+
+// Profile user data (for content)
+$u_d = $model->getUserData($profile_user_id);
+if (!$u_d) {
+    $u_d = $current_u_d;
+    $profile_user_id = $current_user_id;
+    $is_own_profile = true;
+}
+
+$stats = $model->getProfileStats($profile_user_id);
+$userPosts = $model->getUserPosts($profile_user_id, 80);
 $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
@@ -116,7 +129,7 @@ function formatTimeAgo($dateTime) {
     return date('M j, Y', $ts);
 }
 
-$profileAvatarPath = 'https://i.pravatar.cc/150?u=' . ((int)($u_d['UserID'] ?? $user_id));
+$profileAvatarPath = 'https://i.pravatar.cc/150?u=' . ((int)($u_d['UserID'] ?? $profile_user_id));
 if (!empty($u_d['ProfilePic'])) {
     $profileAvatarCandidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
     if (is_file($profileAvatarCandidate)) {
@@ -148,15 +161,15 @@ foreach ($userPosts as $postRow) {
         'media_items' => $mediaItems,
     ];
 }
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+$headerPicPath = '';
+if (!empty($current_u_d['ProfilePic'])) {
+    $candidate = __DIR__ . '/../../../public/img/' . $current_u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = normalizeProfileImagePath((string)$u_d['ProfilePic']);
+        $headerPicPath = normalizeProfileImagePath((string)$current_u_d['ProfilePic']);
     }
 }
-if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+if ($headerPicPath === '') {
+    $headerPicPath = 'https://via.placeholder.com/150';
 }
 ?>
 
@@ -184,8 +197,8 @@ if ($profilePicPath === '') {
             $profileNotificationHtml = ob_get_clean();
             lc_shell_render_header([
                 'notification_html' => $profileNotificationHtml,
-                'user_name' => (string)$u_d['Username'],
-                'profile_image' => $profilePicPath,
+            'user_name' => (string)$current_u_d['Username'],
+            'profile_image' => $headerPicPath,
             ]);
         ?>
 
@@ -205,11 +218,19 @@ if ($profilePicPath === '') {
                     <div class="profile-details">
                         <div class="name-row">
                             <h2><?php echo htmlspecialchars($u_d['Username']); ?></h2>
-                            <a href="editProfile.php"><button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button></a>
+                            <?php if ($is_own_profile): ?>
+                                <a href="editProfile.php"><button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button></a>
+                            <?php else: ?>
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="../Messages/message.php?user_id=<?php echo $profile_user_id; ?>"><button class="btn-action-light"><i class="fa-solid fa-message"></i> Message</button></a>
+                                    <button class="btn-action-light" onclick="sendFriendRequest(<?php echo $profile_user_id; ?>, this)"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         
-
-                        <p><?php echo htmlspecialchars($u_d['Email']); ?></p>
+                        <?php if ($is_own_profile): ?>
+                            <p><?php echo htmlspecialchars($u_d['Email']); ?></p>
+                        <?php endif; ?>
 
                         <div class="stat-item"><strong><?php echo $stats['posts'] ?? 0; ?></strong> <span>Posts</span></div>
                         <div class="stat-item"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
@@ -220,7 +241,7 @@ if ($profilePicPath === '') {
 
                         <div class="interest-tags">
                             <?php
-                            $interests = $model->getInterests($user_id);
+                        $interests = $model->getInterests($profile_user_id);
                             foreach ($interests as $interest): ?>
                                 <span class="interest-tag"><?php echo htmlspecialchars($interest); ?></span>
                             <?php endforeach; ?>
@@ -228,12 +249,14 @@ if ($profilePicPath === '') {
                     </div>
                 </div>
 
+            <?php if ($is_own_profile): ?>
                 <div class="profile-footer-actions">
                     <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
                     <a href="../Login/login_gmail.php" style="text-decoration: none;">
                         <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
                     </a>
                 </div>
+            <?php endif; ?>
             </div>
 
             <div class="content-tabs">
@@ -272,21 +295,27 @@ if ($profilePicPath === '') {
                             if ($sharedOriginalUser === '') {
                                 $sharedOriginalUser = 'Original user';
                             }
+                            
+                            // បំប្លែងការចុះបន្ទាត់ឲ្យបានស្អាត
+                            $displayContent = nl2br(htmlspecialchars($content));
                         ?>
-                        <article class="post-card profile-post-card">
+                        <div class="post-card" data-post-id="<?php echo (int)$post['post_id']; ?>">
                             <div class="post-header">
                                 <div class="post-user">
-                                    <img src="<?php echo htmlspecialchars($profileAvatarPath); ?>" alt="<?php echo htmlspecialchars($u_d['Username']); ?>">
+                                    <a href="#" class="post-user-link" style="text-decoration: none; color: inherit;">
+                                        <img src="<?php echo htmlspecialchars($profileAvatarPath); ?>" alt="<?php echo htmlspecialchars($u_d['Username']); ?>" onerror="this.src='https://via.placeholder.com/150'">
+                                    </a>
                                     <div>
-                                        <h4 style="display: flex; align-items: center; gap: 6px; font-weight: 800;">
-                                            <?php echo htmlspecialchars($u_d['Username']); ?>
+                                        <a href="#" class="post-user-link" style="display: flex; align-items: center; gap: 5px; text-decoration: none; color: inherit;">
+                                            <h4 style="font-weight: 800; margin: 0; font-size: 15px;"><?php echo htmlspecialchars($u_d['Username']); ?></h4>
                                             <?php if ($isShare): ?>
-                                                <span style="color: #64748b; font-weight: 500; font-size: 13px;"><i class="fa-solid fa-share" style="margin-right: 4px;"></i>shared a post</span>
+                                                <span style="color: #64748b; font-weight: 500; font-size: 13px;"><i class="fa-solid fa-share" style="font-size: 11px; margin-right: 4px;"></i>shared a post</span>
                                             <?php endif; ?>
-                                        </h4>
+                                        </a>
                                         <span class="post-time"><?php echo htmlspecialchars($post['time_ago']); ?></span>
                                     </div>
                                 </div>
+                            <?php if ($is_own_profile): ?>
                                 <div class="post-menu-wrap">
                                     <button class="post-menu-btn" type="button" data-role="toggle-post-menu" aria-label="Post options">
                                         <i class="fa-solid fa-ellipsis-h text"></i>
@@ -314,10 +343,11 @@ if ($profilePicPath === '') {
                                         </button>
                                     </div>
                                 </div>
+                        <?php endif; ?>
                             </div>
 
                             <?php if (trim($content) !== ''): ?>
-                                <div class="post-content"><?php echo htmlspecialchars($content); ?></div>
+                                <div class="post-content"><?php echo $displayContent; ?></div>
                             <?php endif; ?>
 
                             <?php if ($isShare && is_array($shareData)): ?>
@@ -330,7 +360,7 @@ if ($profilePicPath === '') {
                                         </div>
                                     </div>
                                     <?php if (!empty($shareData['original_content'])): ?>
-                                        <div class="post-content" style="padding: 12px 15px; margin-bottom: 0;"><?php echo htmlspecialchars($shareData['original_content']); ?></div>
+                                        <div class="post-content" style="padding: 12px 15px; margin-bottom: 0;"><?php echo nl2br(htmlspecialchars($shareData['original_content'])); ?></div>
                                     <?php endif; ?>
                             <?php endif; ?>
 
@@ -338,21 +368,21 @@ if ($profilePicPath === '') {
                                 <div class="post-media-grid">
                                     <?php foreach ($post['media_items'] as $mediaItem): ?>
                                         <?php if ($mediaItem['is_video']): ?>
-                                            <video class="post-image post-image-grid" controls preload="metadata">
+                                            <video class="post-image post-image-grid" muted playsinline loop preload="metadata" style="max-height: 320px; object-fit: cover;">
                                                 <source src="<?php echo htmlspecialchars($mediaItem['media']); ?>">
                                             </video>
                                         <?php else: ?>
-                                            <img class="post-image post-image-grid" src="<?php echo htmlspecialchars($mediaItem['media']); ?>" alt="Post media">
+                                            <img class="post-image post-image-grid" src="<?php echo htmlspecialchars($mediaItem['media']); ?>" alt="Post media" style="max-height: 320px; object-fit: cover;">
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                 </div>
                             <?php elseif (count($post['media_items']) === 1): ?>
                                 <?php if ($post['media_items'][0]['is_video']): ?>
-                                    <video class="post-image" controls preload="metadata">
+                                    <video class="post-image" controls preload="metadata" style="border-radius: 12px;">
                                         <source src="<?php echo htmlspecialchars($post['media_items'][0]['media']); ?>">
                                     </video>
                                 <?php else: ?>
-                                    <img class="post-image" src="<?php echo htmlspecialchars($post['media_items'][0]['media']); ?>" alt="Post media">
+                                    <img class="post-image" src="<?php echo htmlspecialchars($post['media_items'][0]['media']); ?>" alt="Post media" style="border-radius: 12px;">
                                 <?php endif; ?>
                             <?php endif; ?>
                             
@@ -360,12 +390,26 @@ if ($profilePicPath === '') {
                                 </div>
                             <?php endif; ?>
 
-                            <div class="post-actions">
-                                <div class="action-item"><i class="fa-regular fa-heart"></i> Like</div>
-                                <div class="action-item"><i class="fa-regular fa-comment"></i> Comment</div>
-                                <div class="action-item"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                            <div class="post-actions-stats" style="display:flex; justify-content:space-between; color:var(--text-muted, #65676b); font-size:13px; margin-bottom:10px; padding: 0 5px;">
+                                <div><i class="fa-solid fa-thumbs-up" style="color: var(--primary-color);"></i> Likes</div>
+                                <div>Interactions</div>
                             </div>
-                        </article>
+
+                            <div class="post-actions">
+                                <div class="action-item" data-role="like-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="fa-regular fa-thumbs-up"></i> Like</div>
+                                <div class="action-item" data-role="comment-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="fa-regular fa-comment"></i> Comment</div>
+                                <div class="action-item" data-role="share-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                            </div>
+
+                            <!-- Comment Input Area -->
+                            <div class="post-comments-area" id="comments-area-<?php echo (int)$post['post_id']; ?>" style="display:none; margin-top: 15px; border-top: 1px solid #f0f2f5; padding-top: 15px;">
+                                <div style="display:flex; gap: 10px;">
+                                    <img src="<?php echo htmlspecialchars($headerPicPath); ?>" style="width: 32px; height: 32px; border-radius: 50%;">
+                                    <input type="text" id="comment-input-<?php echo (int)$post['post_id']; ?>" placeholder="Write a comment..." style="flex:1; border-radius: 20px; border: 1px solid #ccd0d5; padding: 8px 15px; outline: none; background: #f0f2f5;">
+                                    <button type="button" data-role="submit-comment" data-post-id="<?php echo (int)$post['post_id']; ?>" style="background: transparent; border: none; color: #1877f2; font-weight: bold; cursor: pointer;">Post</button>
+                                </div>
+                            </div>
+                        </div>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="post-placeholder">No posted media yet</div>
@@ -429,11 +473,54 @@ if ($profilePicPath === '') {
             </form>
         </div>
     </div>
+
+    <!-- Toast Notification សម្រាប់ Add Friend -->
+    <div id="toast" style="position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; color: white; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: 0.3s;"></div>
+
+    <script>
+        function sendFriendRequest(userId, button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+            button.disabled = true;
+            
+            fetch('../../Controllers/Friends/friend_actions.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=send_request&friend_id=${userId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, '#10b981'); // ពណ៌បៃតងពេលជោគជ័យ
+                    button.innerHTML = '<i class="fa-solid fa-clock"></i> Request Sent';
+                } else {
+                    showToast(data.message, '#ef4444'); // ពណ៌ក្រហមពេលមានបញ្ហា
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                showToast('An error occurred', '#ef4444');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+        
+        function showToast(message, bgColor) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = bgColor;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+    </script>
     <script src="../../../public/js/Profile/profile.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
-    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
+    <?php lc_shell_render_user_bootstrap((int)($current_user_id ?? 0), (string)($current_u_d['Username'] ?? 'User'), $headerPicPath); ?>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
 </body>
 </html>

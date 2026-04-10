@@ -338,11 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="post-card" data-post-id="${escapeHtml(post.PostID || '')}" data-post-id-alt="${escapeHtml(post.id || '')}">
                 <div class="post-header">
                     <div class="post-user">
-                        <a href="../Profile/profile.php" class="post-user-link" aria-label="Open profile">
+                        <a href="../Profile/profile.php?user_id=${escapeHtml(post.UserID || '')}" class="post-user-link" aria-label="Open profile">
                             <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}" onerror="this.src='${FALLBACK_AVATAR}'">
                         </a>
                         <div>
-                            <a href="../Profile/profile.php" class="post-user-link" style="display: flex; align-items: center; gap: 5px;">
+                            <a href="../Profile/profile.php?user_id=${escapeHtml(post.UserID || '')}" class="post-user-link" style="display: flex; align-items: center; gap: 5px;">
                                 <h4 style="font-weight: 800;">${escapeHtml(username)}</h4>
                                 ${isShare ? `<span style="color: #64748b; font-weight: 500; font-size: 13px;"><i class="fa-solid fa-share" style="font-size: 11px; margin-right: 4px;"></i>shared a post</span>` : ''}
                             </a>
@@ -1015,12 +1015,19 @@ document.addEventListener('DOMContentLoaded', () => {
             notificationsDropdown.classList.toggle('show');
             if (notificationsDropdown.classList.contains('show')) {
                 fetchNotifications();
+                // បិទមិនឱ្យ Scroll Background ពេលបើកលើទូរស័ព្ទ
+                if (window.innerWidth <= 768) {
+                    document.body.style.overflow = 'hidden';
+                }
+            } else {
+                document.body.style.overflow = '';
             }
         });
 
         document.addEventListener('click', (e) => {
             if (!notificationBtn.contains(e.target)) {
                 notificationsDropdown.classList.remove('show');
+                document.body.style.overflow = '';
             }
         });
     }
@@ -1074,5 +1081,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (postFeedList) {
         loadPosts();
         setInterval(loadPosts, 30000);
+    } else {
+        // សម្រាប់ទំព័រ Profile ឫ Group ដែល render តាមរយៈ PHP
+        // យើងត្រូវ bind events ដោយដៃ ដើម្បីឲ្យប៊ូតុង Like, Comment, Edit លោតដំណើរការ
+        bindPostEvents();
+        bindPostViewTracking();
+        bindVideoAutoplay();
     }
 });

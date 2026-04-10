@@ -520,6 +520,7 @@ if ($profilePicPath === '') {
                         <div class="friends-grid" id="friendsGrid">
                             <?php foreach ($friends as $friend): ?>
                                 <div class="friend-profile" data-name="<?php echo strtolower(htmlspecialchars($friend['Username'])); ?>">
+                                <a href="../Profile/profile.php?user_id=<?php echo $friend['UserID']; ?>" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 12px;">
                                     <img src="<?php 
                                         $path = '../../../public/img/' . $friend['ProfilePic'];
                                         if (!empty($friend['ProfilePic']) && file_exists($path)) {
@@ -529,6 +530,7 @@ if ($profilePicPath === '') {
                                         }
                                     ?>" alt="<?php echo htmlspecialchars($friend['Username']); ?>">
                                     <span class="name"><?php echo htmlspecialchars($friend['Username']); ?></span>
+                                </a>
                                     <span class="friend-since">
                                         <i class="fa-regular fa-clock"></i> 
                                         Friend since <?php echo date('M Y', strtotime($friend['friend_since'])); ?>
