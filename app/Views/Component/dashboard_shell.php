@@ -1,5 +1,12 @@
 <?php
 
+require_once dirname(__DIR__, 2) . '/Helpers/admin.php';
+
+if (isset($conn) && $conn instanceof PDO) {
+    lc_admin_sync_session_if_possible($conn);
+    lc_admin_enforce_active_account($conn);
+}
+
 if (!function_exists('lc_shell_default_nav')) {
     function lc_public_asset(string $relativePath): string
     {
@@ -16,7 +23,7 @@ if (!function_exists('lc_shell_default_nav')) {
 
     function lc_shell_default_nav(): array
     {
-        return [
+        $nav = [
             'home' => [
                 'href' => '../Home/dashboard.php',
                 'icon' => 'fa-solid fa-home',
@@ -53,6 +60,16 @@ if (!function_exists('lc_shell_default_nav')) {
                 'label' => 'Report',
             ],
         ];
+
+        if (lc_current_user_is_admin()) {
+            $nav['admin'] = [
+                'href' => '../Admin/dashboard.php',
+                'icon' => 'fa-solid fa-user-shield',
+                'label' => 'Admin',
+            ];
+        }
+
+        return $nav;
     }
 
     function lc_shell_render_sidebar(array $options = []): void

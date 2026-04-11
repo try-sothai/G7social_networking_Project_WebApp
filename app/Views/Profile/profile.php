@@ -318,13 +318,12 @@ if ($headerPicPath === '') {
                                         <span class="post-time"><?php echo htmlspecialchars($post['time_ago']); ?></span>
                                     </div>
                                 </div>
-                            <?php if ($is_own_profile): ?>
                                 <div class="post-menu-wrap">
                                     <button class="post-menu-btn" type="button" data-role="toggle-post-menu" aria-label="Post options">
                                         <i class="fa-solid fa-ellipsis-h text"></i>
                                     </button>
                                     <div class="post-menu-dropdown">
-                                        <?php if (!$isShare): ?>
+                                        <?php if ($is_own_profile && !$isShare): ?>
                                         <button
                                             type="button"
                                             class="post-menu-item"
@@ -336,6 +335,17 @@ if ($headerPicPath === '') {
                                             Edit Post
                                         </button>
                                         <?php endif; ?>
+                                        <?php if (!$is_own_profile): ?>
+                                        <button
+                                            type="button"
+                                            class="post-menu-item"
+                                            data-role="report-post"
+                                            data-post-id="<?php echo (int)$post['post_id']; ?>"
+                                        >
+                                            Report Post
+                                        </button>
+                                        <?php endif; ?>
+                                        <?php if ($is_own_profile): ?>
                                         <button
                                             type="button"
                                             class="post-menu-item danger"
@@ -344,9 +354,9 @@ if ($headerPicPath === '') {
                                         >
                                             Delete Post
                                         </button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                        <?php endif; ?>
                             </div>
 
                             <?php if (trim($content) !== ''): ?>

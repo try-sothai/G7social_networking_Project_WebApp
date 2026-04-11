@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/admin.php';
+
+lc_admin_ensure_schema($conn);
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -36,7 +39,7 @@ if (isset($_POST['login'])) {
 
         if (filter_var($Email, FILTER_VALIDATE_EMAIL) && $Password !== '') {
             try {
-                $stmt = $conn->prepare('SELECT UserID, Username, Email, Password FROM users WHERE Email = :Email LIMIT 1');
+                $stmt = $conn->prepare('SELECT UserID, Username, Email, Password, Role, AccountStatus FROM users WHERE Email = :Email LIMIT 1');
                 $stmt->bindValue(':Email', $Email, PDO::PARAM_STR);
                 $stmt->execute();
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -59,24 +62,35 @@ if (isset($_POST['login'])) {
                 }
 
                 if ($user && $passwordOk) {
-                    session_regenerate_id(true);
-                    $_SESSION['login_attempts'] = 0;
-                    $_SESSION['login_locked_until'] = 0;
+                    $accountStatus = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
+                    if ($accountStatus !== 'Active') {
+                        $error = 'This account is currently ' . strtolower($accountStatus) . '.';
+                    } else {
+                        session_regenerate_id(true);
+                        $_SESSION['login_attempts'] = 0;
+                        $_SESSION['login_locked_until'] = 0;
 
-                    $_SESSION['user_id'] = (int) $user['UserID'];
-                    $_SESSION['Email'] = $user['Email'];
-                    $_SESSION['username'] = $user['Username'];
+                        $_SESSION['user_id'] = (int) $user['UserID'];
+                        $_SESSION['Email'] = $user['Email'];
+                        $_SESSION['username'] = $user['Username'];
+                        $_SESSION['user_role'] = lc_admin_normalize_role($user['Role'] ?? 'User');
+                        $_SESSION['account_status'] = $accountStatus;
 
-                    header('Location: ' . BASE_URL . 'app/Views/Home/dashboard.php');
-                    exit();
+                        lc_admin_sync_session($conn);
+
+                        header('Location: ' . BASE_URL . 'app/Views/Home/dashboard.php');
+                        exit();
+                    }
                 }
 
-                $_SESSION['login_attempts']++;
-                if ($_SESSION['login_attempts'] >= $maxAttempts) {
-                    $_SESSION['login_locked_until'] = $now + $lockoutSeconds;
-                    $_SESSION['login_attempts'] = 0;
+                if ($error === '') {
+                    $_SESSION['login_attempts']++;
+                    if ($_SESSION['login_attempts'] >= $maxAttempts) {
+                        $_SESSION['login_locked_until'] = $now + $lockoutSeconds;
+                        $_SESSION['login_attempts'] = 0;
+                    }
+                    $error = 'Invalid email or password.';
                 }
-                $error = 'Invalid email or password.';
             } catch (PDOException $e) {
                 $error = 'Login failed. Please try again.';
             }

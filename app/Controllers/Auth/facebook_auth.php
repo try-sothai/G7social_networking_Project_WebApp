@@ -2,6 +2,9 @@
 <?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/admin.php';
+
+lc_admin_ensure_schema($conn);
 
 // ⚠️ ១. សូមយក App ID និង App Secret របស់ហ្វេសប៊ុកបង មកដាក់ទីនេះ
 $appID = '1823607298598252';
@@ -46,7 +49,7 @@ if (isset($_GET['code'])) {
         $name = $userInfo['name'] ?? 'Facebook User';
         $picture = $userInfo['picture']['data']['url'] ?? '';
 
-        $stmt = $conn->prepare("SELECT UserID, Username, Email FROM users WHERE Email = :email LIMIT 1");
+        $stmt = $conn->prepare("SELECT UserID, Username, Email, Role, AccountStatus FROM users WHERE Email = :email LIMIT 1");
         $stmt->execute([':email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -54,6 +57,8 @@ if (isset($_GET['code'])) {
             $_SESSION['user_id'] = (int)$user['UserID'];
             $_SESSION['Email'] = $user['Email'];
             $_SESSION['username'] = $user['Username'];
+            $_SESSION['user_role'] = lc_admin_normalize_role($user['Role'] ?? 'User');
+            $_SESSION['account_status'] = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
         } else {
             $insert = $conn->prepare("INSERT INTO users (Username, Email, ProfilePic, Password) VALUES (:name, :email, :pic, :pass)");
             $insert->execute([
@@ -66,6 +71,16 @@ if (isset($_GET['code'])) {
             $_SESSION['Email'] = $email;
             $_SESSION['username'] = $name;
         }
+        if (!empty($_SESSION['account_status']) && $_SESSION['account_status'] !== 'Active') {
+            $blockedStatus = (string)$_SESSION['account_status'];
+            session_unset();
+            session_destroy();
+            header('Location: ../../Views/Login/login_gmail.php?error=Account_' . rawurlencode($blockedStatus));
+            exit();
+        }
+
+        session_regenerate_id(true);
+        lc_admin_sync_session($conn);
         header('Location: ../../Views/Home/dashboard.php');
         exit();
     }

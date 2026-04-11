@@ -349,17 +349,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="post-time">${escapeHtml(createdAt)}</span>
                         </div>
                     </div>
-                    ${isOwner ? `
                     <div class="post-menu-wrap">
                         <button class="post-menu-btn" type="button" data-role="toggle-post-menu" aria-label="Post options">
                             <i class="fa-solid fa-ellipsis-h text"></i>
                         </button>
                         <div class="post-menu-dropdown">
-                            ${!isShare ? `<button type="button" class="post-menu-item" data-role="edit-post" data-post-id="${escapeHtml(post.PostID || '')}" data-content="${escapeHtml(content)}" data-media='${escapeHtml(JSON.stringify(mediaList))}'>Edit Post</button>` : ''}
-                            <button type="button" class="post-menu-item danger" data-role="delete-post" data-post-id="${escapeHtml(post.PostID || '')}">Delete Post</button>
+                            ${isOwner && !isShare ? `<button type="button" class="post-menu-item" data-role="edit-post" data-post-id="${escapeHtml(post.PostID || '')}" data-content="${escapeHtml(content)}" data-media='${escapeHtml(JSON.stringify(mediaList))}'>Edit Post</button>` : ''}
+                            ${isOwner ? `<button type="button" class="post-menu-item danger" data-role="delete-post" data-post-id="${escapeHtml(post.PostID || '')}">Delete Post</button>` : ''}
+                            ${!isOwner ? `<button type="button" class="post-menu-item" data-role="report-post" data-post-id="${escapeHtml(post.PostID || '')}">Report Post</button>` : ''}
                         </div>
                     </div>
-                    ` : ''}
                 </div>
                 ${content ? `<div class="post-content">${escapeHtml(content)}</div>` : ''}
                 ${sharedHtml}
@@ -610,6 +609,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     })
                     .catch(() => window.alert('Unable to delete post.'));
+            };
+        });
+
+        document.querySelectorAll('[data-role="report-post"]').forEach((btn) => {
+            btn.onclick = () => {
+                closeAllPostMenus();
+                const postId = Number(btn.getAttribute('data-post-id') || 0);
+                if (!postId) return;
+
+                const reason = window.prompt('Why are you reporting this post?', 'Spam or inappropriate content');
+                if (reason === null) return;
+                if (!reason.trim()) {
+                    window.alert('Please enter a report reason.');
+                    return;
+                }
+
+                const payload = new FormData();
+                payload.append('action', 'report');
+                payload.append('post_id', String(postId));
+                payload.append('reason', reason.trim());
+
+                fetch(POST_API, { method: 'POST', body: payload })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        window.alert((data && data.message) ? data.message : 'Report sent.');
+                    })
+                    .catch(() => window.alert('Unable to submit report.'));
             };
         });
 

@@ -45,7 +45,7 @@ try {
     
     $mail->CharSet    = 'UTF-8'; // កំណត់ CharSet ជា UTF-8 ដើម្បីផ្ញើអក្សរខ្មែរមិនឲ្យ Error
     
-    $mail->setFrom('your_email@gmail.com', 'LocalConnect');
+    $mail->setFrom('shy784162@gmail.com', 'LocalConnect');
     $mail->isHTML(true); // កំណត់ថាជាទម្រង់ HTML
 
     $count = 0;

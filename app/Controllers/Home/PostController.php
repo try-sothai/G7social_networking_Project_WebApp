@@ -4,12 +4,17 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../../config/db_config.php';
 require_once __DIR__ . '/../../Models/Home/PostModel.php';
+require_once __DIR__ . '/../../Helpers/admin.php';
+require_once __DIR__ . '/../../Models/Admin/AdminModel.php';
 
 $current_user_id = (int)($_SESSION['user_id'] ?? 0);
 if (!$current_user_id) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+
+lc_admin_sync_session_if_possible($conn);
+lc_admin_enforce_active_account($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
     echo json_encode(['status' => 'error', 'message' => 'The file size exceeds the server limit. Please check your php.ini settings (post_max_size and upload_max_filesize).']);
@@ -393,6 +398,29 @@ if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Empty comment']);
+    }
+    exit;
+}
+
+if ($action === 'report' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postId = (int)($_POST['post_id'] ?? 0);
+    $reason = trim((string)($_POST['reason'] ?? ''));
+    $details = trim((string)($_POST['details'] ?? ''));
+
+    if ($postId <= 0 || $reason === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Please provide a reason for the report.']);
+        exit;
+    }
+
+    try {
+        $adminModel = new AdminModel($conn);
+        $result = $adminModel->createPostReport($current_user_id, $postId, $reason, $details);
+        echo json_encode([
+            'status' => !empty($result['success']) ? 'success' : 'error',
+            'message' => (string)($result['message'] ?? 'Unable to submit report.')
+        ]);
+    } catch (PDOException $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Unable to submit report right now.']);
     }
     exit;
 }
