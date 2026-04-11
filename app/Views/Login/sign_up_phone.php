@@ -1,7 +1,92 @@
 <?php
 session_start();
 
-if(isset($_POST['send_otp'])){
+require_once __DIR__ . '/../../../config/db_config.php';
+require_once __DIR__ . '/../../Helpers/admin.php';
+require_once __DIR__ . '/../../Helpers/mailer.php';
+
+lc_admin_ensure_schema($conn);
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$error = '';
+$formData = [
+    'name' => '',
+    'email' => '',
+    'phone' => '',
+];
+
+if (isset($_POST['send_otp'])) {
+    $csrf = (string) ($_POST['csrf_token'] ?? '');
+    $name = trim((string) ($_POST['name'] ?? ''));
+    $email = trim((string) ($_POST['email'] ?? ''));
+    $phone = trim((string) ($_POST['phone'] ?? ''));
+    $password = (string) ($_POST['password'] ?? '');
+    $confirmPassword = (string) ($_POST['confirm_password'] ?? '');
+
+    $formData['name'] = $name;
+    $formData['email'] = $email;
+    $formData['phone'] = $phone;
+
+    if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
+        $error = 'Invalid request token. Please refresh and try again.';
+    } elseif ($name === '' || $email === '' || $phone === '' || $password === '' || $confirmPassword === '') {
+        $error = 'Please fill in all fields.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
+    } elseif (mb_strlen($name, 'UTF-8') < 3 || mb_strlen($name, 'UTF-8') > 50) {
+        $error = 'Name must be between 3 and 50 characters.';
+    } elseif (!preg_match('/^[0-9+\-\s]{8,20}$/', $phone)) {
+        $error = 'Please enter a valid phone number.';
+    } elseif (strlen($password) < 8) {
+        $error = 'Password must be at least 8 characters.';
+    } elseif ($password !== $confirmPassword) {
+        $error = 'Password and Confirm Password do not match.';
+    } else {
+        try {
+            $checkExisting = $conn->prepare('SELECT UserID, Email, Phone FROM users WHERE Email = :email OR Phone = :phone LIMIT 1');
+            $checkExisting->bindValue(':email', $email, PDO::PARAM_STR);
+            $checkExisting->bindValue(':phone', $phone, PDO::PARAM_STR);
+            $checkExisting->execute();
+            $existingUser = $checkExisting->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingUser) {
+                if (strcasecmp((string) ($existingUser['Email'] ?? ''), $email) === 0) {
+                    $error = 'This email is already registered.';
+                } else {
+                    $error = 'This phone number is already registered.';
+                }
+            } else {
+                $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $_SESSION['signup_otp'] = [
+                    'name' => $name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                    'otp' => $otp,
+                    'expires_at' => time() + 300,
+                    'sent_at' => time(),
+                ];
+
+                $sendResult = lc_send_otp_email($email, $name, $otp);
+
+                if ($sendResult['success']) {
+                    header('Location: sign_up_phone_otp.php');
+                    exit();
+                }
+
+                unset($_SESSION['signup_otp']);
+                $error = (string) $sendResult['message'];
+            }
+        } catch (PDOException $e) {
+            $error = 'Unable to start verification right now. Please try again.';
+        }
+    }
+}
+
+if (false && isset($_POST['send_otp'])) {
     $name = trim($_POST['name']);
     $phone = trim($_POST['phone']);
 
@@ -34,23 +119,41 @@ if(isset($_POST['send_otp'])){
 
 <div class="auth-card">
     <h1 class="auth-logo">Social7</h1>
-    <p class="auth-subtitle">Connect with your community</p>
+    <p class="auth-subtitle">Verify phone sign up with a free email OTP</p>
 
     <div class="auth-tabs">
         <a href="sign_up_email.php" class="auth-tab"><span><i class="fa-regular fa-envelope"></i></span> Email</a>
         <a href="sign_up_phone.php" class="auth-tab active"><span><i class="fa-solid fa-phone"></i></span> Phone</a>
     </div>
 
-    <form class="auth-form" action="sign_up_phone.php" method="POST">
+    <?php if ($error !== ''): ?>
+        <div class="auth-msg error"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
+    <form class="auth-form" action="sign_up_phone.php" method="POST" autocomplete="off">
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars((string) $_SESSION['csrf_token']); ?>">
     <div class="form-group">
         <label>Name</label>
-        <input type="text" name="name" placeholder="Enter your name" required autofocus>
+        <input type="text" name="name" placeholder="Enter your name" minlength="3" maxlength="50" value="<?php echo htmlspecialchars($formData['name']); ?>" required autofocus>
+    </div>
+    <div class="form-group">
+        <label>Email for OTP</label>
+        <input type="email" name="email" placeholder="Enter your email" value="<?php echo htmlspecialchars($formData['email']); ?>" required>
+        <small>We will send a 6-digit code to this email.</small>
     </div>
     <div class="form-group">
         <label>Phone Number</label>
-        <input type="text" name="phone" placeholder="+855..." required>
+        <input type="text" name="phone" placeholder="+855..." value="<?php echo htmlspecialchars($formData['phone']); ?>" required>
     </div>
-    <button type="submit" name="send_otp" class="btn-primary">Send OTP</button>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Create a password" minlength="8" required>
+    </div>
+    <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" placeholder="Re-enter your password" minlength="8" required>
+    </div>
+    <button type="submit" name="send_otp" class="btn-primary">Send OTP to Email</button>
 </form>
 
     <div class="auth-divider">or</div>
@@ -63,7 +166,7 @@ if(isset($_POST['send_otp'])){
     </button>
 
     <div class="auth-footer">
-        Already have an account? <a href="login_phone.php">Log in</a>
+        Already have an account? <a href="login_gmail.php">Log in</a>
     </div>
 </div>
 
