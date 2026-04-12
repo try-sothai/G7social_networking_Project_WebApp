@@ -711,6 +711,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (postModalMessage) postModalMessage.textContent = '';
         if (postEditorPreview) postEditorPreview.innerHTML = '';
         if (postEditorArea) postEditorArea.classList.remove('active');
+        
+        const locInput = document.getElementById('post-location-input');
+        const feelInput = document.getElementById('post-feeling-input');
+        if (locInput) { locInput.value = ''; locInput.classList.remove('active'); }
+        if (feelInput) { feelInput.value = ''; feelInput.classList.remove('active'); }
     }
 
     function openPostComposer() {
@@ -817,13 +822,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (hasCreatePostComposer) {
+        const locationPill = document.querySelector('label[for="post-location-input"]');
+        const feelingPill = document.querySelector('label[for="post-feeling-input"]');
+        const locationInput = document.getElementById('post-location-input');
+        const feelingInput = document.getElementById('post-feeling-input');
+
+        if (locationPill && locationInput) {
+            locationPill.addEventListener('click', (e) => {
+                e.preventDefault();
+                locationInput.classList.toggle('active');
+                if (locationInput.classList.contains('active')) locationInput.focus();
+                else locationInput.value = '';
+            });
+        }
+        if (feelingPill && feelingInput) {
+            feelingPill.addEventListener('click', (e) => {
+                e.preventDefault();
+                feelingInput.classList.toggle('active');
+                if (feelingInput.classList.contains('active')) feelingInput.focus();
+                else feelingInput.value = '';
+            });
+        }
+
         createPostForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const files = Array.from(postMediaInput.files || []);
             const content = (postContentInput && postContentInput.value) ? postContentInput.value.trim() : '';
+            const locationVal = locationInput ? locationInput.value.trim() : '';
+            const feelingVal = feelingInput ? feelingInput.value.trim() : '';
 
-            if (files.length === 0 && content === '') {
-                postModalMessage.textContent = 'Please add text or at least one media file.';
+            if (files.length === 0 && content === '' && !locationVal && !feelingVal) {
+                postModalMessage.textContent = 'Please add text, feeling, location, or at least one media file.';
                 return;
             }
             
@@ -840,6 +869,8 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('action', 'create');
             files.forEach((file) => payload.append('post_media[]', file));
             payload.append('content', content);
+            payload.append('location', locationVal);
+            payload.append('feeling', feelingVal);
             if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
                 payload.append('group_id', window.CURRENT_GROUP_ID);
             }

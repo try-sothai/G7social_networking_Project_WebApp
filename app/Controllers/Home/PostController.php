@@ -337,6 +337,20 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $location = sanitizePostContent((string)($_POST['location'] ?? ''));
+    $feeling = sanitizePostContent((string)($_POST['feeling'] ?? ''));
+    $extras = [];
+    if ($feeling !== '') {
+        $extras[] = "feeling {$feeling}";
+    }
+    if ($location !== '') {
+        $extras[] = "at 📍 {$location}";
+    }
+    if (!empty($extras)) {
+        $content .= "\n\n— " . implode(' ', $extras);
+        $content = trim($content);
+    }
+
     if ($content === '' && count($uploadedFiles) === 0) {
         echo json_encode(['status' => 'error', 'message' => 'Please add text or at least one media file.']);
         exit;

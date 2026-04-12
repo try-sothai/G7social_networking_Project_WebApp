@@ -1339,6 +1339,18 @@ body.fb-dashboard .stories-container .story-card.story-item {
     display: none;
 }
 
+.create-post-extra-input.active {
+    display: block;
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 14px;
+    background: #f8fafc;
+    outline: none;
+}
+
 .create-post-submit-btn {
     border-radius: 999px;
     font-size: 24px;
@@ -1868,6 +1880,12 @@ body.dark-mode .create-post-privacy {
 body.dark-mode .create-post-tool-pill {
     background: #1e293b;
     color: #cbd5e1;
+}
+
+body.dark-mode .create-post-extra-input.active {
+    background: #0f172a;
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #e2e8f0;
 }
 
 body.dark-mode #edit-post-modal .post-modal-card {
