@@ -121,6 +121,8 @@ function admin_short_text(?string $value, int $length = 110): string
         /* 📐 Page Alignment & Spacing */
         .admin-page {
             margin-top: 20px;
+            max-width: 100% !important; /* បង្ខំឲ្យទំព័រលាតសន្ធឹងពេញស្មើជាមួយ Header */
+            padding: 0 !important; /* ដកគម្លាតដែលរុញវាចូលក្នុងចេញ */
         }
 
         /*  Primary Blue Buttons (Filter & Actions) */

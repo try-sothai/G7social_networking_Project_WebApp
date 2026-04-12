@@ -126,6 +126,61 @@
         .post-lightbox-close:hover {
             color: #ef4444;
         }
+
+        /* ✨ Modern Post Card Design - App Inspired ✨ */
+        .post-card {
+            background: #ffffff;
+            border-radius: 24px !important;
+            border: none !important;
+            box-shadow: 0 10px 30px rgba(226, 232, 240, 0.6) !important;
+            padding: 0 !important; /* លុបគម្លាតដើម្បីឱ្យរូបភាពលាតពេញគែម */
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(226, 232, 240, 0.9) !important;
+        }
+        .post-header {
+            padding: 20px 20px 10px 20px !important;
+            border-bottom: none !important;
+        }
+        .post-content {
+            padding: 0 20px 15px 20px !important;
+            font-size: 1.05rem !important;
+            line-height: 1.6 !important;
+        }
+        .post-media-grid, .post-image {
+            border-radius: 0 !important; /* លាតពេញគែមសងខាង */
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        .modern-post-actions {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+        }
+        .action-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; border-radius: 30px;
+            background: #f8fafc; border: none; color: #475569;
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .action-pill:hover { background: #e2e8f0; transform: scale(1.05); }
+        .action-pill.liked { background: #fee2e2; color: #ef4444; }
+        .action-pill i { font-size: 1.1rem; }
+        .post-stats-pill { margin-left: auto; font-size: 13px; color: #94a3b8; }
+
+        /* Dark mode support for Modern Cards */
+        body.dark-mode .post-card { background: #1e293b !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important; }
+        body.dark-mode .modern-post-actions { background: #1e293b; }
+        body.dark-mode .action-pill { background: #0f172a; color: #cbd5e1; }
+        body.dark-mode .action-pill:hover { background: #334155; }
+        body.dark-mode .action-pill.liked { background: rgba(239, 68, 68, 0.2); color: #f87171; }
     </style>
 </head>
 <body>

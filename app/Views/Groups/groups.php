@@ -84,6 +84,64 @@ if ($profilePicPath === '') {
     <link rel="stylesheet" href="../../../public/css/Groups/groups.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Home/newPost.css">
+    <style>
+        /* 🎛️ Modern Group Filters Styling */
+        .group-filters-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: var(--bg-card, #ffffff);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color, #e2e8f0);
+        }
+        .group-filters-container h3 {
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 700;
+        }
+        .group-filters {
+            display: flex;
+            background: #f1f5f9 !important;
+            padding: 6px !important;
+            border-radius: 16px !important;
+            gap: 5px;
+            width: 100%;
+        }
+        .filter-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px 15px !important;
+            border-radius: 12px !important;
+            color: #64748b !important;
+            text-decoration: none !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        .filter-btn:hover { color: #1e293b !important; }
+        .filter-btn.active {
+            background: #ffffff !important;
+            color: #2563eb !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        /* 🌙 Dark Mode Support */
+        body.dark-mode .group-filters-container { background: #111827; border-color: rgba(148, 163, 184, 0.2); }
+        body.dark-mode .group-filters-container h3 { color: #f1f5f9; }
+        body.dark-mode .group-filters { background: #0f172a !important; }
+        body.dark-mode .filter-btn { color: #94a3b8 !important; }
+        body.dark-mode .filter-btn:hover { color: #f1f5f9 !important; }
+        body.dark-mode .filter-btn.active {
+            background: #1e293b !important;
+            color: #3b82f6 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+    </style>
 </head>
 <body>
     <?php lc_shell_render_sidebar(['active' => 'groups']); ?>
@@ -239,6 +297,7 @@ if ($profilePicPath === '') {
                     </div>
                     
                     <div class="group-filters-container">
+                        <h3>Filter Groups</h3>
                         <div class="group-filters">
                             <a href="?filter=all" class="filter-btn <?php echo $currentFilter == 'all' ? 'active' : ''; ?>">All Groups</a>
                             <a href="?filter=joined" class="filter-btn <?php echo $currentFilter == 'joined' ? 'active' : ''; ?>">Joined</a>

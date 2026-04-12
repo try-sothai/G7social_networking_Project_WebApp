@@ -274,8 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sharesCount = post.SharesCount || 0;
         const viewsCount = post.ViewsCount || 0;
         const isLiked = post.IsLiked ? 'liked' : '';
-        const likeIcon = post.IsLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
-        const likeColor = post.IsLiked ? 'color: var(--primary-color);' : '';
+        const likeIcon = post.IsLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
         const commentsHtml = (post.Comments && post.Comments.length > 0)
             ? post.Comments.map(c => `<div><strong>${escapeHtml(c.Username)}</strong> ${escapeHtml(c.CommentText)}</div>`).join('')
             : 'No comments yet.';
@@ -319,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalUser = shareData.original_user || 'Original user';
             const origAvatar = resolveAvatarUrl(shareData.original_avatar || '');
             sharedHtml = `
-                <div class="shared-post-card">
+                <div class="shared-post-card" style="margin: 0 20px 15px 20px; border-radius: 16px; border: 1px solid var(--border-color, #e2e8f0); background: var(--background-secondary, #f8fafc); overflow: hidden;">
                     <div class="shared-post-header">
                         <img src="${escapeHtml(origAvatar)}" alt="${escapeHtml(originalUser)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 36px; height: 36px; border-radius: 12px; object-fit: cover;">
                         <div>
@@ -339,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="post-header">
                     <div class="post-user">
                         <a href="../Profile/profile.php?user_id=${escapeHtml(post.UserID || '')}" class="post-user-link" aria-label="Open profile">
-                            <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}" onerror="this.src='${FALLBACK_AVATAR}'">
+                            <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 48px; height: 48px; border-radius: 16px; object-fit: cover;">
                         </a>
                         <div>
                             <a href="../Profile/profile.php?user_id=${escapeHtml(post.UserID || '')}" class="post-user-link" style="display: flex; align-items: center; gap: 5px;">
@@ -363,14 +362,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${content ? `<div class="post-content">${escapeHtml(content)}</div>` : ''}
                 ${sharedHtml}
                 ${mediaHtml}
-                <div class="post-actions-stats" style="display:flex; justify-content:space-between; color:var(--text-muted, #65676b); font-size:13px; margin-bottom:10px; padding: 0 5px;">
-                    <div>${likesCount} Likes</div>
-                    <div>${viewsCount} Views &nbsp;&bull;&nbsp; ${commentsCount} Comments &nbsp;&bull;&nbsp; ${sharesCount} Shares</div>
-                </div>
-                <div class="post-actions">
-                    <div class="action-item ${isLiked}" data-role="like-post" data-post-id="${escapeHtml(post.PostID || '')}" style="${likeColor}"><i class="${likeIcon}"></i> Like</div>
-                    <div class="action-item" data-role="comment-post" data-post-id="${escapeHtml(post.PostID || '')}"><i class="fa-regular fa-comment"></i> Comment</div>
-                    <div class="action-item" data-role="share-post" data-post-id="${escapeHtml(post.PostID || '')}"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                <div class="modern-post-actions">
+                    <button class="action-pill ${isLiked}" data-role="like-post" data-post-id="${escapeHtml(post.PostID || '')}">
+                        <i class="${likeIcon}"></i> <span>${likesCount}</span>
+                    </button>
+                    <button class="action-pill" data-role="comment-post" data-post-id="${escapeHtml(post.PostID || '')}">
+                        <i class="fa-regular fa-comment"></i> <span>${commentsCount}</span>
+                    </button>
+                    <button class="action-pill" data-role="share-post" data-post-id="${escapeHtml(post.PostID || '')}">
+                        <i class="fa-solid fa-share-nodes"></i> <span>${sharesCount}</span>
+                    </button>
+                    <div class="post-stats-pill">
+                        <i class="fa-regular fa-eye"></i> ${viewsCount}
+                    </div>
                 </div>
                 <div class="post-comments-area" id="comments-area-${escapeHtml(post.PostID || '')}" style="display:none; margin-top: 15px; border-top: 1px solid #f0f2f5; padding-top: 15px;">
                     <div class="comments-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">${commentsHtml}</div>
