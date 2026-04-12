@@ -276,8 +276,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const isLiked = post.IsLiked ? 'liked' : '';
         const likeIcon = post.IsLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
         const commentsHtml = (post.Comments && post.Comments.length > 0)
-            ? post.Comments.map(c => `<div><strong>${escapeHtml(c.Username)}</strong> ${escapeHtml(c.CommentText)}</div>`).join('')
-            : 'No comments yet.';
+            ? post.Comments.map(c => {
+                const cAvatar = resolveAvatarUrl(c.ProfilePic || FALLBACK_AVATAR);
+                return `<div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <a href="../Profile/profile.php?user_id=${escapeHtml(c.UserID || '')}"><img src="${escapeHtml(cAvatar)}" alt="${escapeHtml(c.Username)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);"></a>
+                    <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; max-width: calc(100% - 45px);">
+                        <a href="../Profile/profile.php?user_id=${escapeHtml(c.UserID || '')}" style="text-decoration: none;"><strong style="display: block; margin-bottom: 2px; color: var(--text-primary, #1e293b);">${escapeHtml(c.Username)}</strong></a>
+                        <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${escapeHtml(c.CommentText)}</span>
+                    </div>
+                </div>`;
+            }).join('')
+            : '<div style="color: #64748b; font-size: 14px; text-align: center; padding: 10px 0;">No comments yet.</div>';
 
         const mediaList = getPostMediaList(post.ImagePath || '');
         const avatar = resolveAvatarUrl(post.ProfilePic || FALLBACK_AVATAR);

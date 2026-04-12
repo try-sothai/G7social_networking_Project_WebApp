@@ -435,11 +435,11 @@ class MessageChat {
                     this.elements.fileInput.value = '';
                     this.loadMessages();
                     this.updateLastMessage(this.activeReceiverID, message || this.getFileDescription(data.type));
-                    this.showToast('Message sent successfully', 'success');
                 } else {
                     this.showToast(data.message || 'Failed to send message', 'error');
                 }
             } catch (e) {
+                console.error('Error parsing response from PHP is:', xhr.responseText);
                 this.showToast('Error processing response', 'error');
             }
             this.elements.sendBtn.disabled = false;

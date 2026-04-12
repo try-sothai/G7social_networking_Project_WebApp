@@ -149,7 +149,11 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Compress image if it's an image
         if ($type === 'image') {
-            compressImage($file['tmp_name'], $uploadPath, 800);
+            $compressed = compressImage($file['tmp_name'], $uploadPath, 80); // ប្តូរពី 800 មក 80
+            if (!$compressed) {
+                // បើគាបរូបភាពមិនបានជោគជ័យ អនុញ្ញាតឱ្យរក្សាទុករូបភាពដើមធម្មតា
+                move_uploaded_file($file['tmp_name'], $uploadPath);
+            }
         } else {
             move_uploaded_file($file['tmp_name'], $uploadPath);
         }
@@ -260,21 +264,35 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Image compression function
 function compressImage($source, $destination, $quality) {
-    $info = getimagesize($source);
+    $info = @getimagesize($source);
+    if (!$info) return false;
+
+    $image = null;
 
     if ($info['mime'] == 'image/jpeg') {
-        $image = imagecreatefromjpeg($source);
-        imagejpeg($image, $destination, $quality);
+        $image = @imagecreatefromjpeg($source);
+        if ($image) imagejpeg($image, $destination, $quality);
     } elseif ($info['mime'] == 'image/png') {
-        $image = imagecreatefrompng($source);
-        imagepng($image, $destination, 9);
+        $image = @imagecreatefrompng($source);
+        if ($image) {
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+            imagepng($image, $destination, 9);
+        }
     } elseif ($info['mime'] == 'image/gif') {
-        $image = imagecreatefromgif($source);
-        imagegif($image, $destination);
+        $image = @imagecreatefromgif($source);
+        if ($image) imagegif($image, $destination);
+    } elseif ($info['mime'] == 'image/webp') {
+        if (function_exists('imagecreatefromwebp')) {
+            $image = @imagecreatefromwebp($source);
+            if ($image) imagewebp($image, $destination, $quality);
+        }
     }
 
-    imagedestroy($image);
-    return true;
+    if ($image) {
+        return true;
+    }
+    return false;
 }
 
 echo json_encode(['error' => 'Invalid action']);

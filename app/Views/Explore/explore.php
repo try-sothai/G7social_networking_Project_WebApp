@@ -114,6 +114,7 @@ if ($profilePicPath === '') {
             margin: 0;
             display: -webkit-box;
             -webkit-line-clamp: 4;
+            line-clamp: 4;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -130,6 +131,7 @@ if ($profilePicPath === '') {
         .explore-post-content p {
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin: 0;
