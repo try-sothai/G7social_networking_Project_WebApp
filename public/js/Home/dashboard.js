@@ -303,15 +303,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let mediaHtml = mediaList.length > 1
             ? `<div class="post-media-grid">${mediaList.map((media, index) => (
                 isVideo(media)
-                    ? `<video class="post-image post-image-grid" muted playsinline loop preload="metadata"><source src="${escapeHtml(media)}"></video>`
-                    : `<img src="${escapeHtml(media)}" class="post-image post-image-grid" alt="Post media ${index + 1}">`
+                    ? `<video class="post-image post-image-grid" muted playsinline loop preload="metadata" style="cursor: pointer;" onclick="openLightbox('${escapeHtml(media)}', true)"><source src="${escapeHtml(media)}"></video>`
+                    : `<img src="${escapeHtml(media)}" class="post-image post-image-grid" alt="Post media ${index + 1}" style="cursor: pointer;" onclick="openLightbox('${escapeHtml(media)}', false)">`
             )).join('')}</div>`
             : (() => {
                 const media = mediaList[0] || '';
                 if (!media) return '';
                 return isVideo(media)
-                    ? `<video class="post-image" muted playsinline loop preload="metadata"><source src="${escapeHtml(media)}"></video>`
-                    : `<img src="${escapeHtml(media)}" class="post-image" alt="Post media">`;
+                    ? `<video class="post-image" muted playsinline loop preload="metadata" style="cursor: pointer;" onclick="openLightbox('${escapeHtml(media)}', true)"><source src="${escapeHtml(media)}"></video>`
+                    : `<img src="${escapeHtml(media)}" class="post-image" alt="Post media" style="cursor: pointer;" onclick="openLightbox('${escapeHtml(media)}', false)">`;
             })();
             
         let sharedHtml = '';
@@ -1108,6 +1108,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 notificationsList.innerHTML = '<div style="padding: 15px; text-align: center; color: #ef4444;">Failed to load notifications</div>';
             });
     }
+
+    // --- Setup Lightbox events ---
+    const lightbox = document.getElementById('postLightbox');
+    const closeBtn = document.querySelector('.post-lightbox-close');
+    
+    if (lightbox && closeBtn) {
+        const closeLightbox = () => {
+            lightbox.classList.remove('active');
+            const vid = document.getElementById('postLightboxVid');
+            if (vid) {
+                vid.pause();
+                vid.remove();
+            }
+        };
+        
+        closeBtn.addEventListener('click', closeLightbox);
+        
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+    }
+
+    window.openLightbox = function(src, isVideo = false) {
+        if (lightbox) {
+            const img = document.getElementById('postLightboxImg');
+            const existingVid = document.getElementById('postLightboxVid');
+            if (existingVid) {
+                existingVid.pause();
+                existingVid.remove();
+            }
+            
+            if (isVideo) {
+                if (img) img.style.display = 'none';
+                const vid = document.createElement('video');
+                vid.id = 'postLightboxVid';
+                vid.className = 'post-lightbox-img';
+                vid.src = src;
+                vid.controls = true;
+                vid.autoplay = true;
+                lightbox.insertBefore(vid, img);
+            } else {
+                if (img) {
+                    img.style.display = 'block';
+                    img.src = src;
+                }
+            }
+            lightbox.classList.add('active');
+        }
+    };
 
     if (hasStoryRail) {
         loadStories();

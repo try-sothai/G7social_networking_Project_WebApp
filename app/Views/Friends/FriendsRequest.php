@@ -34,10 +34,10 @@ if ($profilePicPath === '') {
 function time_ago($datetime) {
     $time = strtotime($datetime);
     $now = time();
-    $diff = $now - $time;
+    $diff = max(0, $now - $time); // ទប់ស្កាត់កុំឲ្យចេញលេខអវិជ្ជមាន (Negative)
     
     if ($diff < 60) {
-        return $diff . ' seconds ago';
+        return $diff == 0 ? 'Just now' : $diff . ' seconds ago';
     } elseif ($diff < 3600) {
         $mins = floor($diff / 60);
         return $mins . ' minute' . ($mins > 1 ? 's' : '') . ' ago';
@@ -154,17 +154,31 @@ function time_ago($datetime) {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        .request-avatar img {
+        .request-avatar {
+            flex-shrink: 0; /* ការពារកុំឱ្យទំហំប្រអប់រូបភាពរីក ឬរួញ */
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            object-fit: cover;
+            background: #e2e8f0;
             border: 2px solid #fff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* ចាក់សោរឱ្យវាចេញជារាងមូលជានិច្ច ទោះមានបញ្ហាអក្សរលោតចេញក៏ដោយ */
+        }
+
+        .request-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .request-info {
             flex: 1;
+            min-width: 0; /* ការពារកុំឱ្យអក្សរវែងរុញទម្លុះប្រអប់ */
+            overflow: hidden;
         }
 
         .request-name {
@@ -172,6 +186,8 @@ function time_ago($datetime) {
             font-size: 1rem;
             color: #1e293b;
             margin-bottom: 5px;
+            overflow-wrap: anywhere; /* ធ្លាក់ចុះបន្ទាត់បានស្អាតសម្រាប់ឈ្មោះ/អ៊ីមែលវែងៗ */
+            line-height: 1.3;
         }
 
         .request-bio {
@@ -179,6 +195,10 @@ function time_ago($datetime) {
             color: #64748b;
             margin-bottom: 8px;
             line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .request-time {
@@ -400,8 +420,8 @@ function time_ago($datetime) {
                                     <div class="request-avatar">
                                         <img src="<?php 
                                             $path = '../../../public/img/' . $request['ProfilePic'];
-                                            echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://via.placeholder.com/80';
-                                        ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>">
+                                            echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://ui-avatars.com/api/?name=' . urlencode($request['Username']) . '&background=cbd5e1&color=1e293b';
+                                        ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($request['Username']); ?>&background=cbd5e1&color=1e293b';">
                                     </div>
                                     <div class="request-info">
                                         <h3 class="request-name"><?php echo htmlspecialchars($request['Username']); ?></h3>
@@ -445,8 +465,8 @@ function time_ago($datetime) {
                                     <div class="request-avatar">
                                         <img src="<?php 
                                             $path = '../../../public/img/' . $request['ProfilePic'];
-                                            echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://via.placeholder.com/80';
-                                        ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>">
+                                            echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://ui-avatars.com/api/?name=' . urlencode($request['Username']) . '&background=cbd5e1&color=1e293b';
+                                        ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($request['Username']); ?>&background=cbd5e1&color=1e293b';">
                                     </div>
                                     <div class="request-info">
                                         <h3 class="request-name"><?php echo htmlspecialchars($request['Username']); ?></h3>

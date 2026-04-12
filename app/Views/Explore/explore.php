@@ -49,6 +49,158 @@ if ($profilePicPath === '') {
                 padding: 15px !important;
             }
         }
+
+        /* 🔥 Image-Centric Explore Grid (Thumbnails) */
+        .posts-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+            gap: 25px !important;
+            margin-top: 20px !important;
+            align-items: start;
+        }
+
+        .post-card {
+            background: #ffffff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            padding: 0 !important; /* Override standard padding if any */
+        }
+
+        .post-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .explore-thumbnail-wrapper {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: #f8fafc;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .explore-post-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .post-card:hover .explore-post-image {
+            transform: scale(1.05);
+        }
+
+        .explore-text-thumbnail {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .explore-text-thumbnail h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.5;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .explore-post-header {
+            padding: 15px 15px 5px 15px !important;
+            border-bottom: none !important;
+        }
+
+        .explore-post-content {
+            padding: 5px 15px 15px 15px !important;
+        }
+
+        .explore-post-content p {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin: 0;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .explore-post-actions {
+            padding: 12px 15px !important;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 15px;
+        }
+
+        body.dark-mode .post-card {
+            background: #1e293b;
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+        body.dark-mode .explore-post-actions {
+            border-top-color: rgba(148, 163, 184, 0.2);
+        }
+        body.dark-mode .explore-post-content p {
+            color: #cbd5e1;
+        }
+
+        /* 🖼️ Lightbox Styles */
+        .explore-lightbox {
+            display: flex;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .explore-lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .explore-lightbox-img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .explore-lightbox.active .explore-lightbox-img {
+            transform: scale(1);
+        }
+        .explore-lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+        .explore-lightbox-close:hover {
+            color: #ef4444;
+        }
     </style>
 </head>
 <body>
@@ -102,6 +254,12 @@ if ($profilePicPath === '') {
 <?php lc_shell_render_overlay(); ?>
 
 <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+
+<!-- Lightbox Modal -->
+<div id="exploreLightbox" class="explore-lightbox">
+    <span class="explore-lightbox-close">&times;</span>
+    <img class="explore-lightbox-img" id="exploreLightboxImg" src="" alt="Full Screen Image">
+</div>
 
 <script>
 // Pass PHP variables to JavaScript

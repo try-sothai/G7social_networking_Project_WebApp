@@ -79,6 +79,53 @@
         .stories-container .story-card {
             flex-shrink: 0;
         }
+
+        /* 🖼️ Lightbox Styles */
+        .post-lightbox {
+            display: flex;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .post-lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .post-lightbox-img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .post-lightbox.active .post-lightbox-img {
+            transform: scale(1);
+        }
+        .post-lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+        .post-lightbox-close:hover {
+            color: #ef4444;
+        }
     </style>
 </head>
 <body>
@@ -224,6 +271,12 @@
     </div>
 
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
+
+    <!-- Lightbox Modal -->
+    <div id="postLightbox" class="post-lightbox">
+        <span class="post-lightbox-close">&times;</span>
+        <img class="post-lightbox-img" id="postLightboxImg" src="" alt="Full Screen Image">
+    </div>
 
     <div class="story-modal-overlay" id="edit-post-modal">
         <div class="story-modal-card post-modal-card">

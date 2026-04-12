@@ -1,6 +1,7 @@
 // explore.js
 let currentCategory = 'All';
 let isLoading = false;
+let exploreVideoObserver = null;
 
 function getProfileUrl(userId) {
     const id = Number(userId || 0);
@@ -24,6 +25,30 @@ document.addEventListener('DOMContentLoaded', function() {
         searchPosts(searchQuery);
     } else {
         loadPosts();
+    }
+
+    // Setup Lightbox events
+    const lightbox = document.getElementById('exploreLightbox');
+    const closeBtn = document.querySelector('.explore-lightbox-close');
+    
+    if (lightbox && closeBtn) {
+        const closeLightbox = () => {
+            lightbox.classList.remove('active');
+            // បិទ និងលុបវីដេអូចេញពេលបិទផ្ទាំង Lightbox
+            const vid = document.getElementById('exploreLightboxVid');
+            if (vid) {
+                vid.pause();
+                vid.remove();
+            }
+        };
+        
+        closeBtn.addEventListener('click', closeLightbox);
+        
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
     }
 });
 
@@ -173,49 +198,150 @@ function displayPosts(posts) {
         const postElement = createPostElement(post);
         grid.appendChild(postElement);
     });
+
+    // បើកដំណើរការ Auto-play សម្រាប់វីដេអូទាំងអស់
+    setupVideoAutoplay();
+}
+
+function setupVideoAutoplay() {
+    if (exploreVideoObserver) {
+        exploreVideoObserver.disconnect();
+    }
+    
+    exploreVideoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+            if (entry.isIntersecting) {
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+            } else {
+                video.pause();
+            }
+        });
+    }, { threshold: 0.6 }); // Play នៅពេលអូសមកឃើញ 60% នៃវីដេអូ
+
+    document.querySelectorAll('video.explore-post-image').forEach(video => {
+        exploreVideoObserver.observe(video);
+    });
 }
 
 function createPostElement(post) {
+    const postId = post.PostID || post.id; // ចាប់យក ID ឱ្យត្រូវនឹងទិន្នន័យពី Database
+
     const postDiv = document.createElement('div');
     postDiv.className = 'post-card';
-    postDiv.dataset.postId = post.id;
+    postDiv.dataset.postId = postId;
     
-    const MediaPath = post.ImagePath ? `${window.APP_CONFIG.baseUrl}/${post.ImagePath}` : null;
+    // ជួសជុលបញ្ហារូបភាពមិនលោត (Fix Image Path Issue)
+    let MediaPath = null;
+    let rawImgPath = post.ImagePath || post.Image || post.MediaURL; 
+
+    if (rawImgPath) {
+        // ត្រួតពិនិត្យមើលក្រែងលោវាជាប្រភេទ JSON Array (មានរូបច្រើន)
+        if (typeof rawImgPath === 'string' && rawImgPath.trim().startsWith('[') && rawImgPath.trim().endsWith(']')) {
+            try {
+                const parsed = JSON.parse(rawImgPath);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    rawImgPath = parsed[0]; // ទាញយករូបភាពទី១មកបង្ហាញ
+                } else {
+                    rawImgPath = null;
+                }
+            } catch (e) {}
+        }
+    }
+
+    if (rawImgPath) {
+        rawImgPath = String(rawImgPath).replace(/\\/g, '/'); // ប្តូរ \ ទៅជា / ទាំងអស់ការពារ Error Path
+        if (rawImgPath.startsWith('http') || rawImgPath.startsWith('data:') || rawImgPath.startsWith('/')) {
+            MediaPath = rawImgPath;
+        } else {
+            // ចាប់យកតែឈ្មោះ File ខាងចុង (ឧ. post_123.mp4) ដើម្បីការពារការជាន់ Path គ្នា
+            let fileName = rawImgPath.split('/').pop();
+            // ប្រើ Path ធៀបទៅនឹងទីតាំង explore.php
+            MediaPath = `../../../public/uploads/posts/${fileName}`;
+        }
+    }
+
+    // Function សម្រាប់ឆែកមើលថាជាវីដេអូឬអត់
+    const isVideo = (path) => {
+        if (!path) return false;
+        const clean = path.toLowerCase().split('?')[0];
+        return clean.endsWith('.mp4') || clean.endsWith('.webm') || clean.endsWith('.mov') || clean.endsWith('.ogg');
+    };
+
     const profilePic = post.ProfilePic ? `${window.APP_CONFIG.imagePath}${post.ProfilePic}` : 'https://via.placeholder.com/50';
     const profileUrl = getProfileUrl(post.UserID || 0);
     const postDate = new Date(post.CreatedAt).toLocaleDateString('km-KH');
     
+    // Generate beautiful gradient for text-only posts to act as a thumbnail
+    const gradients = [
+        'linear-gradient(135deg, #f6d365 0%, #fda085 100%)', 
+        'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)', 
+        'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', 
+        'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)',
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    ];
+    const randomGradient = gradients[postId % gradients.length];
+    
+    let mediaHtml = '';
+    if (MediaPath) {
+        if (isVideo(MediaPath)) {
+            mediaHtml = `
+                <video src="${escapeHtml(MediaPath)}" class="explore-post-image" style="cursor: pointer; background: #000;" 
+                       onclick="openExploreLightbox(this.src, true)" 
+                       muted playsinline loop></video>
+                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; pointer-events: none;">
+                    <i class="fa-solid fa-video"></i> Video
+                </div>`;
+        } else {
+            const fallbackImg = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='16' fill='%2364748b'%3EImage Not Found%3C/text%3E%3C/svg%3E";
+            mediaHtml = `<img src="${escapeHtml(MediaPath)}" class="explore-post-image" alt="Post preview" style="cursor: pointer;" onclick="openExploreLightbox(this.src)" onerror="this.onerror=null; this.src='${fallbackImg}';">`;
+        }
+    } else {
+        mediaHtml = `<div class="explore-text-thumbnail" style="background: ${randomGradient};">
+                        <h3>${escapeHtml(post.Content).substring(0, 100)}${post.Content.length > 100 ? '...' : ''}</h3>
+                     </div>`;
+    }
+
     postDiv.innerHTML = `
-        <div class="post-header">
-            <a href="${escapeHtml(profileUrl)}" class="post-user-link" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;">
-                <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" onerror="this.src='https://via.placeholder.com/50'">
-                <div class="post-user-info">
-                    <h4>${escapeHtml(post.Username)}</h4>
-                    <p>${postDate}</p>
+        <div class="explore-thumbnail-wrapper">
+            ${mediaHtml}
+        </div>
+        <div class="post-header explore-post-header">
+            <a href="${escapeHtml(profileUrl)}" class="post-user-link" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
+                <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/50'">
+                <div class="post-user-info" style="line-height: 1.2;">
+                    <h4 style="margin: 0; font-size: 14px;">${escapeHtml(post.Username)}</h4>
+                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #64748b;">${postDate}</p>
                 </div>
             </a>
         </div>
-        <div class="post-content">
+        <div class="post-content explore-post-content">
             <p>${escapeHtml(post.Content)}</p>
-            ${MediaPath ? `<img src="${escapeHtml(MediaPath)}" class="post-image" alt="Post image" onerror="this.style.display='none'">` : ''}
         </div>
-        <div class="post-actions">
-            <button class="like-btn ${post.liked ? 'liked' : ''}" data-post-id="${post.id}">
+        <div class="post-actions explore-post-actions">
+            <button class="like-btn ${post.liked ? 'liked' : ''}" data-post-id="${postId}" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: ${post.liked ? '#ef4444' : '#64748b'}; font-weight: 600;">
                 <i class="fa-${post.liked ? 'solid' : 'regular'} fa-heart"></i>
                 <span>${post.like_count || 0}</span>
             </button>
-            <button class="comment-toggle-btn" data-post-id="${post.id}">
+            <button class="comment-toggle-btn" data-post-id="${postId}" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #64748b; font-weight: 600;">
                 <i class="fa-regular fa-comment"></i>
                 <span>${post.comment_count || 0}</span>
             </button>
+            <button class="share-btn" onclick="shareExplorePost(${postId})" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #64748b; font-weight: 600; margin-left: auto; transition: color 0.2s;">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Share</span>
+            </button>
         </div>
-        <div class="comments-section" id="comments-${post.id}" style="display: none;">
-            <div class="comments-list">
+        <div class="comments-section" id="comments-${postId}" style="display: none; padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+            <div class="comments-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">
                 ${renderComments(post.comments || [])}
             </div>
-            <div class="comment-input">
-                <input type="text" placeholder="សរសេរមតិយោបល់..." id="comment-input-${post.id}">
-                <button onclick="addComment(${post.id})">បញ្ជូន</button>
+            <div class="comment-input" style="display: flex; gap: 10px;">
+                <input type="text" placeholder="Write a comment..." id="comment-input-${postId}" style="flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-family: inherit;">
+                <button onclick="addComment(${postId})" style="background: #6366f1; color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600;">បញ្ជូន</button>
             </div>
         </div>
     `;
@@ -225,14 +351,14 @@ function createPostElement(post) {
     if (likeBtn) {
         likeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            toggleLike(post.id, likeBtn);
+            toggleLike(postId, likeBtn);
         });
     }
     
     const commentToggleBtn = postDiv.querySelector('.comment-toggle-btn');
     if (commentToggleBtn) {
         commentToggleBtn.addEventListener('click', () => {
-            const commentsSection = document.getElementById(`comments-${post.id}`);
+            const commentsSection = document.getElementById(`comments-${postId}`);
             if (commentsSection) {
                 commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
             }
@@ -244,7 +370,7 @@ function createPostElement(post) {
 
 function renderComments(comments) {
     if (!comments || comments.length === 0) {
-        return '<div style="padding: 12px; color: #6b7280; text-align: center;">មិនទាន់មានមតិយោបល់</div>';
+        return '<div style="padding: 12px; color: #6b7280; text-align: center;">no comments yet</div>';
     }
     
     return comments.map(comment => `
@@ -374,4 +500,52 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Lightbox Open Function
+function openExploreLightbox(src, isVideo = false) {
+    const lightbox = document.getElementById('exploreLightbox');
+    const img = document.getElementById('exploreLightboxImg');
+    if (lightbox) {
+        const existingVid = document.getElementById('exploreLightboxVid');
+        if (existingVid) {
+            existingVid.pause();
+            existingVid.remove();
+        }
+        
+        if (isVideo) {
+            if (img) img.style.display = 'none'; // លាក់រូបភាពធម្មតា
+            const vid = document.createElement('video');
+            vid.id = 'exploreLightboxVid';
+            vid.className = 'explore-lightbox-img'; // ប្រើ CSS ដូចរូបភាពដែរ
+            vid.src = src;
+            vid.controls = true; // បង្ហាញផ្ទាំងបញ្ជា (Play/Pause/Sound)
+            vid.autoplay = true;
+            lightbox.insertBefore(vid, img);
+        } else {
+            if (img) {
+                img.style.display = 'block';
+                img.src = src;
+            }
+        }
+        lightbox.classList.add('active');
+    }
+}
+
+// Share Function
+function shareExplorePost(postId) {
+    const postUrl = `${window.location.origin}${window.location.pathname.replace('Explore/explore.php', 'Home/post_detail.php')}?id=${postId}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this post on LocalConnect',
+            url: postUrl
+        }).catch(err => console.log('Error sharing:', err));
+    } else {
+        navigator.clipboard.writeText(postUrl).then(() => {
+            alert('ភ្ជាប់ (Link) ត្រូវបានចម្លង! អាចយកទៅចែករំលែកបាន។ (Link Copied!)');
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+        });
+    }
 }

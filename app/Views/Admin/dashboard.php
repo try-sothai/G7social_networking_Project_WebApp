@@ -100,21 +100,19 @@ function admin_short_text(?string $value, int $length = 110): string
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
         /* 🎨 Typography Improvements */
-        body.admin-dashboard,
-        .admin-dashboard input,
-        .admin-dashboard select,
-        .admin-dashboard button {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        .admin-page,
+        .admin-page input,
+        .admin-page select,
+        .admin-page button {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             color: #334155;
             line-height: 1.6;
         }
         
-        .admin-dashboard h1, 
-        .admin-dashboard h2, 
-        .admin-dashboard h3 {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        .admin-page h1, 
+        .admin-page h2, 
+        .admin-page h3 {
             color: #0f172a;
             letter-spacing: -0.02em;
             font-weight: 700;
@@ -122,9 +120,7 @@ function admin_short_text(?string $value, int $length = 110): string
 
         /* 📐 Page Alignment & Spacing */
         .admin-page {
-            padding: 20px 0; /* ដកគម្លាតសងខាងចេញដើម្បីឱ្យទំព័រពង្រីកពេញ (Full Width) */
-            max-width: 100%;
-            width: 100%;
+            margin-top: 20px;
         }
 
         /*  Primary Blue Buttons (Filter & Actions) */
@@ -248,6 +244,89 @@ function admin_short_text(?string $value, int $length = 110): string
             width: 135px;
         }
 
+        /* 🛡️ Report Action Buttons Styling */
+        .admin-report-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+        .admin-report-actions button {
+            padding: 8px 16px !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ffffff !important; /* White text for better contrast */
+        }
+        .admin-btn-pending { background: #f59e0b !important; }
+        .admin-btn-pending:hover { background: #d97706 !important; }
+        .admin-btn-reviewed { background: #3b82f6 !important; }
+        .admin-btn-reviewed:hover { background: #2563eb !important; }
+        .admin-btn-resolved { background: #10b981 !important; }
+        .admin-btn-resolved:hover { background: #059669 !important; }
+        .admin-btn-dismissed { background: #64748b !important; }
+        .admin-btn-dismissed:hover { background: #475569 !important; }
+
+        /* 🌙 Dark Mode Support for Admin */
+        body.dark-mode .admin-dashboard,
+        body.dark-mode .admin-dashboard h1, 
+        body.dark-mode .admin-dashboard h2, 
+        body.dark-mode .admin-dashboard h3,
+        body.dark-mode .admin-kicker,
+        body.dark-mode .admin-stat-label,
+        body.dark-mode .admin-stat-note,
+        body.dark-mode .admin-subtitle,
+        body.dark-mode .admin-table td,
+        body.dark-mode .admin-report-card label,
+        body.dark-mode .admin-report-card p {
+            color: #e2e8f0 !important;
+        }
+        
+        body.dark-mode .admin-stat-card,
+        body.dark-mode .admin-section,
+        body.dark-mode .admin-report-card,
+        body.dark-mode .export-menu {
+            background: #111827 !important;
+            border: 1px solid rgba(148, 163, 184, 0.22) !important;
+            box-shadow: none !important;
+        }
+        
+        body.dark-mode .admin-filter-bar input,
+        body.dark-mode .admin-filter-bar select,
+        body.dark-mode .export-date-filter input,
+        body.dark-mode .admin-inline-form select {
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        
+        body.dark-mode .admin-table th {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.22) !important;
+        }
+        
+        body.dark-mode .admin-table td,
+        body.dark-mode .admin-report-top,
+        body.dark-mode .admin-report-actions,
+        body.dark-mode .export-date-filter {
+            border-color: rgba(148, 163, 184, 0.22) !important;
+        }
+
+        body.dark-mode .admin-export-btn {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-color: rgba(148, 163, 184, 0.22);
+        }
+        body.dark-mode .admin-export-btn:hover {
+            background: #334155;
+        }
+
         /* � Responsive Adjustments for Admin Dashboard */
         @media (max-width: 1024px) {
             .admin-stats-grid {
@@ -258,7 +337,7 @@ function admin_short_text(?string $value, int $length = 110): string
         }
         @media (max-width: 768px) {
             .admin-page {
-                padding: 15px 0;
+                padding: 15px !important;
             }
             .admin-hero {
                 flex-direction: column;
@@ -565,7 +644,7 @@ function admin_short_text(?string $value, int $length = 110): string
                                         <input type="hidden" name="report_id" value="<?= (int)$report['ReportID'] ?>">
                                         <input type="hidden" name="new_report_status" value="<?= htmlspecialchars($status) ?>">
                                         <?php admin_render_return_fields($search, $roleFilter, $statusFilter, $reportStatus, $reportSearch); ?>
-                                        <button type="submit" class="<?= $status === 'Resolved' ? 'success' : ($status === 'Dismissed' ? 'muted' : '') ?>">
+                                    <button type="submit" class="admin-btn-<?= strtolower($status) ?>">
                                             Mark <?= htmlspecialchars($status) ?>
                                         </button>
                                     </form>
