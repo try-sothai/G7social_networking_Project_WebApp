@@ -8,6 +8,11 @@ require_once '../../Models/Admin/AdminModel.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
+if (!isset($_SESSION['user_id'])) {
+        header("Location: ../Login/login_gmail.php");
+        exit();
+    }
+    
 lc_admin_require_admin($conn);
 
 $profileModel = new ProfileModel($conn);
@@ -90,6 +95,207 @@ function admin_short_text(?string $value, int $length = 110): string
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Admin/admin.css')) ?>">
+    <!-- Libraries សម្រាប់ Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* 🎨 Typography Improvements */
+        body.admin-dashboard,
+        .admin-dashboard input,
+        .admin-dashboard select,
+        .admin-dashboard button {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            color: #334155;
+            line-height: 1.6;
+        }
+        
+        .admin-dashboard h1, 
+        .admin-dashboard h2, 
+        .admin-dashboard h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            font-weight: 700;
+        }
+
+        /* 📐 Page Alignment & Spacing */
+        .admin-page {
+            padding: 20px 0; /* ដកគម្លាតសងខាងចេញដើម្បីឱ្យទំព័រពង្រីកពេញ (Full Width) */
+            max-width: 100%;
+            width: 100%;
+        }
+
+        /*  Primary Blue Buttons (Filter & Actions) */
+        .admin-filter-bar button[type="submit"],
+        .admin-inline-form button[type="submit"] {
+            background: #2563eb !important;
+            color: #ffffff !important;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        .admin-filter-bar button[type="submit"]:hover,
+        .admin-inline-form button[type="submit"]:hover {
+            background: #1d4ed8 !important;
+        }
+
+        /* 🎛️ Filter Bar Styling */
+        .admin-filter-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .admin-filter-bar input[type="text"] {
+            flex: 2;
+        }
+        .admin-filter-bar select {
+            flex: 1;
+        }
+        .admin-filter-bar input, .admin-filter-bar select {
+            padding: 10px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        /* ⬇️ Export Dropdown Styles */
+        .admin-export-btn {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-export-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .export-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            background-color: #ffffff;
+            min-width: 160px;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+            z-index: 100;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .export-menu.show-menu {
+            display: block !important;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .export-menu a {
+            color: #334155;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .export-menu a:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .export-menu a i { margin-right: 10px; width: 20px; text-align: center; }
+        .export-menu a i.fa-file-csv { color: #10b981; }
+        .export-menu a i.fa-file-excel { color: #059669; }
+        .export-menu a i.fa-file-pdf { color: #e11d48; }
+        .export-menu a i.fa-print { color: #3b82f6; }
+
+        /* 📅 Export Date Filter Styles */
+        .export-date-filter {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8fafc;
+        }
+        .export-date-filter label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .export-date-filter input {
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 13px;
+            width: 135px;
+        }
+
+        /* � Responsive Adjustments for Admin Dashboard */
+        @media (max-width: 1024px) {
+            .admin-stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+                gap: 15px;
+            }
+        }
+        @media (max-width: 768px) {
+            .admin-page {
+                padding: 15px 0;
+            }
+            .admin-hero {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .admin-filter-bar {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .admin-filter-bar input, 
+            .admin-filter-bar select, 
+            .admin-filter-bar button {
+                width: 100%;
+            }
+            .admin-table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .admin-table {
+                min-width: 800px; /* អនុញ្ញាតឲ្យអូសទៅឆ្វេងស្ដាំបាន */
+            }
+            .admin-report-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .admin-report-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .admin-report-actions form,
+            .admin-report-actions button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body class="admin-dashboard">
     <?php lc_shell_render_sidebar(['active' => 'admin', 'show_create_post' => false]); ?>
@@ -162,10 +368,25 @@ function admin_short_text(?string $value, int $length = 110): string
             </div>
 
             <section class="admin-section">
-                <div class="admin-section-head">
+                <div class="admin-section-head" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
                     <div>
                         <h2>User Management</h2>
                         <p>Search members, update admin roles, and control account status.</p>
+                    </div>
+                    <div class="export-dropdown">
+                        <button class="admin-export-btn" onclick="toggleExportMenu('usersExportMenu', event)">
+                            <i class="fa-solid fa-download"></i> Export Users
+                        </button>
+                        <div class="export-menu" id="usersExportMenu" style="min-width: 240px;">
+                            <div class="export-date-filter">
+                                <label>From: <input type="date" id="export_users_from"></label>
+                                <label>To: <input type="date" id="export_users_to"></label>
+                            </div>
+                            <a href="#" onclick="exportAdminData('csv', 'users', event)"><i class="fa-solid fa-file-csv"></i> CSV</a>
+                            <a href="#" onclick="exportAdminData('excel', 'users', event)"><i class="fa-solid fa-file-excel"></i> Excel</a>
+                            <a href="#" onclick="exportAdminData('pdf', 'users', event)"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+                            <a href="#" onclick="exportAdminData('print', 'users', event)"><i class="fa-solid fa-print"></i> Print</a>
+                        </div>
                     </div>
                 </div>
 
@@ -256,10 +477,25 @@ function admin_short_text(?string $value, int $length = 110): string
             </section>
 
             <section class="admin-section">
-                <div class="admin-section-head">
+                <div class="admin-section-head" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
                     <div>
                         <h2>Report Review</h2>
                         <p>Review post reports and update their moderation status.</p>
+                    </div>
+                    <div class="export-dropdown">
+                        <button class="admin-export-btn" onclick="toggleExportMenu('reportsExportMenu', event)">
+                            <i class="fa-solid fa-download"></i> Export Reports
+                        </button>
+                        <div class="export-menu" id="reportsExportMenu" style="min-width: 240px;">
+                            <div class="export-date-filter">
+                                <label>From: <input type="date" id="export_reports_from"></label>
+                                <label>To: <input type="date" id="export_reports_to"></label>
+                            </div>
+                            <a href="#" onclick="exportAdminData('csv', 'reports', event)"><i class="fa-solid fa-file-csv"></i> CSV</a>
+                            <a href="#" onclick="exportAdminData('excel', 'reports', event)"><i class="fa-solid fa-file-excel"></i> Excel</a>
+                            <a href="#" onclick="exportAdminData('pdf', 'reports', event)"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+                            <a href="#" onclick="exportAdminData('print', 'reports', event)"><i class="fa-solid fa-print"></i> Print</a>
+                        </div>
                     </div>
                 </div>
 
@@ -346,5 +582,123 @@ function admin_short_text(?string $value, int $length = 110): string
     <?php lc_shell_render_user_bootstrap($currentUserId, (string)($currentUser['Username'] ?? 'Admin'), $profilePicPath); ?>
     <script src="<?= htmlspecialchars(lc_public_asset('js/common/theme-toggle.js')) ?>"></script>
     <script src="<?= htmlspecialchars(lc_public_asset('js/Home/responsive.js')) ?>"></script>
+    
+    <script>
+        // ទាញយកទិន្នន័យពី PHP មកទុកក្នុង JavaScript
+        const exportUsersData = <?= json_encode($users) ?>;
+        const exportReportsData = <?= json_encode($reports) ?>;
+
+        function toggleExportMenu(menuId, e) {
+            e.preventDefault();
+            // បិទ Menu ផ្សេងទៀត
+            document.querySelectorAll('.export-menu.show-menu').forEach(menu => {
+                if(menu.id !== menuId) menu.classList.remove('show-menu');
+            });
+            document.getElementById(menuId).classList.toggle('show-menu');
+        }
+
+        // បិទ Menu ពេលចុចកន្លែងផ្សេង
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('.export-dropdown')) {
+                document.querySelectorAll('.export-menu.show-menu').forEach(menu => {
+                    menu.classList.remove('show-menu');
+                });
+            }
+        });
+
+        function exportAdminData(type, dataset, e) {
+            e.preventDefault();
+            document.querySelectorAll('.export-menu.show-menu').forEach(m => m.classList.remove('show-menu'));
+            
+            let headers = [];
+            let rows = [];
+            let title = "";
+            let filename = "";
+
+            // ចាប់យកតម្លៃថ្ងៃខែពី Input
+            let startDateStr = document.getElementById('export_' + dataset + '_from').value;
+            let endDateStr = document.getElementById('export_' + dataset + '_to').value;
+
+            let dateRangeText = "Date Range: All Time";
+            if (startDateStr && endDateStr) {
+                dateRangeText = `Date Range: ${startDateStr} to ${endDateStr}`;
+            } else if (startDateStr) {
+                dateRangeText = `Date Range: From ${startDateStr}`;
+            } else if (endDateStr) {
+                dateRangeText = `Date Range: Until ${endDateStr}`;
+            }
+            
+            let rawData = dataset === 'users' ? exportUsersData : exportReportsData;
+            
+            // ចម្រាញ់ទិន្នន័យតាមកាលបរិច្ឆេទ (បើមាន)
+            let filteredData = rawData.filter(item => {
+                let itemDate = new Date(item.CreatedAt.replace(' ', 'T')); // សម្រួល Format ឱ្យត្រូវគ្រប់ Browser
+                if (startDateStr) {
+                    let start = new Date(startDateStr);
+                    start.setHours(0, 0, 0, 0);
+                    if (itemDate < start) return false;
+                }
+                if (endDateStr) {
+                    let end = new Date(endDateStr);
+                    end.setHours(23, 59, 59, 999);
+                    if (itemDate > end) return false;
+                }
+                return true;
+            });
+
+            if (filteredData.length === 0) {
+                alert("No data available for the selected date range.");
+                return;
+            }
+
+            // រៀបចំទិន្នន័យផ្អែកលើប្រភេទដែលចង់ Export
+            if (dataset === 'users') {
+                headers = ["ID", "Username", "Email", "Role", "Status", "Joined"];
+                rows = filteredData.map(u => [u.UserID, u.Username, u.Email, u.Role, u.AccountStatus, u.CreatedAt]);
+                title = "Admin - Users List";
+                filename = "admin_users_list";
+            } else if (dataset === 'reports') {
+                headers = ["ID", "Type", "Status", "Reason", "Reporter", "Target User", "Created At"];
+                rows = filteredData.map(r => [r.ReportID, r.EntityType, r.Status, r.Reason, r.ReporterName, (r.TargetUserName || 'N/A'), r.CreatedAt]);
+                title = "Admin - Reports List";
+                filename = "admin_reports_list";
+            }
+
+            if (type === 'csv') {
+                // ប្រើសញ្ញាធ្មេញកណ្ដុរ "" ដើម្បីការពារបញ្ហាដាច់ Text ដែលមានសញ្ញាក្បៀស (,)
+                let csvContent = "data:text/csv;charset=utf-8," 
+                    + `"${title}"\n"${dateRangeText}"\n"Total Records: ${rows.length}"\n\n`
+                    + headers.join(",") + "\n" 
+                    + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+                
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", filename + ".csv");
+                document.body.appendChild(link); link.click(); link.remove();
+            } 
+            else if (type === 'excel') {
+                let tableHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body><h3>${title}</h3><p><strong>${dateRangeText}</strong><br><strong>Total Records: ${rows.length}</strong></p><table border="1"><tr><th>${headers.join('</th><th>')}</th></tr>`;
+                rows.forEach(r => { tableHTML += `<tr><td>${r.join('</td><td>')}</td></tr>`; }); tableHTML += `</table></body></html>`;
+                const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel' });
+                const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename + ".xls";
+                document.body.appendChild(link); link.click(); link.remove();
+            }
+            else if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF(dataset === 'reports' ? 'l' : 'p'); // ប្រើ Landscape សម្រាប់ Reports ព្រោះវាវែង
+                doc.text(title, 14, 15);
+                doc.setFontSize(10);
+                doc.text(dateRangeText, 14, 22); // បង្ហាញចន្លោះកាលបរិច្ឆេទ
+                doc.text("Total Records: " + rows.length, 14, 28); // បង្ហាញចំនួនសរុប
+                doc.autoTable({ startY: 32, head: [headers], body: rows }); // រុញតារាងចុះក្រោមបន្តិច
+                doc.save(filename + ".pdf");
+            }
+            else if (type === 'print') {
+                let printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write(`<html><head><title>Print - ${title}</title><style>body{font-family:sans-serif} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background-color:#f2f2f2;}</style></head><body><h2>${title}</h2><p><strong>${dateRangeText}</strong><br><strong>Total Records: ${rows.length}</strong></p><table><tr><th>${headers.join('</th><th>')}</th></tr>`);
+                rows.forEach(r => { printWindow.document.write('<tr><td>' + r.join('</td><td>') + '</td></tr>'); }); printWindow.document.write('</table><script>window.print();<\/script></body></html>'); printWindow.document.close();
+            }
+        }
+    </script>
 </body>
 </html>

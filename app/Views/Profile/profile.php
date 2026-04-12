@@ -254,7 +254,9 @@ if ($headerPicPath === '') {
 
             <?php if ($is_own_profile): ?>
                 <div class="profile-footer-actions">
-                    <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
+                    <a href="settings.php" style="text-decoration: none;">
+                        <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
+                    </a>
                     <a href="../Login/login_gmail.php" style="text-decoration: none;">
                         <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
                     </a>

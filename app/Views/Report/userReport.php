@@ -91,12 +91,12 @@ try {
 
     // Top Active Users
     $topActiveUsers = $conn->query("
-        SELECT u.UserID, u.Username, u.ProfilePic, 
+        SELECT u.UserID, u.Username, u.ProfilePic, u.CreatedAt,
                COUNT(DISTINCT p.PostID) as total_posts,
                (SELECT COUNT(*) FROM post_comments WHERE UserID = u.UserID) as total_interactions
         FROM users u
         LEFT JOIN posts p ON u.UserID = p.UserID
-        GROUP BY u.UserID, u.Username, u.ProfilePic
+        GROUP BY u.UserID, u.Username, u.ProfilePic, u.CreatedAt
         ORDER BY total_posts DESC
         LIMIT 5
     ")->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -158,6 +158,137 @@ function timeAgo($datetime) {
     <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Report/userReport.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Library សម្រាប់ Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* ⬇️ Export Dropdown Styles */
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .export-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            background-color: #ffffff;
+            min-width: 160px;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+            z-index: 100;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .export-menu.show-menu {
+            display: block !important;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .export-menu a {
+            color: #334155;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .export-menu a:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .export-menu a i {
+            margin-right: 10px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .export-menu a i.fa-file-csv { color: #10b981; }
+        .export-menu a i.fa-file-excel { color: #059669; }
+        .export-menu a i.fa-file-pdf { color: #e11d48; }
+        .export-menu a i.fa-print { color: #3b82f6; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 📅 Export Date Filter Styles */
+        .export-date-filter {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8fafc;
+        }
+        .export-date-filter label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .export-date-filter input {
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 13px;
+            width: 135px;
+        }
+
+        /* 📱 Responsive Adjustments for Mobile & Tablet */
+        @media (max-width: 1024px) {
+            .two-columns {
+                display: flex !important;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .stats-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 15px;
+            }
+            .users-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 15px;
+            }
+        }
+        @media (max-width: 768px) {
+            .report-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 15px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .users-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .performance-table {
+                min-width: 600px;
+            }
+        }
+        @media (max-width: 480px) {
+            .users-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <?php lc_shell_render_sidebar(['active' => 'report']); ?>
@@ -331,10 +462,22 @@ function timeAgo($datetime) {
             <div class="top-users-section">
                 <div class="section-header">
                     <h3>Top Active Users</h3>
-                    <button class="export-btn">
-                        <i class="fa-regular fa-file-excel"></i>
-                        Export List
-                    </button>
+                    <div class="export-dropdown">
+                        <button class="export-btn" onclick="toggleExportMenu(event)">
+                            <i class="fa-solid fa-download"></i>
+                            Export List
+                        </button>
+                        <div class="export-menu" id="exportMenu" style="min-width: 240px;">
+                            <div class="export-date-filter">
+                                <label>From: <input type="date" id="export_users_from"></label>
+                                <label>To: <input type="date" id="export_users_to"></label>
+                            </div>
+                            <a href="#" onclick="exportData('csv', event)"><i class="fa-solid fa-file-csv"></i> CSV</a>
+                            <a href="#" onclick="exportData('excel', event)"><i class="fa-solid fa-file-excel"></i> Excel</a>
+                            <a href="#" onclick="exportData('pdf', event)"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+                            <a href="#" onclick="exportData('print', event)"><i class="fa-solid fa-print"></i> Print</a>
+                        </div>
+                    </div>
                 </div>
                 <div class="users-grid">
                     <?php foreach($topActiveUsers as $user): ?>
@@ -445,6 +588,114 @@ function timeAgo($datetime) {
                 }
             }
         });
+    </script>
+
+    <script>
+        // ទិន្នន័យសម្រាប់ Export (ទាញចេញពី PHP)
+        const exportUsersData = <?php echo json_encode($topActiveUsers); ?>;
+
+        function toggleExportMenu(e) {
+            e.preventDefault();
+            document.getElementById('exportMenu').classList.toggle('show-menu');
+        }
+
+        // បិទ Dropdown ពេលចុចកន្លែងផ្សេង
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('.export-dropdown')) {
+                document.querySelectorAll('.export-menu.show-menu').forEach(menu => {
+                    menu.classList.remove('show-menu');
+                });
+            }
+        });
+
+        function exportData(type, e) {
+            e.preventDefault();
+            document.getElementById('exportMenu').classList.remove('show-menu'); // បិទ Menu
+            
+            let startDateStr = document.getElementById('export_users_from').value;
+            let endDateStr = document.getElementById('export_users_to').value;
+
+            let dateRangeText = "Date Range: All Time";
+            if (startDateStr && endDateStr) {
+                dateRangeText = `Date Range: ${startDateStr} to ${endDateStr}`;
+            } else if (startDateStr) {
+                dateRangeText = `Date Range: From ${startDateStr}`;
+            } else if (endDateStr) {
+                dateRangeText = `Date Range: Until ${endDateStr}`;
+            }
+
+            // ចម្រាញ់ទិន្នន័យតាមកាលបរិច្ឆេទ
+            let filteredData = exportUsersData.filter(item => {
+                if (!item.CreatedAt) return true; // ការពារបើគ្មានទិន្នន័យ
+                let itemDate = new Date(item.CreatedAt.replace(' ', 'T'));
+                if (startDateStr) {
+                    let start = new Date(startDateStr);
+                    start.setHours(0, 0, 0, 0);
+                    if (itemDate < start) return false;
+                }
+                if (endDateStr) {
+                    let end = new Date(endDateStr);
+                    end.setHours(23, 59, 59, 999);
+                    if (itemDate > end) return false;
+                }
+                return true;
+            });
+
+            if (filteredData.length === 0) {
+                alert("No data available for the selected date range.");
+                return;
+            }
+
+            const headers = ["Username", "Total Posts", "Total Interactions"];
+            const rows = filteredData.map(u => [u.Username, u.total_posts, u.total_interactions]);
+            let title = "Top Active Users Report";
+            let filename = "top_active_users";
+            
+            if (type === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8," 
+                    + `"${title}"\n"${dateRangeText}"\n"Total Records: ${rows.length}"\n\n`
+                    + headers.join(",") + "\n" 
+                    + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", filename + ".csv");
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } 
+            else if (type === 'excel') {
+                let tableHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body><h3>${title}</h3><p><strong>${dateRangeText}</strong><br><strong>Total Records: ${rows.length}</strong></p><table border="1"><tr><th>${headers.join('</th><th>')}</th></tr>`;
+                rows.forEach(r => { tableHTML += `<tr><td>${r.join('</td><td>')}</td></tr>`; });
+                tableHTML += `</table></body></html>`;
+                
+                const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = filename + ".xls";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+            else if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.text("Top Active Users Report", 14, 15);
+                doc.setFontSize(10);
+                doc.text(dateRangeText, 14, 22);
+                doc.text("Total Records: " + rows.length, 14, 28);
+                doc.autoTable({ startY: 32, head: [headers], body: rows });
+                doc.save(filename + ".pdf");
+            }
+            else if (type === 'print') {
+                let printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write(`<html><head><title>Print - ${title}</title><style>body{font-family:sans-serif} table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background-color:#f2f2f2;}</style></head><body><h2>${title}</h2><p><strong>${dateRangeText}</strong><br><strong>Total Records: ${rows.length}</strong></p><table><tr><th>${headers.join('</th><th>')}</th></tr>`);
+                rows.forEach(r => { printWindow.document.write('<tr><td>' + r.join('</td><td>') + '</td></tr>'); });
+                printWindow.document.write('</table><script>window.print();<\/script></body></html>');
+                printWindow.document.close();
+            }
+        }
     </script>
     <script src="<?= BASE_URL ?>public/js/common/theme-toggle.js"></script>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>

@@ -121,8 +121,12 @@ if ($profilePicPath === '') {
             <hr>
 
             <div class="profile-footer">
-                <button class="btn_st"><i class="fa-solid fa-gear"></i> Settings</button>
-                <button class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
+                <a href="settings.php" style="text-decoration: none;">
+                    <button class="btn_st"><i class="fa-solid fa-gear"></i> Settings</button>
+                </a>
+                <a href="../Login/login_gmail.php" style="text-decoration: none;">
+                    <button class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
+                </a>
             </div>
 
             <div class="profile-tabs">
