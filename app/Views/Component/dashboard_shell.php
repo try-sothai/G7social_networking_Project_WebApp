@@ -185,7 +185,35 @@ if (!function_exists('lc_shell_default_nav')) {
 
     function lc_shell_render_overlay(): void
     {
-        echo '<div class="overlay" data-shell-overlay></div>';
+        echo '<div class="overlay" data-shell-overlay></div>
+        
+        <!-- Mobile Floating Action Button (FAB) -->
+        <button class="mobile-fab js-open-create-post" data-open-create-post aria-label="Create Post">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <style>
+            .mobile-fab {
+                display: none;
+                position: fixed;
+                bottom: 30px;
+                right: 25px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #2563eb, #3b82f6);
+                color: white;
+                border: none;
+                box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+                font-size: 24px;
+                cursor: pointer;
+                z-index: 990;
+                transition: transform 0.2s;
+            }
+            .mobile-fab:active { transform: scale(0.95); }
+            @media (max-width: 768px) {
+                .mobile-fab { display: flex; align-items: center; justify-content: center; }
+            }
+        </style>';
     }
 
     function lc_shell_render_user_bootstrap(int $userId, string $userName, string $avatarPath): void

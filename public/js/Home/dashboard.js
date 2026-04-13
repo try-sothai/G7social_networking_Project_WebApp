@@ -894,7 +894,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     postModalMessage.textContent = 'Posted successfully.';
                     closePostComposer();
-                    loadPosts();
+                    if (document.getElementById('post-feed-list')) {
+                        loadPosts();
+                    } else {
+                        window.location.reload();
+                    }
                 })
                 .catch(() => {
                     postModalMessage.textContent = 'Unable to post right now.';
@@ -955,7 +959,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (previewContainer) previewContainer.innerHTML = '';
 
                     if (quickStatusMessage) quickStatusMessage.textContent = 'Status posted successfully.';
-                    loadPosts();
+                    if (document.getElementById('post-feed-list')) {
+                        loadPosts();
+                    } else {
+                        window.location.reload();
+                    }
                 })
                 .catch(() => {
                     if (quickStatusMessage) quickStatusMessage.textContent = 'Unable to post status right now.';
