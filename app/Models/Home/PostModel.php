@@ -7,68 +7,41 @@ class PostModel {
     }
 
     public function getRecentPosts(int $limit = 25, int $groupId = 0): array {
-        if ($groupId > 0) {
-            $stmt = $this->db->prepare("
-                SELECT
-                    p.PostID,
-                    p.UserID,
-                    p.Content,
-                    p.ImagePath,
-                    p.CreatedAt,
-                    u.Username,
-                    u.ProfilePic
-                FROM posts p
-                INNER JOIN users u ON u.UserID = p.UserID
-                WHERE p.GroupID = :group_id
-                ORDER BY p.CreatedAt DESC
-                LIMIT :limit
-            ");
-            $stmt->bindValue(':group_id', $groupId, PDO::PARAM_INT);
-        } else {
-            $stmt = $this->db->prepare("
-                SELECT
-                    p.PostID,
-                    p.UserID,
-                    p.Content,
-                    p.ImagePath,
-                    p.CreatedAt,
-                    u.Username,
-                    u.ProfilePic
-                FROM posts p
-                INNER JOIN users u ON u.UserID = p.UserID
-                WHERE p.GroupID IS NULL OR p.GroupID = 0
-                ORDER BY p.CreatedAt DESC
-                LIMIT :limit
-            ");
-        }
+        $stmt = $this->db->prepare("
+            SELECT
+                p.PostID,
+                p.UserID,
+                p.Content,
+                p.ImagePath,
+                p.Privacy,
+                p.Location,
+                p.Feeling,
+                p.CreatedAt,
+                u.Username,
+                u.ProfilePic
+            FROM posts p
+            INNER JOIN users u ON u.UserID = p.UserID
+            ORDER BY p.CreatedAt DESC
+            LIMIT :limit
+        ");
         $stmt->bindValue(':limit', max(1, min($limit, 100)), PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    public function createPost(int $userId, string $content, string $imagePath, int $groupId = 0): bool {
-        if ($groupId > 0) {
-            $stmt = $this->db->prepare("
-                INSERT INTO posts (UserID, Content, ImagePath, GroupID, CreatedAt)
-                VALUES (:user_id, :content, :image_path, :group_id, NOW())
-            ");
-            return $stmt->execute([
-                ':user_id' => $userId,
-                ':content' => $content,
-                ':image_path' => $imagePath,
-                ':group_id' => $groupId
-            ]);
-        } else {
-            $stmt = $this->db->prepare("
-                INSERT INTO posts (UserID, Content, ImagePath, CreatedAt)
-                VALUES (:user_id, :content, :image_path, NOW())
-            ");
-            return $stmt->execute([
-                ':user_id' => $userId,
-                ':content' => $content,
-                ':image_path' => $imagePath
-            ]);
-        }
+    public function createPost(int $userId, string $content, string $imagePath, string $privacy = 'Public', ?string $location = null, ?string $feeling = null): bool {
+        $stmt = $this->db->prepare("
+            INSERT INTO posts (UserID, Content, ImagePath, Privacy, Location, Feeling, CreatedAt)
+            VALUES (:user_id, :content, :image_path, :privacy, :location, :feeling, NOW())
+        ");
+        return $stmt->execute([
+            ':user_id' => $userId,
+            ':content' => $content,
+            ':image_path' => $imagePath,
+            ':privacy' => $privacy,
+            ':location' => $location,
+            ':feeling' => $feeling
+        ]);
     }
 
     public function getPostByIdForUser(int $postId, int $userId): ?array {

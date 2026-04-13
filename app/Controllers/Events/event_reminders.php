@@ -24,7 +24,7 @@ try {
         JOIN event_participants ep ON e.EventID = ep.EventID
         JOIN users u ON ep.UserID = u.UserID
         WHERE DATE(e.EventDateTime) = DATE(DATE_ADD(NOW(), INTERVAL 1 DAY))
-          AND ep.Status = 'Interested'
+          AND ep.Status IN ('Going', 'Interested')
     ";
     
     $stmt = $conn->prepare($query);

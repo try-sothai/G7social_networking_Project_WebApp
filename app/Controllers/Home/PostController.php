@@ -87,20 +87,6 @@ function ensurePostViewsTable(PDO $conn): void {
     ");
 }
 
-function ensurePostGroupColumn(PDO $conn): void {
-    static $checked = false;
-    if ($checked) {
-        return;
-    }
-    $checked = true;
-    try {
-        $stmt = $conn->query("SHOW COLUMNS FROM posts LIKE 'GroupID'");
-        if (!$stmt->fetch()) {
-            $conn->exec("ALTER TABLE posts ADD COLUMN GroupID INT NULL DEFAULT NULL");
-        }
-    } catch (PDOException $e) {
-    }
-}
 
 function ensurePostMediaColumnCapacity(PDO $conn): void {
     static $checked = false;
@@ -242,7 +228,6 @@ if ($action === 'fetch') {
     try {
         ensurePostMediaColumnCapacity($conn);
         ensurePostViewsTable($conn);
-        ensurePostGroupColumn($conn);
         $groupId = (int)($_GET['group_id'] ?? 0);
         $posts = $postModel->getRecentPosts(25, $groupId);
         if (is_array($posts)) {
@@ -260,22 +245,22 @@ if ($action === 'fetch') {
                 $postId = (int)$post['PostID'];
                 try {
                     // Likes count
-                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_likes WHERE PostID = ?");
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM interactions WHERE PostID = ? AND Type IN ('like', 'love', 'haha')");
                     $stmt->execute([$postId]);
                     $post['LikesCount'] = (int)$stmt->fetchColumn();
                     
                     // Has liked
-                    $stmt = $conn->prepare("SELECT 1 FROM post_likes WHERE PostID = ? AND UserID = ?");
+                    $stmt = $conn->prepare("SELECT 1 FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
                     $stmt->execute([$postId, $current_user_id]);
                     $post['IsLiked'] = (bool)$stmt->fetchColumn();
                     
                     // Comments count
-                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_comments WHERE PostID = ?");
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM interactions WHERE PostID = ? AND Type = 'comment'");
                     $stmt->execute([$postId]);
                     $post['CommentsCount'] = (int)$stmt->fetchColumn();
                     
                     // Shares count
-                    $stmt = $conn->prepare("SELECT COUNT(*) FROM post_shares WHERE PostID = ?");
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM shares WHERE OriginalPostID = ?");
                     $stmt->execute([$postId]);
                     $post['SharesCount'] = (int)$stmt->fetchColumn();
 
@@ -285,7 +270,7 @@ if ($action === 'fetch') {
                     $post['ViewsCount'] = (int)$stmt->fetchColumn();
                     
                     // Fetch comments
-                    $stmt = $conn->prepare("SELECT c.CommentText, u.UserID, u.Username, u.ProfilePic FROM post_comments c JOIN users u ON c.UserID = u.UserID WHERE c.PostID = ? ORDER BY c.CreatedAt ASC");
+                    $stmt = $conn->prepare("SELECT i.CommentText, u.UserID, u.Username, u.ProfilePic FROM interactions i JOIN users u ON i.UserID = u.UserID WHERE i.PostID = ? AND i.Type = 'comment' ORDER BY i.CreatedAt ASC");
                     $stmt->execute([$postId]);
                     $post['Comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } catch (PDOException $e) {
@@ -304,7 +289,6 @@ if ($action === 'fetch') {
 
 if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     ensurePostMediaColumnCapacity($conn);
-    ensurePostGroupColumn($conn);
     $content = sanitizePostContent((string)($_POST['content'] ?? ''));
     $uploadedFiles = isset($_FILES['post_media']) ? normalizeUploadedMedia($_FILES['post_media']) : [];
     $savedMedia = [];
@@ -339,16 +323,9 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $location = sanitizePostContent((string)($_POST['location'] ?? ''));
     $feeling = sanitizePostContent((string)($_POST['feeling'] ?? ''));
-    $extras = [];
-    if ($feeling !== '') {
-        $extras[] = "feeling {$feeling}";
-    }
-    if ($location !== '') {
-        $extras[] = "at 📍 {$location}";
-    }
-    if (!empty($extras)) {
-        $content .= "\n\n— " . implode(' ', $extras);
-        $content = trim($content);
+    $privacy = $_POST['privacy'] ?? 'Public';
+    if (!in_array($privacy, ['Public', 'Private', 'Friends'])) {
+        $privacy = 'Public';
     }
 
     if ($content === '' && count($uploadedFiles) === 0) {
@@ -368,9 +345,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $mediaValue = mediaListToDbValue($savedMedia);
     }
 
-    $groupId = (int)($_POST['group_id'] ?? 0);
     try {
-        $postModel->createPost($current_user_id, $content, $mediaValue, $groupId);
+        $postModel->createPost($current_user_id, $content, $mediaValue, $privacy, $location ?: null, $feeling ?: null);
         echo json_encode(['status' => 'success', 'message' => 'Post published successfully.']);
     } catch (PDOException $e) {
         deleteMediaFiles($uploadDirAbs, $savedMedia);
@@ -383,13 +359,13 @@ if ($action === 'like' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $postId = (int)($_POST['post_id'] ?? 0);
     if ($postId > 0) {
         try {
-            $stmt = $conn->prepare("SELECT LikeID FROM post_likes WHERE PostID = ? AND UserID = ?");
+            $stmt = $conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
             $stmt->execute([$postId, $current_user_id]);
             if ($stmt->fetch()) {
-                $conn->prepare("DELETE FROM post_likes WHERE PostID = ? AND UserID = ?")->execute([$postId, $current_user_id]);
+                $conn->prepare("DELETE FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')")->execute([$postId, $current_user_id]);
                 echo json_encode(['status' => 'success', 'liked' => false]);
             } else {
-                $conn->prepare("INSERT INTO post_likes (PostID, UserID) VALUES (?, ?)")->execute([$postId, $current_user_id]);
+                $conn->prepare("INSERT INTO interactions (PostID, UserID, Type) VALUES (?, ?, 'like')")->execute([$postId, $current_user_id]);
                 echo json_encode(['status' => 'success', 'liked' => true]);
             }
         } catch (PDOException $e) {
@@ -404,7 +380,7 @@ if ($action === 'comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $comment = trim($_POST['comment'] ?? '');
     if ($postId > 0 && $comment !== '') {
         try {
-            $stmt = $conn->prepare("INSERT INTO post_comments (PostID, UserID, CommentText) VALUES (?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO interactions (PostID, UserID, Type, CommentText) VALUES (?, ?, 'comment', ?)");
             $stmt->execute([$postId, $current_user_id, $comment]);
             echo json_encode(['status' => 'success']);
         } catch (PDOException $e) {
@@ -482,9 +458,11 @@ if ($action === 'report' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $newContent = "[SHARED_POST]" . json_encode($shareData, JSON_UNESCAPED_UNICODE);
                 $imagePath = $postToShare['ImagePath'];
-                $groupId = (int)($_POST['group_id'] ?? 0);
-                $postModel->createPost($current_user_id, $newContent, $imagePath, $groupId);
-                $conn->prepare("INSERT INTO post_shares (PostID, UserID) VALUES (?, ?)")->execute([$postId, $current_user_id]);
+                $postModel->createPost($current_user_id, $newContent, $imagePath, 'Public', null, null);
+                $sharedPostId = (int)$conn->lastInsertId();
+                if ($sharedPostId > 0) {
+                    $conn->prepare("INSERT INTO shares (OriginalPostID, SharedPostID, UserID) VALUES (?, ?, ?)")->execute([$postId, $sharedPostId, $current_user_id]);
+                }
                 echo json_encode(['status' => 'success']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Post not found']);

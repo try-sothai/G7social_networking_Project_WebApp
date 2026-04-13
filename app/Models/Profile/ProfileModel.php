@@ -21,12 +21,12 @@ class ProfileModel {
         $stats['posts'] = $stmt->fetchColumn();
 
         // Count Followers
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE ReceiverID = :id AND Status = 'accepted'");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE ReceiverID = :id AND Status = 'Accepted'");
         $stmt->execute(['id' => $userId]);
         $stats['followers'] = $stmt->fetchColumn();
 
         // Count Following
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE RequesterID = :id AND Status = 'accepted'");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE RequesterID = :id AND Status = 'Accepted'");
         $stmt->execute(['id' => $userId]);
         $stats['following'] = $stmt->fetchColumn();
 
@@ -36,7 +36,7 @@ class ProfileModel {
 
     public function getUserPosts($userId, $limit = 60) {
         $stmt = $this->conn->prepare("
-            SELECT PostID, Content, ImagePath, CreatedAt
+            SELECT PostID, Content, ImagePath, Privacy, Location, Feeling, CreatedAt
             FROM posts
             WHERE UserID = :id
             ORDER BY CreatedAt DESC
@@ -48,12 +48,13 @@ class ProfileModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function updateProfile($userId, $username, $bio, $profilePic, $locations) {
-        $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic, Locations = :locations WHERE UserID = :id");
+    public function updateProfile($userId, $username, $bio, $profilePic, $locations, $coverPic = null) {
+        $stmt = $this->conn->prepare("UPDATE users SET Username = :username, Bio = :bio, ProfilePic = :profilePic, CoverPic = :coverPic, Locations = :locations WHERE UserID = :id");
         return $stmt->execute([
             'username' => $username,
             'bio' => $bio,
             'profilePic' => $profilePic,
+            'coverPic' => $coverPic,
             'locations' => $locations,
             'id' => $userId
         ]);

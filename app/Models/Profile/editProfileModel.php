@@ -10,7 +10,7 @@ class editProfileModel {
 
     // ទាញទិន្នន័យ User
     public function getUserData($user_id) {
-        $sql = "SELECT Username, Email, Bio, ProfilePic, Locations FROM users WHERE UserID = ?"; 
+        $sql = "SELECT Username, Email, Bio, ProfilePic, CoverPic, Locations FROM users WHERE UserID = ?"; 
         $stmt = $this->conn->prepare($sql); // ប្រើ -> ជានិច្ច
         $stmt->execute([$user_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -30,16 +30,16 @@ class editProfileModel {
 
         $stmt = $this->conn->prepare("SELECT COUNT(*) FROM friends WHERE RequesterID = ? AND Status = 'accepted'");
         $stmt->execute([$userId]);
-        $stats['following'] = $stats['following'] = $stmt->fetchColumn();
+        $stats['following'] = $stmt->fetchColumn();
 
         return $stats;
     }
 
     // Update ព័ត៌មាន Profile
-    public function updateProfile($user_id, $username, $bio, $profile_pic, $Locations) {
-        $sql = "UPDATE users SET Username = ?, Bio = ?, ProfilePic = ?, Locations = ? WHERE UserID = ?";
+    public function updateProfile($user_id, $username, $bio, $profile_pic, $Locations, $cover_pic = null) {
+        $sql = "UPDATE users SET Username = ?, Bio = ?, ProfilePic = ?, Locations = ?, CoverPic = ? WHERE UserID = ?";
         $stmt = $this->conn->prepare($sql);
-        return $stmt->execute([$username, $bio, $profile_pic, $Locations, $user_id]);
+        return $stmt->execute([$username, $bio, $profile_pic, $Locations, $cover_pic, $user_id]);
     }
 
     // ទាញយកចំណាប់អារម្មណ៍

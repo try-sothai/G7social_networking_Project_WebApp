@@ -51,8 +51,7 @@ function admin_badge_class(string $value): string
         'Banned' => 'danger',
         'Pending' => 'warning',
         'Reviewed' => 'info',
-        'Resolved' => 'success',
-        'Dismissed' => 'neutral',
+        'Resolved' => 'success'
     ];
 
     return $map[$value] ?? 'neutral';
@@ -271,8 +270,6 @@ function admin_short_text(?string $value, int $length = 110): string
         .admin-btn-reviewed:hover { background: #2563eb !important; }
         .admin-btn-resolved { background: #10b981 !important; }
         .admin-btn-resolved:hover { background: #059669 !important; }
-        .admin-btn-dismissed { background: #64748b !important; }
-        .admin-btn-dismissed:hover { background: #475569 !important; }
 
         /* 🌙 Dark Mode Support for Admin */
         body.dark-mode .admin-dashboard,
@@ -587,7 +584,7 @@ function admin_short_text(?string $value, int $length = 110): string
                     <input type="text" name="report_q" value="<?= htmlspecialchars($reportSearch) ?>" placeholder="Search reason, reporter, target, or post text">
                     <select name="report_status">
                         <option value="">All report states</option>
-                        <?php foreach (['Pending', 'Reviewed', 'Resolved', 'Dismissed'] as $status): ?>
+                        <?php foreach (['Pending', 'Reviewed', 'Resolved'] as $status): ?>
                             <option value="<?= htmlspecialchars($status) ?>" <?= $reportStatus === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -605,7 +602,7 @@ function admin_short_text(?string $value, int $length = 110): string
                                 <div>
                                     <div class="admin-report-meta">
                                         <span class="admin-badge <?= admin_badge_class((string)$report['Status']) ?>"><?= htmlspecialchars((string)$report['Status']) ?></span>
-                                        <span><?= htmlspecialchars((string)$report['EntityType']) ?> #<?= (int)$report['EntityID'] ?></span>
+                                        <span>Post #<?= (int)($report['PostID'] ?? $report['EntityID'] ?? 0) ?></span>
                                         <span>Created <?= htmlspecialchars((string)$report['CreatedAt']) ?></span>
                                     </div>
                                     <h3><?= htmlspecialchars((string)$report['Reason']) ?></h3>
@@ -625,10 +622,6 @@ function admin_short_text(?string $value, int $length = 110): string
                                     <label>Post Preview</label>
                                     <p><?= htmlspecialchars(admin_short_text((string)($report['PostContent'] ?? ''), 180)) ?></p>
                                 </div>
-                                <div class="admin-report-span">
-                                    <label>Reporter Details</label>
-                                    <p><?= htmlspecialchars(admin_short_text((string)($report['Details'] ?? ''), 180)) ?></p>
-                                </div>
                                 <div>
                                     <label>Reviewed By</label>
                                     <p><?= htmlspecialchars((string)($report['ReviewerName'] ?? 'Not reviewed yet')) ?></p>
@@ -640,7 +633,7 @@ function admin_short_text(?string $value, int $length = 110): string
                             </div>
 
                             <div class="admin-report-actions">
-                                <?php foreach (['Reviewed', 'Resolved', 'Dismissed', 'Pending'] as $status): ?>
+                                <?php foreach (['Reviewed', 'Resolved', 'Pending'] as $status): ?>
                                     <form method="post" action="<?= htmlspecialchars(BASE_URL . 'app/Controllers/Admin/admin_actions.php') ?>">
                                         <input type="hidden" name="action" value="update_report">
                                         <input type="hidden" name="report_id" value="<?= (int)$report['ReportID'] ?>">
@@ -740,7 +733,7 @@ function admin_short_text(?string $value, int $length = 110): string
                 filename = "admin_users_list";
             } else if (dataset === 'reports') {
                 headers = ["ID", "Type", "Status", "Reason", "Reporter", "Target User", "Created At"];
-                rows = filteredData.map(r => [r.ReportID, r.EntityType, r.Status, r.Reason, r.ReporterName, (r.TargetUserName || 'N/A'), r.CreatedAt]);
+                rows = filteredData.map(r => [r.ReportID, 'Post', r.Status, r.Reason, r.ReporterName, (r.TargetUserName || 'N/A'), r.CreatedAt]);
                 title = "Admin - Reports List";
                 filename = "admin_reports_list";
             }

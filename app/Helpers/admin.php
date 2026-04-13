@@ -42,16 +42,14 @@ if (!function_exists('lc_admin_table_exists')) {
             $conn->exec("
                 CREATE TABLE admin_reports (
                     ReportID INT AUTO_INCREMENT PRIMARY KEY,
+                    PostID INT NOT NULL,
                     ReporterID INT NOT NULL,
-                    EntityType VARCHAR(20) NOT NULL,
-                    EntityID INT NOT NULL,
-                    Reason VARCHAR(120) NOT NULL,
-                    Details TEXT NULL,
-                    Status VARCHAR(20) NOT NULL DEFAULT 'Pending',
-                    ReviewedBy INT NULL,
+                    Reason VARCHAR(255) NOT NULL,
+                    Status ENUM('Pending', 'Reviewed', 'Resolved') DEFAULT 'Pending',
+                    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     ReviewedAt DATETIME NULL,
-                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE KEY uniq_reporter_entity (ReporterID, EntityType, EntityID),
+                    CONSTRAINT fk_report_post FOREIGN KEY (PostID) REFERENCES posts(PostID) ON DELETE CASCADE,
+                    CONSTRAINT fk_report_user FOREIGN KEY (ReporterID) REFERENCES users(UserID) ON DELETE CASCADE,
                     KEY idx_admin_reports_status (Status),
                     KEY idx_admin_reports_created_at (CreatedAt)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4

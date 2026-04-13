@@ -79,7 +79,7 @@ try {
     }
 
     $postStmt = $conn->prepare("
-        SELECT PostID, Content, ImagePath, CreatedAt
+        SELECT PostID, Content, ImagePath, Privacy, Location, Feeling, CreatedAt
         FROM posts
         WHERE UserID = :user_id
         ORDER BY CreatedAt DESC
@@ -88,7 +88,7 @@ try {
     $posts = $postStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     $storyStmt = $conn->prepare("
-        SELECT StoryID, StoryMedia, CreatedAt
+        SELECT StoryID, Content, StoryMedia, CreatedAt
         FROM stories
         WHERE UserID = :user_id
         ORDER BY CreatedAt DESC
@@ -121,6 +121,9 @@ foreach ($posts as $post) {
     $postsForJson[] = [
         'post_id' => (int)$post['PostID'],
         'caption' => (string)($post['Content'] ?? ''),
+        'privacy' => (string)($post['Privacy'] ?? 'Public'),
+        'location' => (string)($post['Location'] ?? ''),
+        'feeling' => (string)($post['Feeling'] ?? ''),
         'created_at' => (string)($post['CreatedAt'] ?? ''),
         'media' => $resolvedMedia
     ];
@@ -138,6 +141,7 @@ foreach ($stories as $story) {
 
     $storiesForJson[] = [
         'story_id' => (int)$story['StoryID'],
+        'content' => (string)($story['Content'] ?? ''),
         'created_at' => (string)($story['CreatedAt'] ?? ''),
         'media' => $resolvedMedia
     ];

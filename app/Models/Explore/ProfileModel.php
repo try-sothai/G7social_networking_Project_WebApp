@@ -18,7 +18,7 @@ class ProfileModel {
         $stmt->execute([$user_id]);
         $stats['posts'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         
-        $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM friends WHERE (RequesterID = ? OR ReceiverID = ?) AND Status = 'accepted'");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM friends WHERE (RequesterID = ? OR ReceiverID = ?) AND Status = 'Accepted'");
         $stmt->execute([$user_id, $user_id]);
         $stats['friends'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         
@@ -28,11 +28,11 @@ class ProfileModel {
 
     // កែសម្រួល likePost ឱ្យបញ្ចូលទៅក្នុង interactions
     public function likePost($post_id, $user_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM interactions WHERE PostID = ? AND UserID = ? AND Type = 'like'");
+        $stmt = $this->conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
         $stmt->execute([$post_id, $user_id]);
         
         if ($stmt->rowCount() > 0) {
-            $stmt = $this->conn->prepare("DELETE FROM interactions WHERE PostID = ? AND UserID = ? AND Type = 'like'");
+            $stmt = $this->conn->prepare("DELETE FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
             return $stmt->execute([$post_id, $user_id]) ? 'unliked' : false;
         } else {
             $stmt = $this->conn->prepare("INSERT INTO interactions (PostID, UserID, Type, CreatedAt) VALUES (?, ?, 'like', NOW())");

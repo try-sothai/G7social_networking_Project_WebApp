@@ -2,7 +2,6 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Explore/ProfileModel.php';
-require_once '../../Models/Friends/FriendModel.php'; // Add FriendModel for notifications
 
 header('Content-Type: application/json');
 
@@ -14,7 +13,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $model = new ProfileModel($conn);
-$friendModel = new FriendModel($conn); // Create an instance of FriendModel
 $user_id = $_SESSION['user_id'];
 
 // Handle GET requests
@@ -46,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 
             case 'get_notifications':
                 try {
-                    $notifications = $friendModel->getNotifications($user_id); // Use FriendModel
-                    $unread_count = $friendModel->getUnreadNotificationsCount($user_id); // Use FriendModel
+                    $notifications = $model->getNotifications($user_id);
+                    $unread_count = $model->getUnreadNotificationCount($user_id);
                     echo json_encode(['success' => true, 'notifications' => $notifications, 'unread_count' => $unread_count]);
                 } catch (Exception $e) {
                     error_log("Error in get_notifications: " . $e->getMessage());

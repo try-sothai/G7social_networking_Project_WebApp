@@ -13,9 +13,9 @@
                 <div class="create-post-user-meta">
                     <strong><?php echo htmlspecialchars($u_d['Username']); ?></strong>
                     <select name="visibility" class="create-post-privacy">
-                        <option value="public">Public</option>
-                        <option value="friends">Friends</option>
-                        <option value="private">Only me</option>
+                        <option value="Public">Public</option>
+                        <option value="Friends">Friends</option>
+                        <option value="Private">Only me</option>
                     </select>
                 </div>
             </div>

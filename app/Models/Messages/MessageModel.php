@@ -6,22 +6,11 @@ class MessageModel {
         $this->db = $conn;
     }
 
-    private function ensurePresenceTable() {
-        $this->db->exec("
-            CREATE TABLE IF NOT EXISTS user_presence (
-                UserID INT PRIMARY KEY,
-                LastSeen DATETIME NOT NULL,
-                INDEX idx_last_seen (LastSeen)
-            )
-        ");
-    }
-
     public function touchPresence($userId) {
-        $this->ensurePresenceTable();
         $stmt = $this->db->prepare("
-            INSERT INTO user_presence (UserID, LastSeen)
-            VALUES (:uid, NOW())
-            ON DUPLICATE KEY UPDATE LastSeen = NOW()
+            INSERT INTO user_presence (UserID, IsOnline, LastSeen)
+            VALUES (:uid, 1, NOW())
+            ON DUPLICATE KEY UPDATE IsOnline = 1, LastSeen = NOW()
         ");
         return $stmt->execute([':uid' => $userId]);
     }
@@ -67,7 +56,6 @@ class MessageModel {
     
     /* ===== GET FRIENDS WITH LAST MESSAGE ===== */
     public function getFriendsWithLastMessage($userId) {
-        $this->ensurePresenceTable();
         $stmt = $this->db->prepare("
             SELECT 
                 u.UserID, u.Username, u.ProfilePic, u.Bio,
@@ -119,7 +107,6 @@ class MessageModel {
     
     /* ===== SEARCH USERS (Friends Only) ===== */
     public function searchFriends($userId, $searchTerm) {
-        $this->ensurePresenceTable();
         $searchTerm = "%{$searchTerm}%";
         $stmt = $this->db->prepare("
             SELECT u.UserID, u.Username, u.ProfilePic, u.Bio,
@@ -266,9 +253,13 @@ class MessageModel {
             return false;
         }
         
-        // Delete the message
+        // Update the message to represent a deleted state for everyone
         $stmt = $this->db->prepare("
-            DELETE FROM messages WHERE MessageID = :id
+            UPDATE messages 
+            SET MessageBody = '🚫 This message was deleted',
+                MessageType = 'text',
+                FileUrl = NULL
+            WHERE MessageID = :id
         ");
         
         return $stmt->execute([':id' => $messageId]);

@@ -133,7 +133,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $type = 'video';
             $maxSize = $maxVideoSize;
         } elseif (in_array($ext, $audioExtensions)) {
-            $type = 'audio';
+            $type = 'file'; // Fallback to file mapping for DB ENUM compatibility
             $maxSize = $maxAudioSize;
         } else {
             $type = 'file';
@@ -172,6 +172,12 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         move_uploaded_file($_FILES['call_recording']['tmp_name'], $uploadPath);
         $fileUrl = $fileName;
         $messageBody = "Voice message";
+        $type = 'file'; // Fallback to file mapping for DB ENUM compatibility
+    }
+
+    // Ensure type matches DB schema exactly before saving
+    if (!in_array($type, ['text', 'image', 'video', 'file'])) {
+        $type = 'text';
     }
 
     $messageId = $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody, $type, $fileUrl);
@@ -192,7 +198,7 @@ if ($action === 'start_call') {
 
     // Create a call notification message
     $messageBody = ($callType === 'video' ? 'Video' : 'Audio') . ' call started';
-    $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody, 'call', null);
+    $messageModel->sendMessage($current_user_id, $receiver_id, $messageBody, 'text', null);
 
     echo json_encode([
         'success' => true,
@@ -249,10 +255,22 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // ១. ទាញយកសារសិនដើម្បីឆែកមើលថាមាន File ដែរឬទេ
+        $msgData = $messageModel->getMessageById($message_id);
+
+        // ២. ធ្វើការ Update Database (Soft Delete)
         $success = $messageModel->deleteMessage($message_id, $current_user_id);
 
         if ($success) {
-            echo json_encode(['success' => true, 'message' => 'Message deleted']);
+            // ៣. បើមាន File ត្រូវលុបវាចេញពី Server
+            if ($msgData && !empty($msgData['FileUrl'])) {
+                $baseDir = str_starts_with($msgData['FileUrl'], time() . '_call_') ? 'calls/' : 'chat/';
+                $filePath = "../../../public/uploads/" . $baseDir . basename($msgData['FileUrl']);
+                if (is_file($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            echo json_encode(['success' => true, 'message' => 'Message deleted for everyone']);
         } else {
             echo json_encode(['success' => false, 'error' => 'Failed to delete message or unauthorized']);
         }

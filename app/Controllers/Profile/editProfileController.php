@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // យកឈ្មោះរូបភាពចាស់ជាមុន
     $profile_pic = $u_d['ProfilePic'] ?? null; 
+    $cover_pic = $u_d['CoverPic'] ?? null;
 
     // បើមានការ Upload រូបភាពថ្មី
     if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
@@ -36,7 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $result = $model->updateProfile($user_id, $username, $bio, $profile_pic, $Locations);
+    // បើមានការ Upload រូបភាព Cover ថ្មី
+    if (isset($_FILES['cover_pic']) && $_FILES['cover_pic']['error'] === 0) {
+        $cover_file_name = time() . '_cover_' . preg_replace("/[^a-zA-Z0-9.]/", "_", $_FILES['cover_pic']['name']);
+        $cover_upload_path = "../../../public/img/" . $cover_file_name;
+        
+        if (move_uploaded_file($_FILES['cover_pic']['tmp_name'], $cover_upload_path)) {
+            $cover_pic = $cover_file_name; 
+        }
+    }
+
+    $result = $model->updateProfile($user_id, $username, $bio, $profile_pic, $Locations, $cover_pic);
     $model->updateInterests($user_id, $interests);
     
     // បញ្ជូនចម្លើយជា JSON ស្អាត (គ្មានអក្សរ HTML លាយឡំ)

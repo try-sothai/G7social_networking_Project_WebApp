@@ -7,7 +7,7 @@ require_once '../../Models/Groups/GroupModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../Login/login_gmail.php");
+    header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
     exit();
 }
 
@@ -172,7 +172,7 @@ if (!empty($current_u_d['ProfilePic'])) {
     }
 }
 if ($headerPicPath === '') {
-    $headerPicPath = 'https://via.placeholder.com/150';
+    $headerPicPath = BASE_URL . 'public/img/default.png';
 }
 ?>
 
@@ -213,7 +213,7 @@ if ($headerPicPath === '') {
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/img/' . $u_d['ProfilePic'];
                             } else {
-                                echo 'https://via.placeholder.com/150';
+                                echo BASE_URL . 'public/img/default.png';
                             }
                         ?>" alt="Profile">
                     </div>
@@ -222,10 +222,10 @@ if ($headerPicPath === '') {
                         <div class="name-row">
                             <h2><?php echo htmlspecialchars($u_d['Username']); ?></h2>
                             <?php if ($is_own_profile): ?>
-                                <a href="editProfile.php"><button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button></a>
+                        <a href="<?php echo BASE_URL; ?>app/Controllers/Profile/editProfileController.php"><button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button></a>
                             <?php else: ?>
                                 <div style="display: flex; gap: 10px;">
-                                    <a href="../Messages/message.php?user_id=<?php echo $profile_user_id; ?>"><button class="btn-action-light"><i class="fa-solid fa-message"></i> Message</button></a>
+                            <a href="<?php echo BASE_URL; ?>app/Views/Messages/message.php?user_id=<?php echo $profile_user_id; ?>"><button class="btn-action-light"><i class="fa-solid fa-message"></i> Message</button></a>
                                     <button class="btn-action-light" onclick="sendFriendRequest(<?php echo $profile_user_id; ?>, this)"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
                                 </div>
                             <?php endif; ?>
@@ -254,10 +254,10 @@ if ($headerPicPath === '') {
 
             <?php if ($is_own_profile): ?>
                 <div class="profile-footer-actions">
-                    <a href="settings.php" style="text-decoration: none;">
+                    <a href="<?php echo BASE_URL; ?>app/Views/Profile/settings.php" style="text-decoration: none;">
                         <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
                     </a>
-                    <a href="../Login/login_gmail.php" style="text-decoration: none;">
+                    <a href="<?php echo BASE_URL; ?>app/Controllers/Auth/logout.php" style="text-decoration: none;">
                         <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
                     </a>
                 </div>
@@ -442,7 +442,7 @@ if ($headerPicPath === '') {
                                         ? '../../../public/img/groups/' . $tGroup['GroupAvatar'] 
                                         : 'https://ui-avatars.com/api/?background=random&color=fff&bold=true&name=' . urlencode(substr($tGroup['GroupName'], 0, 2));
                                 ?>
-                                <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="window.location.href='../Groups/group_details.php?id=<?php echo $tGroup['GroupID']; ?>'">
+                        <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="window.location.href='<?php echo BASE_URL; ?>app/Views/Groups/group_details.php?id=<?php echo $tGroup['GroupID']; ?>'">
                                     <img src="<?php echo $groupAvatar; ?>" style="width: 45px; height: 45px; border-radius: 12px; object-fit: cover;" alt="Group Avatar">
                                     <div>
                                         <div style="font-weight: 700; font-size: 14px;"><?php echo htmlspecialchars($tGroup['GroupName']); ?></div>
