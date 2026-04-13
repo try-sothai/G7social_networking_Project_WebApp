@@ -850,6 +850,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const content = (postContentInput && postContentInput.value) ? postContentInput.value.trim() : '';
             const locationVal = locationInput ? locationInput.value.trim() : '';
             const feelingVal = feelingInput ? feelingInput.value.trim() : '';
+            const visibilitySelect = createPostForm.querySelector('select[name="visibility"]');
+            const visibilityVal = visibilitySelect ? visibilitySelect.value : 'Public';
 
             if (files.length === 0 && content === '' && !locationVal && !feelingVal) {
                 postModalMessage.textContent = 'Please add text, feeling, location, or at least one media file.';
@@ -871,6 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('content', content);
             payload.append('location', locationVal);
             payload.append('feeling', feelingVal);
+            payload.append('privacy', visibilityVal);
             if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
                 payload.append('group_id', window.CURRENT_GROUP_ID);
             }
@@ -1117,9 +1120,11 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'like': return 'liked your post';
             case 'comment': return 'commented on your post';
             case 'share': return 'shared your post';
-            case 'post': return 'added a new post';
             case 'friendrequest': return 'sent you a friend request';
-            case 'requestaccepted': return 'accepted your friend request';
+            case 'message': return 'sent you a message';
+            case 'newevent': return 'created a new event';
+            case 'groupinvite': return 'invited you to a group';
+            case 'mention': return 'mentioned you in a post';
             default: return 'interacted with your profile';
         }
     }

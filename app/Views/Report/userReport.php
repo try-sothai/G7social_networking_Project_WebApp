@@ -46,11 +46,11 @@ try {
     $engagementTrends = [];
     for ($i = 29; $i >= 0; $i--) {
         $date = date('Y-m-d', strtotime("-$i days"));
-        $stmtC = $conn->prepare("SELECT COUNT(*) FROM post_comments WHERE DATE(CreatedAt) = ?");
+        $stmtC = $conn->prepare("SELECT COUNT(*) FROM interactions WHERE Type = 'comment' AND DATE(CreatedAt) = ?");
         $stmtC->execute([$date]);
         $comments = $stmtC->fetchColumn() ?: 0;
         
-        $stmtL = $conn->prepare("SELECT COUNT(pl.PostID) FROM post_likes pl INNER JOIN posts p ON pl.PostID = p.PostID WHERE DATE(p.CreatedAt) = ?");
+        $stmtL = $conn->prepare("SELECT COUNT(i.PostID) FROM interactions i INNER JOIN posts p ON i.PostID = p.PostID WHERE i.Type IN ('like', 'love', 'haha') AND DATE(p.CreatedAt) = ?");
         $stmtL->execute([$date]);
         $likes = $stmtL->fetchColumn() ?: 0;
         
@@ -79,8 +79,9 @@ try {
     // Real-time Activities
     $recentActivities = $conn->query("
         SELECT 'commented on a post' as action, c.CommentText as comment_text, NULL as target_content, c.CreatedAt as activity_time, u.Username, u.ProfilePic
-        FROM post_comments c
+        FROM interactions c
         JOIN users u ON c.UserID = u.UserID
+        WHERE c.Type = 'comment'
         UNION ALL
         SELECT 'created a new post' as action, NULL as comment_text, p.Content as target_content, p.CreatedAt as activity_time, u.Username, u.ProfilePic
         FROM posts p
@@ -93,7 +94,7 @@ try {
     $topActiveUsers = $conn->query("
         SELECT u.UserID, u.Username, u.ProfilePic, u.CreatedAt,
                COUNT(DISTINCT p.PostID) as total_posts,
-               (SELECT COUNT(*) FROM post_comments WHERE UserID = u.UserID) as total_interactions
+               (SELECT COUNT(*) FROM interactions WHERE UserID = u.UserID) as total_interactions
         FROM users u
         LEFT JOIN posts p ON u.UserID = p.UserID
         GROUP BY u.UserID, u.Username, u.ProfilePic, u.CreatedAt
@@ -113,13 +114,13 @@ try {
 
 // Fetch actual counts for Likes, Comments, Shares
 try {
-    $stmtLikes = $conn->query("SELECT COUNT(*) FROM post_likes");
+    $stmtLikes = $conn->query("SELECT COUNT(*) FROM interactions WHERE Type IN ('like', 'love', 'haha')");
     $totalLikes = $stmtLikes->fetchColumn();
 
-    $stmtComments = $conn->query("SELECT COUNT(*) FROM post_comments");
+    $stmtComments = $conn->query("SELECT COUNT(*) FROM interactions WHERE Type = 'comment'");
     $totalComments = $stmtComments->fetchColumn();
 
-    $stmtShares = $conn->query("SELECT COUNT(*) FROM post_shares");
+    $stmtShares = $conn->query("SELECT COUNT(*) FROM shares");
     $totalShares = $stmtShares->fetchColumn();
 } catch (PDOException $e) {
     $totalLikes = 0; $totalComments = 0; $totalShares = 0;

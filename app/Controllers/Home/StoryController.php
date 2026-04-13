@@ -141,7 +141,7 @@ if ($action === 'fetch') {
         $stories = $storyModel->getRecentStories(24);
         foreach ($stories as &$story) {
             $meta = readOverlayMeta($metaDirAbs, (string)($story['StoryMedia'] ?? ''));
-            $story['OverlayText'] = $meta['text'];
+            $story['OverlayText'] = !empty($story['Content']) ? $story['Content'] : $meta['text'];
             $story['OverlayPosition'] = $meta['position'];
             $story['ZoomScale'] = $meta['zoom'];
         }
@@ -188,7 +188,7 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $overlayPosition = sanitizeOverlayPosition((string)($_POST['overlay_position'] ?? 'bottom'));
         $zoomScale = sanitizeZoomScale($_POST['zoom_scale'] ?? 1);
 
-        $storyModel->createStory($current_user_id, $targetDb);
+        $storyModel->createStory($current_user_id, $targetDb, $overlayText);
         writeOverlayMeta($metaDirAbs, $targetDb, $overlayText, $overlayPosition, $zoomScale);
 
         echo json_encode(['status' => 'success', 'message' => 'Story added successfully.']);
@@ -224,7 +224,7 @@ if ($action === 'create_from_temp' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $overlayPosition = sanitizeOverlayPosition((string)($_POST['overlay_position'] ?? 'bottom'));
         $zoomScale = sanitizeZoomScale($_POST['zoom_scale'] ?? 1);
 
-        $storyModel->createStory($current_user_id, $moved['db']);
+        $storyModel->createStory($current_user_id, $moved['db'], $overlayText);
         writeOverlayMeta($metaDirAbs, $moved['db'], $overlayText, $overlayPosition, $zoomScale);
 
         echo json_encode(['status' => 'success', 'message' => 'Story added successfully.']);
