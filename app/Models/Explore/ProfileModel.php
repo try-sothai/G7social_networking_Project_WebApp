@@ -83,12 +83,13 @@ public function getExplorePosts($category = null, $limit = 20) {
                 SELECT p.*, u.Username, u.ProfilePic 
                 FROM posts p 
                 JOIN users u ON p.UserID = u.UserID 
-                WHERE p.Content LIKE :search OR p.ImagePath LIKE :search
+                WHERE p.Category = :category OR p.Content LIKE :search OR p.ImagePath LIKE :search
                 ORDER BY p.CreatedAt DESC 
                 LIMIT :limit
             ";
             $stmt = $this->conn->prepare($sql);
             $searchTerm = "%$category%";
+            $stmt->bindParam(':category', $category);
             $stmt->bindParam(':search', $searchTerm);
             $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
@@ -132,9 +133,9 @@ public function checkLikeStatus($post_id, $user_id) {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function createPost($user_id, $content, $image_path = null) {
-        $stmt = $this->conn->prepare("INSERT INTO posts (UserID, Content, ImagePath, CreatedAt) VALUES (?, ?, ?, NOW())");
-        return $stmt->execute([$user_id, $content, $image_path]);
+    public function createPost($user_id, $content, $image_path = null, $category = 'General') {
+        $stmt = $this->conn->prepare("INSERT INTO posts (UserID, Content, ImagePath, Category, CreatedAt) VALUES (?, ?, ?, ?, NOW())");
+        return $stmt->execute([$user_id, $content, $image_path, $category]);
     }
 
   public function getNotifications($user_id) {

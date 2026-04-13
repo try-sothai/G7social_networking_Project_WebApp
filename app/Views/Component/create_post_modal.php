@@ -17,6 +17,14 @@
                         <option value="Friends">Friends</option>
                         <option value="Private">Only me</option>
                     </select>
+                    <select name="category" class="create-post-privacy" style="margin-left: 5px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #475569;">
+                        <option value="All">All (General)</option>
+                        <option value="Photography">Photography</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Architecture">Architecture</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Digital Art">Digital Art</option>
+                    </select>
                 </div>
             </div>
 

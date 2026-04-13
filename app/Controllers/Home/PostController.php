@@ -328,6 +328,11 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $privacy = 'Public';
     }
 
+    $category = $_POST['category'] ?? 'General';
+    if ($category === 'All') {
+        $category = 'General';
+    }
+
     if ($content === '' && count($uploadedFiles) === 0) {
         echo json_encode(['status' => 'error', 'message' => 'Please add text or at least one media file.']);
         exit;
@@ -346,7 +351,7 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $postModel->createPost($current_user_id, $content, $mediaValue, $privacy, $location ?: null, $feeling ?: null);
+        $postModel->createPost($current_user_id, $content, $mediaValue, $privacy, $location ?: null, $feeling ?: null, $category);
         echo json_encode(['status' => 'success', 'message' => 'Post published successfully.']);
     } catch (PDOException $e) {
         deleteMediaFiles($uploadDirAbs, $savedMedia);

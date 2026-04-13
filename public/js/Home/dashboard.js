@@ -852,6 +852,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const feelingVal = feelingInput ? feelingInput.value.trim() : '';
             const visibilitySelect = createPostForm.querySelector('select[name="visibility"]');
             const visibilityVal = visibilitySelect ? visibilitySelect.value : 'Public';
+            const categorySelect = createPostForm.querySelector('select[name="category"]');
+            const categoryVal = categorySelect ? categorySelect.value : 'General';
 
             if (files.length === 0 && content === '' && !locationVal && !feelingVal) {
                 postModalMessage.textContent = 'Please add text, feeling, location, or at least one media file.';
@@ -874,6 +876,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('location', locationVal);
             payload.append('feeling', feelingVal);
             payload.append('privacy', visibilityVal);
+            payload.append('category', categoryVal);
             if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
                 payload.append('group_id', window.CURRENT_GROUP_ID);
             }

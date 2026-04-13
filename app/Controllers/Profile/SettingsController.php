@@ -3,74 +3,54 @@ session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/SettingsModel.php';
 
-// ការពារអ្នកមិនទាន់ Login
+header('Content-Type: application/json');
+
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../Views/Login/login_gmail.php");
+    echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
     exit();
 }
 
+$userId = $_SESSION['user_id'];
 $action = $_POST['action'] ?? '';
-$user_id = $_SESSION['user_id'];
-$model = new SettingsModel($conn);
+$settingsModel = new SettingsModel($conn);
 
-// ប្រសិនបើ Action គឺប្តូរលេខសម្ងាត់
-if ($action === 'update_password') {
-    $current_password = $_POST['current_password'] ?? '';
-    $new_password = $_POST['new_password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+if ($action === 'change_password') {
+    $currentPwd = $_POST['current_password'] ?? '';
+    $newPwd = $_POST['new_password'] ?? '';
 
-    // លក្ខខណ្ឌផ្ទៀងផ្ទាត់
-    if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-        $_SESSION['settings_error'] = "All fields are required.";
-        header("Location: ../../Views/Profile/settings.php");
+    if (empty($currentPwd) || empty($newPwd)) {
+        echo json_encode(['success' => false, 'message' => 'Please fill in all fields.']);
         exit();
     }
 
-    if ($new_password !== $confirm_password) {
-        $_SESSION['settings_error'] = "New password and confirm password do not match.";
-        header("Location: ../../Views/Profile/settings.php");
-        exit();
-    }
+    $currentHash = $settingsModel->getPasswordHash($userId);
 
-    if (strlen($new_password) < 8) {
-        $_SESSION['settings_error'] = "New password must be at least 8 characters long.";
-        header("Location: ../../Views/Profile/settings.php");
-        exit();
-    }
+    // Verify password (គាំទ្រទាំង password_hash ថ្មី និង md5/text ចាស់)
+    if (password_verify($currentPwd, $currentHash) || md5($currentPwd) === $currentHash || $currentPwd === $currentHash) {
+        $newHash = password_hash($newPwd, PASSWORD_DEFAULT);
+        $updated = $settingsModel->updatePassword($userId, $newHash);
 
-    $current_hash = $model->getPasswordHash($user_id);
-
-    // ផ្ទៀងផ្ទាត់លេខសម្ងាត់ចាស់
-    if (!password_verify($current_password, $current_hash) && !hash_equals($current_hash, $current_password)) {
-        $_SESSION['settings_error'] = "Current password is incorrect.";
-        header("Location: ../../Views/Profile/settings.php");
-        exit();
-    }
-
-    // បំប្លែង (Hash) និងរក្សាទុកលេខសម្ងាត់ថ្មី
-    $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
-    if ($model->updatePassword($user_id, $new_hash)) {
-        $_SESSION['settings_success'] = "Password updated successfully.";
+        if ($updated) {
+            echo json_encode(['success' => true, 'message' => 'Password updated successfully.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update password.']);
+        }
     } else {
-        $_SESSION['settings_error'] = "Failed to update password. Please try again.";
+        echo json_encode(['success' => false, 'message' => 'Incorrect current password.']);
     }
-
-    header("Location: ../../Views/Profile/settings.php");
     exit();
 }
 
-// ប្រសិនបើ Action គឺលុបគណនី (Delete Account)
 if ($action === 'delete_account') {
-    if ($model->deleteAccount($user_id)) {
-        // លុប Session និងរុញទៅកាន់ទំព័រ Login
-        session_unset();
-        session_destroy();
-        header("Location: ../../Views/Login/login_gmail.php?error=Account_deleted_successfully");
-        exit();
+    $deleted = $settingsModel->deleteAccount($userId);
+    if ($deleted) {
+        // ការ Logout នឹងត្រូវបានគ្រប់គ្រងនៅលើ Frontend ពេលដែលជោគជ័យ
+        echo json_encode(['success' => true, 'message' => 'Account deleted.']);
     } else {
-        $_SESSION['settings_error'] = "Failed to delete account. Please try again.";
-        header("Location: ../../Views/Profile/settings.php");
-        exit();
+        echo json_encode(['success' => false, 'message' => 'Failed to delete account.']);
     }
+    exit();
 }
+
+echo json_encode(['success' => false, 'message' => 'Invalid action.']);
 ?>

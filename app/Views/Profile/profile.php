@@ -35,6 +35,15 @@ $followers = $stats['followers'];
 $following = $stats['following'];
 $trendingGroups = $groupModel->getPopularGroups($current_user_id, 3);
 
+// --- Fetch Followers and Following ---
+$stmtFollowers = $conn->prepare("SELECT u.UserID, u.Username, u.ProfilePic FROM friends f JOIN users u ON f.RequesterID = u.UserID WHERE f.ReceiverID = ? AND f.Status = 'Accepted'");
+$stmtFollowers->execute([$profile_user_id]);
+$followersList = $stmtFollowers->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtFollowing = $conn->prepare("SELECT u.UserID, u.Username, u.ProfilePic FROM friends f JOIN users u ON f.ReceiverID = u.UserID WHERE f.RequesterID = ? AND f.Status = 'Accepted'");
+$stmtFollowing->execute([$profile_user_id]);
+$followingList = $stmtFollowing->fetchAll(PDO::FETCH_ASSOC);
+
 
 function parsePostMediaList($imagePathValue) {
     $raw = trim((string)$imagePathValue);
@@ -186,6 +195,147 @@ if ($headerPicPath === '') {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Profile/profile.css">
+    <style>
+        /* Lightbox */
+        .profile-lightbox {
+            display: flex;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .profile-lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .profile-lightbox-img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .profile-lightbox.active .profile-lightbox-img {
+            transform: scale(1);
+        }
+        .profile-lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+        .profile-lightbox-close:hover {
+            color: #ef4444;
+        }
+
+        /* Follow Modal */
+        .follow-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .follow-modal.active {
+            display: flex;
+        }
+        .follow-modal-content {
+            background: var(--bg-card, #fff);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .follow-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color, #e2e8f0);
+        }
+        .follow-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text-dark, #1e293b);
+        }
+        .follow-modal-close {
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-muted, #64748b);
+            transition: color 0.2s;
+        }
+        .follow-modal-close:hover {
+            color: #ef4444;
+        }
+        .follow-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        .follow-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--text-dark, #1e293b);
+            transition: background 0.2s;
+        }
+        .follow-item:hover {
+            background: var(--bg-body, #f8fafc);
+        }
+        .follow-item img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color, #e2e8f0);
+        }
+        .follow-item-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .stat-item {
+            transition: transform 0.2s;
+        }
+        .stat-item:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Dark Mode Support for Modal */
+        body.dark-mode .follow-modal-content { background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.2); }
+        body.dark-mode .follow-modal-header { border-bottom-color: rgba(148, 163, 184, 0.2); }
+        body.dark-mode .follow-item { color: #e2e8f0; }
+        body.dark-mode .follow-item:hover { background: #0f172a; }
+        body.dark-mode .follow-modal-header h3 { color: #f1f5f9; }
+    </style>
 </head>
 <body>
     <?php lc_shell_render_sidebar(['active' => 'profile']); ?>
@@ -206,38 +356,44 @@ if ($headerPicPath === '') {
         ?>
 
         <div class="profile-dashboard-wrapper">
-            <div class="profile-card">
-                <div class="profile-header-main">
-                    <div class="avatar-container">
-                        <img class="profile-img-large" src="<?php 
-                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
-                                echo '../../../public/img/' . $u_d['ProfilePic'];
-                            } else {
-                                echo BASE_URL . 'public/img/default.png';
-                            }
-                        ?>" alt="Profile">
-                    </div>
-                    
-                    <div class="profile-details">
-                        <div class="name-row">
-                            <h2><?php echo htmlspecialchars($u_d['Username']); ?></h2>
+            <div class="profile-card" style="padding: 0; overflow: hidden;">
+                <!-- Cover Photo Area -->
+                <?php $coverPhotoUrl = !empty($u_d['CoverPic']) && file_exists('../../../public/img/' . $u_d['CoverPic']) ? BASE_URL . 'public/img/' . $u_d['CoverPic'] : BASE_URL . 'public/img/default_cover.jpg'; ?>
+                <div onclick="openLightbox('<?php echo $coverPhotoUrl; ?>')" style="cursor: pointer; height: 250px; background-color: #cbd5e1; background-image: url('<?php echo $coverPhotoUrl; ?>'); background-size: cover; background-position: center; position: relative;">
+                </div>
+                
+                <div style="padding: 20px 30px 30px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: -80px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div class="avatar-container" style="position: relative; z-index: 2;">
+                            <?php $avatarPhotoUrl = !empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic']) ? '../../../public/img/' . $u_d['ProfilePic'] : BASE_URL . 'public/img/default.png'; ?>
+                            <img onclick="openLightbox('<?php echo $avatarPhotoUrl; ?>')" class="profile-img-large" src="<?php echo $avatarPhotoUrl; ?>" alt="Profile" style="cursor: pointer; width: 140px; height: 140px; border: 4px solid var(--bg-card, #ffffff); box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: var(--bg-card, #ffffff);">
+                        </div>
+                        <div style="position: relative; z-index: 2; margin-bottom: 10px;">
                             <?php if ($is_own_profile): ?>
-                        <a href="<?php echo BASE_URL; ?>app/Controllers/Profile/editProfileController.php"><button class="btn-action-light"><i class="fa-solid fa-pen"></i> Edit Profile</button></a>
+                                <a href="<?php echo BASE_URL; ?>app/Controllers/Profile/editProfileController.php">
+                                    <button class="btn-action-light" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; padding: 10px 24px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); border-radius: 12px; font-weight: 600;"><i class="fa-solid fa-pen" style="margin-right: 5px;"></i> Edit Profile</button>
+                                </a>
                             <?php else: ?>
                                 <div style="display: flex; gap: 10px;">
-                            <a href="<?php echo BASE_URL; ?>app/Views/Messages/message.php?user_id=<?php echo $profile_user_id; ?>"><button class="btn-action-light"><i class="fa-solid fa-message"></i> Message</button></a>
-                                    <button class="btn-action-light" onclick="sendFriendRequest(<?php echo $profile_user_id; ?>, this)"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
+                                    <a href="<?php echo BASE_URL; ?>app/Views/Messages/message.php?user_id=<?php echo $profile_user_id; ?>"><button class="btn-action-light" style="border-radius: 12px; padding: 10px 20px;"><i class="fa-solid fa-message" style="margin-right: 5px;"></i> Message</button></a>
+                                    <button class="btn-action-light" onclick="sendFriendRequest(<?php echo $profile_user_id; ?>, this)" style="border-radius: 12px; padding: 10px 20px; background: #2563eb; color: white; border: none;"><i class="fa-solid fa-user-plus" style="margin-right: 5px;"></i> Add Friend</button>
                                 </div>
                             <?php endif; ?>
                         </div>
+                    </div>
+                        
+                    <div class="profile-details">
+                        <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 5px;"><?php echo htmlspecialchars($u_d['Username']); ?></h2>
                         
                         <?php if ($is_own_profile): ?>
-                            <p><?php echo htmlspecialchars($u_d['Email']); ?></p>
+                            <p class="user-email" style="margin-bottom: 15px;"><i class="fa-solid fa-envelope" style="margin-right: 5px;"></i> <?php echo htmlspecialchars($u_d['Email']); ?></p>
                         <?php endif; ?>
 
-                        <div class="stat-item"><strong><?php echo $stats['posts'] ?? 0; ?></strong> <span>Posts</span></div>
-                        <div class="stat-item"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
-                        <div class="stat-item"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
+                        <div class="profile-stats" style="margin-bottom: 25px;">
+                            <div class="stat-item"><strong><?php echo $stats['posts'] ?? 0; ?></strong> <span>Posts</span></div>
+                            <div class="stat-item" style="cursor: pointer;" onclick="openFollowModal('followersModal')"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
+                            <div class="stat-item" style="cursor: pointer;" onclick="openFollowModal('followingModal')"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
+                        </div>
 
                         <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
                         <p class="profile-location"><i class="fa-solid fa-location-dot"></i> <?php echo !empty($u_d['Locations']) ? htmlspecialchars($u_d['Locations']) : 'No location available'; ?></p>
@@ -252,16 +408,16 @@ if ($headerPicPath === '') {
                     </div>
                 </div>
 
-            <?php if ($is_own_profile): ?>
-                <div class="profile-footer-actions">
-                    <a href="<?php echo BASE_URL; ?>app/Views/Profile/settings.php" style="text-decoration: none;">
-                        <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
-                    </a>
-                    <a href="<?php echo BASE_URL; ?>app/Controllers/Auth/logout.php" style="text-decoration: none;">
-                        <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
-                    </a>
-                </div>
-            <?php endif; ?>
+                <?php if ($is_own_profile): ?>
+                    <div class="profile-footer-actions" style="margin: 0 30px; padding: 25px 0 30px;">
+                        <a href="<?php echo BASE_URL; ?>app/Views/Profile/settings.php" style="text-decoration: none;">
+                            <button class="btn-secondary"><i class="fa-solid fa-gear"></i> Settings</button>
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>app/Views/Login/logout.php" style="text-decoration: none;">
+                            <button class="btn-logout-alt"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="content-tabs">
@@ -495,6 +651,56 @@ if ($headerPicPath === '') {
     <!-- Toast Notification សម្រាប់ Add Friend -->
     <div id="toast" style="position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; color: white; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: 0.3s;"></div>
 
+    <!-- Lightbox -->
+    <div id="profileLightbox" class="profile-lightbox" onclick="this.classList.remove('active')">
+        <span class="profile-lightbox-close">&times;</span>
+        <img class="profile-lightbox-img" id="profileLightboxImg" src="" alt="View Photo">
+    </div>
+
+    <!-- Followers Modal -->
+    <div id="followersModal" class="follow-modal" onclick="if(event.target === this) closeFollowModal('followersModal')">
+        <div class="follow-modal-content">
+            <div class="follow-modal-header">
+                <h3>Followers</h3>
+                <i class="fa-solid fa-xmark follow-modal-close" onclick="closeFollowModal('followersModal')"></i>
+            </div>
+            <div class="follow-list">
+                <?php if(empty($followersList)): ?>
+                    <div style="padding: 20px; text-align: center; color: #64748b;">No followers yet.</div>
+                <?php else: ?>
+                    <?php foreach($followersList as $f): ?>
+                        <a href="profile.php?user_id=<?php echo $f['UserID']; ?>" class="follow-item">
+                            <img src="<?php echo normalizeProfileImagePath($f['ProfilePic']); ?>" alt="">
+                            <span class="follow-item-name"><?php echo htmlspecialchars($f['Username']); ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Following Modal -->
+    <div id="followingModal" class="follow-modal" onclick="if(event.target === this) closeFollowModal('followingModal')">
+        <div class="follow-modal-content">
+            <div class="follow-modal-header">
+                <h3>Following</h3>
+                <i class="fa-solid fa-xmark follow-modal-close" onclick="closeFollowModal('followingModal')"></i>
+            </div>
+            <div class="follow-list">
+                <?php if(empty($followingList)): ?>
+                    <div style="padding: 20px; text-align: center; color: #64748b;">Not following anyone yet.</div>
+                <?php else: ?>
+                    <?php foreach($followingList as $f): ?>
+                        <a href="profile.php?user_id=<?php echo $f['UserID']; ?>" class="follow-item">
+                            <img src="<?php echo normalizeProfileImagePath($f['ProfilePic']); ?>" alt="">
+                            <span class="follow-item-name"><?php echo htmlspecialchars($f['Username']); ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <script>
         function sendFriendRequest(userId, button) {
             const originalText = button.innerHTML;
@@ -532,6 +738,18 @@ if ($headerPicPath === '') {
             toast.style.backgroundColor = bgColor;
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function openLightbox(src) {
+            document.getElementById('profileLightboxImg').src = src;
+            document.getElementById('profileLightbox').classList.add('active');
+        }
+
+        function openFollowModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        function closeFollowModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
     </script>
     <script src="../../../public/js/Profile/profile.js"></script>

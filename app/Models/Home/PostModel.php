@@ -29,10 +29,10 @@ class PostModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    public function createPost(int $userId, string $content, string $imagePath, string $privacy = 'Public', ?string $location = null, ?string $feeling = null): bool {
+    public function createPost(int $userId, string $content, string $imagePath, string $privacy = 'Public', ?string $location = null, ?string $feeling = null, string $category = 'General'): bool {
         $stmt = $this->db->prepare("
-            INSERT INTO posts (UserID, Content, ImagePath, Privacy, Location, Feeling, CreatedAt)
-            VALUES (:user_id, :content, :image_path, :privacy, :location, :feeling, NOW())
+            INSERT INTO posts (UserID, Content, ImagePath, Privacy, Location, Feeling, Category, CreatedAt)
+            VALUES (:user_id, :content, :image_path, :privacy, :location, :feeling, :category, NOW())
         ");
         return $stmt->execute([
             ':user_id' => $userId,
@@ -40,7 +40,8 @@ class PostModel {
             ':image_path' => $imagePath,
             ':privacy' => $privacy,
             ':location' => $location,
-            ':feeling' => $feeling
+            ':feeling' => $feeling,
+            ':category' => $category
         ]);
     }
 

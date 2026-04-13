@@ -58,7 +58,6 @@ if ($profilePicPath === '') {
             lc_shell_render_header([
                 'notification_html' => $editProfileNotificationHtml,
                 'user_name' => (string)($u_d['Username'] ?? ''),
-                'profile_href' => 'profile.php',
                 'profile_image' => $profilePicPath,
             ]);
         ?>
@@ -92,7 +91,7 @@ if ($profilePicPath === '') {
                     <input type="text" id="username-input" value="<?php echo htmlspecialchars((string)($u_d['Username'] ?? '')); ?>" class="edit-name" style="flex: 1; min-width: 200px; max-width: 350px;">
                     <div style="margin-left: auto; display: flex; gap: 10px;">
                         <button type="button" class="btn-save" id="save-btn" style="margin: 0;"><i class="fa-solid fa-check"></i> Save Changes</button>
-                        <a href="<?php echo BASE_URL; ?>app/Controllers/Profile/ProfileController.php"><button type="button" class="btn-cancel" style="margin: 0;"><i class="fa-solid fa-xmark"></i> Cancel</button></a>
+                    <a href="<?php echo BASE_URL; ?>app/Views/Profile/profile.php"><button type="button" class="btn-cancel" style="margin: 0;"><i class="fa-solid fa-xmark"></i> Cancel</button></a>
                     </div>
                 </div>
                 <p class="user-email" style="margin-bottom: 15px;"><i class="fa-solid fa-envelope"></i> <?php echo htmlspecialchars((string)($u_d['Email'] ?? '')); ?></p>

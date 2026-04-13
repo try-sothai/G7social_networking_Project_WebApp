@@ -25,37 +25,37 @@ if (!function_exists('lc_shell_default_nav')) {
     {
         $nav = [
             'home' => [
-                'href' => '../Home/dashboard.php',
+                'href' => BASE_URL . 'app/Views/Home/dashboard.php',
                 'icon' => 'fa-solid fa-home',
                 'label' => 'Home',
             ],
             'explore' => [
-                'href' => '../Explore/explore.php',
+                'href' => BASE_URL . 'app/Views/Explore/explore.php',
                 'icon' => 'fa-solid fa-compass',
                 'label' => 'Explore',
             ],
             'groups' => [
-                'href' => '../Groups/groups.php',
+                'href' => BASE_URL . 'app/Views/Groups/groups.php',
                 'icon' => 'fa-solid fa-people-group',
                 'label' => 'Groups',
             ],
             'events' => [
-                'href' => '../Events/events.php',
+                'href' => BASE_URL . 'app/Views/Events/events.php',
                 'icon' => 'fa-solid fa-calendar-days',
                 'label' => 'Events',
             ],
             'friends' => [
-                'href' => '../Friends/AllFriends.php',
+                'href' => BASE_URL . 'app/Views/Friends/AllFriends.php',
                 'icon' => 'fa-solid fa-user-friends',
                 'label' => 'Friends',
             ],
             'messages' => [
-                'href' => '../Messages/message.php',
+                'href' => BASE_URL . 'app/Views/Messages/message.php',
                 'icon' => 'fa-solid fa-message',
                 'label' => 'Messages',
             ],
             'report' => [
-                'href' => '../Report/userReport.php',
+                'href' => BASE_URL . 'app/Views/Report/userReport.php',
                 'icon' => 'fa-solid fa-chart-simple',
                 'label' => 'Report',
             ],
@@ -63,7 +63,7 @@ if (!function_exists('lc_shell_default_nav')) {
 
         if (lc_current_user_is_admin()) {
             $nav['admin'] = [
-                'href' => '../Admin/dashboard.php',
+                'href' => BASE_URL . 'app/Views/Admin/dashboard.php',
                 'icon' => 'fa-solid fa-user-shield',
                 'label' => 'Admin',
             ];
@@ -125,7 +125,7 @@ if (!function_exists('lc_shell_default_nav')) {
         $notificationButtonClass = trim((string)($options['notification_button_class'] ?? ''));
         $notificationButtonAttrs = trim((string)($options['notification_button_attrs'] ?? ''));
         $userName = (string)($options['user_name'] ?? 'User');
-        $profileHref = (string)($options['profile_href'] ?? '../Profile/profile.php');
+        $profileHref = (string)($options['profile_href'] ?? BASE_URL . 'app/Views/Profile/profile.php');
         $profileImage = (string)($options['profile_image'] ?? 'https://via.placeholder.com/150');
         $profileImageAttrs = trim((string)($options['profile_image_attrs'] ?? ''));
         $userNameClass = trim((string)($options['user_name_class'] ?? ''));
