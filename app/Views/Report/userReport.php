@@ -132,6 +132,10 @@ function timeAgo($datetime) {
     $now = time();
     $diff = $now - $time;
     
+    if ($diff < 0) {
+        return 'Just now';
+    }
+
     if ($diff < 60) {
         return $diff . ' seconds ago';
     } elseif ($diff < 3600) {
@@ -303,6 +307,8 @@ function timeAgo($datetime) {
         <?php
             $reportNotificationHtml = ob_get_clean();
             lc_shell_render_header([
+                'search_input_id' => 'reportGlobalSearch',
+                'search_placeholder' => 'Search users or sections...',
                 'notification_html' => $reportNotificationHtml,
                 'user_name' => (string)$u_d['Username'],
                 'profile_image' => $profilePicPath,
@@ -367,7 +373,7 @@ function timeAgo($datetime) {
             </div>
 
             <!-- Engagement Trends Chart -->
-            <div class="chart-container">
+            <div class="chart-container" id="engagement-trends-section">
                 <div class="chart-header">
                     <h3>Engagement Trends</h3>
                     <p>Post Likes vs. Comments (Last 30 Days)</p>
@@ -378,7 +384,7 @@ function timeAgo($datetime) {
             <!-- Two Column Layout -->
             <div class="two-columns">
                 <!-- Real-time Activity -->
-                <div class="activity-feed">
+                <div class="activity-feed" id="real-time-activity-section">
                     <div class="section-header">
                         <h3>Real-time Activity</h3>
                         <a href="#" class="view-all">VIEW ALL ACTIVITY</a>
@@ -417,7 +423,7 @@ function timeAgo($datetime) {
                 </div>
 
                 <!-- Story Performance Table -->
-                <div class="story-performance">
+                <div class="story-performance" id="story-performance-section">
                     <div class="section-header">
                         <h3>Story Performance</h3>
                         <p>Views by recent story posters</p>
@@ -460,7 +466,7 @@ function timeAgo($datetime) {
             </div>
 
             <!-- Top Active Users Section -->
-            <div class="top-users-section">
+            <div class="top-users-section" id="top-users-section">
                 <div class="section-header">
                     <h3>Top Active Users</h3>
                     <div class="export-dropdown">
@@ -696,6 +702,71 @@ function timeAgo($datetime) {
                 printWindow.document.write('</table><script>window.print();<\/script></body></html>');
                 printWindow.document.close();
             }
+        }
+
+        // Global Search Logic
+        const reportSearch = document.getElementById('reportGlobalSearch');
+        if (reportSearch) {
+            reportSearch.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                
+                // 1. Scroll to section if matched
+                const sections = [
+                    { name: 'top active users', id: 'top-users-section' },
+                    { name: 'real-time activity', id: 'real-time-activity-section' },
+                    { name: 'story performance', id: 'story-performance-section' },
+                    { name: 'engagement trends', id: 'engagement-trends-section' }
+                ];
+                
+                if (term.length > 3) {
+                    for (let sec of sections) {
+                        if (sec.name.includes(term)) {
+                            const el = document.getElementById(sec.id);
+                            if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // 2. Filter Users in Top Active Users Grid & Story Performance Table
+                document.querySelectorAll('.user-card').forEach(card => {
+                    const nameEl = card.querySelector('.user-name');
+                    if (!nameEl) return;
+                    const originalText = nameEl.getAttribute('data-orig') || nameEl.textContent;
+                    if (!nameEl.hasAttribute('data-orig')) nameEl.setAttribute('data-orig', originalText);
+                    
+                    if (term === '') {
+                        nameEl.textContent = originalText;
+                        card.style.display = '';
+                    } else if (originalText.toLowerCase().includes(term)) {
+                        const regex = new RegExp(`(${term})`, 'gi');
+                        nameEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                document.querySelectorAll('.performance-table tbody tr').forEach(row => {
+                    const nameEl = row.querySelector('.username');
+                    if (!nameEl) return;
+                    const originalText = nameEl.getAttribute('data-orig') || nameEl.textContent;
+                    if (!nameEl.hasAttribute('data-orig')) nameEl.setAttribute('data-orig', originalText);
+                    
+                    if (term === '') {
+                        nameEl.textContent = originalText;
+                        row.style.display = '';
+                    } else if (originalText.toLowerCase().includes(term)) {
+                        const regex = new RegExp(`(${term})`, 'gi');
+                        nameEl.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
         }
     </script>
     <script src="<?= BASE_URL ?>public/js/common/theme-toggle.js"></script>

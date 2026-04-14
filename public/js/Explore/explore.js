@@ -3,6 +3,35 @@ let currentCategory = 'All';
 let isLoading = false;
 let exploreVideoObserver = null;
 
+// ធានាថាអថេរពណ៌ (CSS Variables) សម្រាប់ Dark Mode ត្រូវបានកំណត់
+if (!document.getElementById('social-dark-mode-vars')) {
+    const style = document.createElement('style');
+    style.id = 'social-dark-mode-vars';
+    style.innerHTML = `
+        body.dark-mode {
+            --bg-secondary: #111827 !important;
+            --bg-hover: #1e293b !important;
+            --border-color: rgba(148, 163, 184, 0.22) !important;
+            --text-primary: #f1f5f9 !important;
+            --text-secondary: #94a3b8 !important;
+        }
+        body.dark-mode .post-card {
+            background: #111827 !important;
+            border: 1px solid rgba(148, 163, 184, 0.22) !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .post-user-info h4,
+        body.dark-mode .post-header h4,
+        body.dark-mode .post-content p {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .explore-text-thumbnail {
+            border: 1px solid rgba(148, 163, 184, 0.22) !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function getProfileUrl(userId) {
     const id = Number(userId || 0);
     if (!id) return '../Profile/profile.php';
@@ -201,6 +230,20 @@ function displayPosts(posts) {
 
     // បើកដំណើរការ Auto-play សម្រាប់វីដេអូទាំងអស់
     setupVideoAutoplay();
+
+    if (window.activeExploreCommentPostId) {
+        const commentsSection = document.getElementById(`comments-${window.activeExploreCommentPostId}`);
+        if (commentsSection) {
+            commentsSection.style.display = 'block';
+            const list = commentsSection.querySelector('.comments-list');
+            if (list) {
+                list.scrollTop = list.scrollHeight;
+            }
+            const input = document.getElementById(`comment-input-${window.activeExploreCommentPostId}`);
+            if (input) input.focus();
+        }
+        window.activeExploreCommentPostId = null;
+    }
 }
 
 function setupVideoAutoplay() {
@@ -335,13 +378,13 @@ function createPostElement(post) {
                 <span>Share</span>
             </button>
         </div>
-        <div class="comments-section" id="comments-${postId}" style="display: none; padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <div class="comments-section" id="comments-${postId}" style="display: none; padding: 15px; background: var(--bg-secondary, #f8fafc); border-top: 1px solid var(--border-color, #e2e8f0); border-radius: 0 0 16px 16px;">
             <div class="comments-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">
                 ${renderComments(post.comments || [])}
             </div>
             <div class="comment-input" style="display: flex; gap: 10px;">
-                <input type="text" placeholder="Write a comment..." id="comment-input-${postId}" style="flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-family: inherit;">
-                <button onclick="addComment(${postId})" style="background: #6366f1; color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600;">បញ្ជូន</button>
+                <input type="text" placeholder="Write a comment..." id="comment-input-${postId}" style="flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border-color, #cbd5e1); outline: none; font-family: inherit; background: var(--bg-hover, #ffffff); color: var(--text-primary, #1e293b);">
+                <button onclick="addComment(${postId})" style="background: #6366f1; color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600;">Submit</button>
             </div>
         </div>
     `;
@@ -365,6 +408,16 @@ function createPostElement(post) {
         });
     }
     
+    const commentInput = postDiv.querySelector(`#comment-input-${postId}`);
+    if (commentInput) {
+        commentInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addComment(postId);
+            }
+        });
+    }
+
     return postDiv;
 }
 
@@ -400,15 +453,21 @@ function renderComments(comments) {
         }
 
         return `
-            <div class="comment">
-                <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" class="post-user-link" style="display:flex; align-items:flex-start; gap:10px; text-decoration:none; color:inherit;">
-                <img src="${comment.ProfilePic ? `${window.APP_CONFIG.imagePath}${comment.ProfilePic}` : 'https://via.placeholder.com/32'}" alt="${escapeHtml(comment.Username)}" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                <div class="comment-content" style="flex: 1;">
-                    <strong>${escapeHtml(comment.Username)}</strong>
-                    <p style="margin: 2px 0;">${escapeHtml(comment.CommentText || comment.Comment)}</p>
-                    <small style="color: #6b7280;" title="${escapeHtml(exactDate)}">${escapeHtml(timeDisplay)}</small>
+            <div class="comment" style="margin-bottom: 12px;">
+                <div style="display:flex; align-items:flex-start; gap:10px;">
+                    <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" style="text-decoration:none; flex-shrink: 0;">
+                        <img src="${comment.ProfilePic ? `${window.APP_CONFIG.imagePath}${comment.ProfilePic}` : 'https://via.placeholder.com/32'}" alt="${escapeHtml(comment.Username)}" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    </a>
+                    <div class="comment-content" style="max-width: calc(100% - 45px);">
+                        <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; display: inline-block;">
+                            <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" style="text-decoration:none;">
+                                <strong style="display: block; margin-bottom: 2px; color: var(--text-primary, #1e293b);">${escapeHtml(comment.Username)}</strong>
+                            </a>
+                            <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${escapeHtml(comment.CommentText || comment.Comment)}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px; margin-left: 12px;" title="${escapeHtml(exactDate)}">${escapeHtml(timeDisplay)}</div>
+                    </div>
                 </div>
-                </a>
             </div>
         `;
     }).join('');
@@ -467,7 +526,14 @@ function addComment(postId) {
     .then(data => {
         if (data.success) {
             input.value = '';
-            loadPosts(currentCategory);
+            window.activeExploreCommentPostId = postId;
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value.trim()) {
+                searchPosts(searchInput.value.trim());
+            } else {
+                loadPosts();
+            }
         } else {
             console.error('Error adding comment:', data.error);
             alert('Error adding comment');
@@ -570,7 +636,7 @@ function shareExplorePost(postId) {
         }).catch(err => console.log('Error sharing:', err));
     } else {
         navigator.clipboard.writeText(postUrl).then(() => {
-            alert('ភ្ជាប់ (Link) ត្រូវបានចម្លង! អាចយកទៅចែករំលែកបាន។ (Link Copied!)');
+            alert('Connect (Link) ត្រូវបានចម្លង! អាចយកទៅចែករំលែកបាន។ (Link Copied!)');
         }).catch(err => {
             console.error('Could not copy text: ', err);
         });

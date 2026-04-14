@@ -1,3 +1,29 @@
+// ធានាថាអថេរពណ៌ (CSS Variables) សម្រាប់ Dark Mode ត្រូវបានកំណត់
+if (!document.getElementById('social-dark-mode-vars')) {
+    const style = document.createElement('style');
+    style.id = 'social-dark-mode-vars';
+    style.innerHTML = `
+        body.dark-mode {
+            --bg-secondary: #111827 !important;
+            --bg-hover: #1e293b !important;
+            --border-color: rgba(148, 163, 184, 0.22) !important;
+            --text-primary: #f1f5f9 !important;
+            --text-secondary: #94a3b8 !important;
+        }
+        body.dark-mode .post-card {
+            background: #111827 !important;
+            border: 1px solid rgba(148, 163, 184, 0.22) !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .post-user-info h4,
+        body.dark-mode .post-header h4,
+        body.dark-mode .post-content p {
+            color: #e2e8f0 !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const storyContainer = document.getElementById('stories-container');
     const openAddStoryBtn = document.getElementById('open-add-story');
@@ -61,6 +87,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewedPostIds = new Set();
     let postViewObserver = null;
     let postVideoObserver = null;
+
+    const storedCommentPostId = sessionStorage.getItem('activeCommentPostId');
+    if (storedCommentPostId) {
+        sessionStorage.removeItem('activeCommentPostId');
+        window.activeCommentPostId = storedCommentPostId;
+        
+        if (!document.getElementById('post-feed-list')) {
+            setTimeout(() => {
+                const area = document.getElementById('comments-area-' + storedCommentPostId);
+                if (area) {
+                    area.style.display = 'block';
+                    const list = area.querySelector('.comments-list');
+                    if (list) {
+                        list.scrollTop = list.scrollHeight;
+                    }
+                    const input = document.getElementById('comment-input-' + storedCommentPostId);
+                    if (input) input.focus();
+                    area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        }
+    }
 
     function escapeHtml(value) {
         return String(value || '')
@@ -432,11 +480,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-regular fa-eye"></i> ${viewsCount}
                     </div>
                 </div>
-                <div class="post-comments-area" id="comments-area-${escapeHtml(post.PostID || '')}" style="display:none; margin-top: 15px; border-top: 1px solid #f0f2f5; padding-top: 15px;">
+                <div class="post-comments-area" id="comments-area-${escapeHtml(post.PostID || '')}" style="display:none; margin-top: 15px; border-top: 1px solid var(--border-color, #f0f2f5); padding-top: 15px;">
                     <div class="comments-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">${commentsHtml}</div>
                     <div style="display:flex; gap: 10px;">
                         <img src="${escapeHtml(typeof CURRENT_USER_AVATAR !== 'undefined' ? CURRENT_USER_AVATAR : FALLBACK_AVATAR)}" style="width: 32px; height: 32px; border-radius: 50%;">
-                        <input type="text" id="comment-input-${escapeHtml(post.PostID || '')}" placeholder="Write a comment..." style="flex:1; border-radius: 20px; border: 1px solid #ccd0d5; padding: 8px 15px; outline: none; background: #f0f2f5;">
+                        <input type="text" id="comment-input-${escapeHtml(post.PostID || '')}" placeholder="Write a comment..." style="flex:1; border-radius: 20px; border: 1px solid var(--border-color, #ccd0d5); padding: 8px 15px; outline: none; background: var(--bg-hover, #f0f2f5); color: var(--text-primary, #1e293b);">
                         <button type="button" data-role="submit-comment" data-post-id="${escapeHtml(post.PostID || '')}" style="background: transparent; border: none; color: #1877f2; font-weight: bold; cursor: pointer;">Post</button>
                     </div>
                 </div>
@@ -454,6 +502,20 @@ document.addEventListener('DOMContentLoaded', () => {
         bindPostEvents();
         bindPostViewTracking();
         bindVideoAutoplay();
+
+        if (window.activeCommentPostId) {
+            const area = document.getElementById('comments-area-' + window.activeCommentPostId);
+            if (area) {
+                area.style.display = 'block';
+                const list = area.querySelector('.comments-list');
+                if (list) {
+                    list.scrollTop = list.scrollHeight;
+                }
+                const input = document.getElementById('comment-input-' + window.activeCommentPostId);
+                if (input) input.focus();
+            }
+            window.activeCommentPostId = null;
+        }
     }
 
     function sendPostView(postId) {
@@ -730,8 +792,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload.append('post_id', postId);
                 payload.append('comment', input.value);
                 fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
-                    if(data.status === 'success') loadPosts();
+                    if(data.status === 'success') {
+                        window.activeCommentPostId = postId;
+                        if (document.getElementById('post-feed-list')) {
+                            loadPosts();
+                        } else {
+                            sessionStorage.setItem('activeCommentPostId', postId);
+                            window.location.reload();
+                        }
+                    }
                 });
+            };
+        });
+
+        document.querySelectorAll('input[id^="comment-input-"]').forEach((input) => {
+            input.onkeypress = (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const postId = input.id.replace('comment-input-', '');
+                    const btn = document.querySelector(`[data-role="submit-comment"][data-post-id="${postId}"]`);
+                    if (btn) btn.click();
+                }
             };
         });
 

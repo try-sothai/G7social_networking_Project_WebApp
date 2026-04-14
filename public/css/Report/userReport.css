@@ -47,6 +47,14 @@ body {
     font-weight: 500;
 }
 
+/* Highlight Search Text */
+mark {
+    background-color: #fde047;
+    color: #0f172a;
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;
@@ -493,4 +501,9 @@ body.dark-mode .story-row {
 body.dark-mode .comment-preview {
     background: #0f172a;
     color: #cbd5e1;
+}
+
+body.dark-mode mark {
+    background-color: #ca8a04;
+    color: #f8fafc;
 }
