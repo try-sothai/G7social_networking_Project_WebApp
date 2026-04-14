@@ -5,20 +5,6 @@ header('Content-Type: application/json');
 require_once __DIR__ . "/../../../config/db_config.php";
 require_once __DIR__ . "/../../Models/Home/StoryModel.php";
 
-$current_user_id = (int)($_SESSION['user_id'] ?? 0);
-if (!$current_user_id) {
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
-    exit;
-}
-
-$storyModel = new StoryModel($conn);
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
-
-$uploadDirAbs = __DIR__ . '/../../../public/uploads/stories/';
-$uploadDirDb = '../../../public/uploads/stories/';
-$tempDirAbs = $uploadDirAbs . 'temp/';
-$metaDirAbs = $uploadDirAbs . 'meta/';
-
 function ensureDir(string $path): void {
     if (!is_dir($path)) {
         mkdir($path, 0777, true);
@@ -39,7 +25,7 @@ function sanitizeOverlayPosition(string $value): string {
     return 'bottom';
 }
 
-function sanitizeZoomScale($value): float {
+function sanitizeZoomScale(float $value): float {
     $zoom = (float)$value;
     if ($zoom <= 0) {
         $zoom = 1.0;
@@ -77,7 +63,7 @@ function readOverlayMeta(string $metaDirAbs, string $storyMediaPath): array {
     ];
 }
 
-function writeOverlayMeta(string $metaDirAbs, string $storyMediaPath, string $text, string $position, $zoom): void {
+function writeOverlayMeta(string $metaDirAbs, string $storyMediaPath, string $text, string $position, float $zoom): void {
     $text = sanitizeOverlayText($text);
     $position = sanitizeOverlayPosition($position);
     $zoom = sanitizeZoomScale($zoom);
@@ -135,6 +121,20 @@ function moveTempToFinal(string $tempAbs, string $uploadDirAbs, string $uploadDi
 
     return ['ok' => true, 'db' => $finalDb, 'abs' => $finalAbs];
 }
+
+$current_user_id = (int)($_SESSION['user_id'] ?? 0);
+if (!$current_user_id) {
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
+
+$storyModel = new StoryModel($conn);
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
+
+$uploadDirAbs = __DIR__ . '/../../../public/uploads/stories/';
+$uploadDirDb = '../../../public/uploads/stories/';
+$tempDirAbs = $uploadDirAbs . 'temp/';
+$metaDirAbs = $uploadDirAbs . 'meta/';
 
 if ($action === 'fetch') {
     try {

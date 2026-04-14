@@ -11,12 +11,16 @@ class MessageChat {
         this.pollingInterval = null;
         this.messages = [];
         this.pendingDeletes = {};
+        this.peer = null;
+        this.myPeerId = null;
+        this.incomingRingtone = null;
         
         this.initElements();
         this.initEventListeners();
         this.initWebSocket();
         this.fetchFriends();
         this.startPolling();
+        this.initPeerJS();
     }
     
     initElements() {
@@ -96,6 +100,127 @@ class MessageChat {
         // For production, implement WebSocket connection here
     }
     
+    initPeerJS() {
+        // Initialize PeerJS using the current user ID to make it predictable
+        if (typeof CURRENT_USER_ID === 'undefined') return;
+        
+        // Include PeerJS dynamically
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js';
+        script.onload = () => {
+            // ប្រើប្រាស់ Auto-generated ID ដើម្បីកុំឲ្យជាន់គ្នាពេល Refresh Page
+            this.peer = new Peer({ debug: 2 });
+
+            this.peer.on('open', (id) => {
+                console.log('PeerJS connected with ID:', id);
+                // រក្សាទុក PeerID ចូល Database ស្វ័យប្រវត្តិ
+                const formData = new FormData();
+                formData.append('action', 'update_peer_id');
+                formData.append('peer_id', id);
+                fetch(API_PATH, { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) console.error("Failed to update peer ID:", data.error);
+                    }).catch(console.error);
+            });
+
+            this.peer.on('call', (call) => {
+                // Incoming call detected!
+                const callType = (call.metadata && call.metadata.callType) ? call.metadata.callType : 'video';
+                this.showIncomingCallModal(call, callType);
+            });
+        };
+        document.head.appendChild(script);
+    }
+
+    showIncomingCallModal(call, callType = 'video') {
+        let overlay = document.getElementById('incoming-call-modal');
+        if (overlay) overlay.remove();
+
+        // បន្ថែមសំឡេងរោទ៍ (Ringtone) ពេលមានការខលចូល
+        this.incomingRingtone = new Audio('https://actions.google.com/sounds/v1/alarms/phone_ringing.ogg');
+        this.incomingRingtone.loop = true;
+        // ប្រើ catch ដើម្បីការពារ Error ពេល Browser Block Autoplay
+        this.incomingRingtone.play().catch(e => console.log("Autoplay blocked:", e));
+
+        overlay = document.createElement('div');
+        overlay.id = 'incoming-call-modal';
+        overlay.innerHTML = `
+            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; font-family:'Plus Jakarta Sans', sans-serif; backdrop-filter: blur(5px);">
+                <div style="background:white; padding:30px; border-radius:20px; text-align:center; max-width:320px; width:90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="width: 80px; height: 80px; background: #ebf4ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #2563eb; font-size: 30px;">
+                        <i class="fa-solid fa-phone-volume fa-shake"></i>
+                    </div>
+                    <h3 style="margin:0 0 10px 0; color:#1e293b; font-size:1.3rem;">Incoming Call</h3>
+                    <p style="color:#64748b; margin-bottom:25px;">Someone wants to ${callType} call you...</p>
+                    <div style="display:flex; gap:15px; justify-content:center;">
+                        <button id="btn-reject-call" style="flex:1; background:#ef4444; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:600; font-size:1rem; transition: 0.3s;"><i class="fa-solid fa-phone-slash"></i> Decline</button>
+                        <button id="btn-answer-call" style="flex:1; background:#10b981; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:600; font-size:1rem; transition: 0.3s;"><i class="fa-solid fa-phone"></i> Answer</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('btn-reject-call').onclick = () => {
+            call.close();
+            overlay.remove();
+            if (this.incomingRingtone) {
+                this.incomingRingtone.pause();
+                this.incomingRingtone.currentTime = 0;
+            }
+        };
+
+        document.getElementById('btn-answer-call').onclick = () => {
+            overlay.remove();
+            
+            // បិទសំឡេងរោទ៍វិញពេលចុចទទួល (Answer)
+            if (this.incomingRingtone) {
+                this.incomingRingtone.pause();
+                this.incomingRingtone.currentTime = 0;
+            }
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("⚠️ ប្រព័ន្ធសុវត្ថិភាព Browser បាន Block កាមេរ៉ា! លុះត្រាតែប្រើ Link HTTPS (Ngrok) ឬ Localhost ទើបអាចខលបាន។");
+                this.showToast('Blocked! Please use HTTPS.', 'error');
+                return;
+            }
+
+            // កំណត់សិទ្ធិបើក Camera/Mic ទៅតាមប្រភេទ Call (Video ឬ Audio)
+            const constraints = {
+                audio: true,
+                video: callType === 'video'
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    call.answer(stream);
+                    this.openCallWindow(callType, stream, call);
+                })
+                .catch((err) => {
+                    console.error('Failed to get local stream', err);
+                    let errorMsg = 'Camera/Mic Error: ' + err.name;
+                    if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                        errorMsg = 'Camera is already in use by another tab.';
+                        alert("⚠️ កាមេរ៉ាកំពុងជាប់រវល់! សូមបិទ Tab ផ្សេងៗដែលកំពុងបើកកាមេរ៉ា (ដូចជា videocall_test.html) ជាមុនសិន។");
+                    } else if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+                        errorMsg = 'Blocked! Please use HTTPS (Ngrok).';
+                        alert("⚠️ សូមប្រើប្រាស់ Link Ngrok (HTTPS) ទើបអាចខលបាន!");
+                    }
+                    this.showToast(errorMsg, 'error');
+                });
+        };
+
+        // ប្រសិនបើអ្នកខល ផ្តាច់ការខលទៅវិញមុនពេលយើងទទួលរូចរាល់
+        call.on('close', () => {
+            if (document.getElementById('incoming-call-modal')) document.getElementById('incoming-call-modal').remove();
+            if (this.incomingRingtone) {
+                this.incomingRingtone.pause();
+                this.incomingRingtone.currentTime = 0;
+            }
+        });
+    }
+
     startPolling() {
         this.pollingInterval = setInterval(() => {
             if (this.activeReceiverID) {
@@ -579,7 +704,37 @@ class MessageChat {
             return;
         }
 
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("⚠️ ប្រព័ន្ធសុវត្ថិភាព Browser បាន Block កាមេរ៉ា! លុះត្រាតែប្រើ Link HTTPS (Ngrok) ឬ Localhost ទើបអាចខលបាន។");
+            this.showToast('Blocked! Please use HTTPS.', 'error');
+            return;
+        }
+
         try {
+            // 1. ទាញយក PeerID របស់មិត្តភក្តិពី Database សិន
+            const res = await fetch(`${API_PATH}?action=get_peer_id&user_id=${this.activeReceiverID}`);
+            const textResponse = await res.text();
+            let data;
+            try {
+                data = JSON.parse(textResponse);
+            } catch (jsonErr) {
+                console.error('Invalid JSON response from server (PHP Error):', textResponse);
+                this.showToast('Server connection error. Please check console.', 'error');
+                return;
+            }
+            
+            if (!data.success) {
+                console.error("Server Error while getting peer ID:", data.error);
+                this.showToast('Database Error! Check console.', 'error');
+                return;
+            }
+            const receiverPeerId = data.peer_id;
+
+            if (!receiverPeerId) {
+                this.showToast('Friend is offline or unreachable right now.', 'error');
+                return;
+            }
+
             // Request media permissions
             const constraints = {
                 audio: true,
@@ -588,207 +743,101 @@ class MessageChat {
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
+            // Initialize PeerJS Call
+            let outCall = null;
+            if (this.peer && receiverPeerId) {
+                outCall = this.peer.call(receiverPeerId, stream, { metadata: { callType: callType } });
+                if (!outCall) {
+                    console.warn("Could not initiate PeerJS call. Friend might be offline.");
+                }
+            }
+
+            // បើកផ្ទាំង Call ភ្លាមៗ ដើម្បីកុំឲ្យរំលង Event 'stream' ដែលម្ខាងទៀតបញ្ជូនមករហ័សពេក
+            this.openCallWindow(callType, stream, outCall);
+            this.showToast(`Starting ${callType} call...`, 'success');
+
             // Send call notification to backend
             const formData = new FormData();
             formData.append('action', 'start_call');
             formData.append('receiver_id', this.activeReceiverID);
             formData.append('call_type', callType);
 
-            const response = await fetch(API_PATH, {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.showToast(`Starting ${callType} call...`, 'success');
-                this.openCallWindow(callType, stream);
-            } else {
-                this.showToast('Failed to start call', 'error');
-                // Stop media tracks if call failed
-                stream.getTracks().forEach(track => track.stop());
-            }
+            // មិនចាំបាច់ await ទេ ព្រោះវាធ្វើឲ្យខាតពេលយឺតយ៉ាវក្នុងការតភ្ជាប់វីដេអូ
+            fetch(API_PATH, { method: 'POST', body: formData }).catch(console.error);
 
         } catch (err) {
             console.error('Error accessing media devices:', err);
+            let errorMsg = 'Camera/Mic Error: ' + err.name;
             if (err.name === 'NotAllowedError') {
-                this.showToast('Camera/microphone access denied', 'error');
+                errorMsg = 'Camera/Mic access denied (Please allow in browser)';
             } else if (err.name === 'NotFoundError') {
-                this.showToast('Camera/microphone not found', 'error');
+                errorMsg = 'Camera/Mic not found on your device';
+            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                errorMsg = 'Camera is already in use by another tab.';
+                alert("⚠️ កាមេរ៉ាកំពុងជាប់រវល់! សូមបិទ Tab ផ្សេងៗដែលកំពុងបើកកាមេរ៉ា (ដូចជា videocall_test.html) ជាមុនសិន។");
             } else {
-                this.showToast('Unable to access camera/microphone', 'error');
+                if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+                    alert("⚠️ Browser បាន Block កាមេរ៉ា! សូមប្រើប្រាស់ Link Ngrok (HTTPS) ទើបអាចខលបាន។");
+                    errorMsg = 'Blocked! Please use HTTPS.';
+                }
             }
+            this.showToast(errorMsg, 'error');
         }
     }
     
-    openCallWindow(callType, stream) {
-        // Create call window HTML with modern design matching the app theme
+    openCallWindow(callType, stream, existingCall = null) {
+        // លុប Call Overlay ចាស់ចោលប្រសិនបើមាន
+        let oldOverlay = document.getElementById('lc-call-overlay');
+        if (oldOverlay) oldOverlay.remove();
+
+        // បង្កើត Fullscreen Overlay ជំនួសឲ្យការប្រើ window.open()
+        const overlay = document.createElement('div');
+        overlay.id = 'lc-call-overlay';
         const callWindowHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>${callType === 'video' ? 'Video' : 'Audio'} Call - ${this.activeReceiverName}</title>
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-                <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body {
-                        font-family: 'Plus Jakarta Sans', sans-serif;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        height: 100vh;
-                        overflow: hidden;
-                    }
-                    .call-container {
-                        display: flex;
-                        flex-direction: column;
-                        height: 100vh;
-                    }
-                    .call-header {
-                        background: rgba(255, 255, 255, 0.1);
-                        backdrop-filter: blur(10px);
-                        padding: 20px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    }
-                    .caller-info {
-                        display: flex;
-                        align-items: center;
-                        gap: 15px;
-                        color: white;
-                    }
-                    .caller-avatar {
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 50%;
-                        object-fit: cover;
-                        border: 3px solid white;
-                    }
-                    .caller-details h3 {
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                        margin-bottom: 2px;
-                    }
-                    .caller-details p {
-                        font-size: 0.9rem;
-                        opacity: 0.8;
-                    }
-                    .call-status {
-                        color: white;
-                        font-size: 0.9rem;
-                        opacity: 0.8;
-                    }
-                    .video-container {
-                        flex: 1;
-                        position: relative;
-                        background: #0f0f1a;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    }
-                    .remote-video {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                        display: none;
-                    }
-                    .local-video {
-                        position: absolute;
-                        bottom: 30px;
-                        right: 30px;
-                        width: 200px;
-                        height: 150px;
-                        border-radius: 12px;
-                        border: 3px solid white;
-                        object-fit: cover;
-                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-                    }
-                    .audio-call-display {
-                        text-align: center;
-                        color: white;
-                    }
-                    .audio-avatar {
-                        width: 120px;
-                        height: 120px;
-                        border-radius: 50%;
-                        object-fit: cover;
-                        border: 4px solid white;
-                        margin: 0 auto 20px;
-                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-                    }
-                    .audio-name {
-                        font-size: 1.5rem;
-                        font-weight: 600;
-                        margin-bottom: 10px;
-                    }
-                    .audio-status {
-                        font-size: 1rem;
-                        opacity: 0.8;
-                    }
-                    .call-controls {
-                        background: rgba(255, 255, 255, 0.1);
-                        backdrop-filter: blur(10px);
-                        padding: 30px;
-                        display: flex;
-                        justify-content: center;
-                        gap: 20px;
-                        border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    }
-                    .control-btn {
-                        width: 60px;
-                        height: 60px;
-                        border-radius: 50%;
-                        border: none;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 1.2rem;
-                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                    }
-                    .control-btn:hover {
-                        transform: scale(1.1);
-                    }
-                    .mute-btn {
-                        background: rgba(255, 255, 255, 0.2);
-                        color: white;
-                    }
-                    .mute-btn.muted {
-                        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                        color: white;
-                    }
-                    .video-btn {
-                        background: rgba(255, 255, 255, 0.2);
-                        color: white;
-                    }
-                    .video-btn.off {
-                        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                        color: white;
-                    }
-                    .end-call-btn {
-                        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                        color: white;
-                        width: 70px;
-                        height: 70px;
-                        font-size: 1.4rem;
-                    }
-                    .end-call-btn:hover {
-                        background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-                        transform: scale(1.1);
-                    }
-                    .connecting {
-                        animation: pulse 2s infinite;
-                    }
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: 0.5; }
-                    }
-                </style>
-            </head>
-            <body>
+            <style>
+                #lc-call-overlay {
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    z-index: 999999; display: flex; flex-direction: column;
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                }
+                .call-container { display: flex; flex-direction: column; height: 100%; }
+                .call-header {
+                    background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+                    padding: 15px 20px; display: flex; align-items: center;
+                    justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);
+                }
+                .caller-info { display: flex; align-items: center; gap: 15px; color: white; }
+                .caller-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
+                .caller-details h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+                .caller-details p { font-size: 0.9rem; margin: 0; opacity: 0.8; }
+                .call-status { color: white; font-size: 0.9rem; opacity: 0.8; }
+                .video-container { flex: 1; position: relative; background: #0f0f1a; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+                .remote-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; display: none; }
+                .local-video {
+                    position: absolute; bottom: 20px; right: 20px; width: 120px; height: 160px;
+                    border-radius: 12px; border: 2px solid white; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: #222; z-index: 10;
+                }
+                /* Mobile Responsive Local Video */
+                @media (min-width: 768px) { .local-video { width: 240px; height: 135px; } }
+                .audio-call-display { text-align: center; color: white; }
+                .audio-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; margin-bottom: 20px; }
+                .call-controls {
+                    background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+                    padding: 20px; display: flex; justify-content: center; gap: 20px;
+                }
+                .control-btn {
+                    width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+                    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s;
+                }
+                .mute-btn, .video-btn { background: rgba(255, 255, 255, 0.2); color: white; }
+                .mute-btn.muted, .video-btn.off { background: #ef4444; color: white; }
+                .end-call-btn { background: #ef4444; color: white; width: 70px; height: 70px; font-size: 1.4rem; }
+                .connecting { animation: pulse 2s infinite; }
+                @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+            </style>
+            
                 <div class="call-container">
                     <div class="call-header">
                         <div class="caller-info">
@@ -827,115 +876,72 @@ class MessageChat {
                         </button>
                     </div>
                 </div>
-
-                <script>
-                    let localStream = null;
-                    let isMuted = false;
-                    let isVideoOn = true;
-                    let callWindow = window;
-
-                    // Initialize media stream
-                    try {
-                        localStream = arguments[0]; // Passed from parent window
-                        const localVideo = document.getElementById('localVideo');
-                        if (localVideo && localStream) {
-                            localVideo.srcObject = localStream;
-                        }
-
-                        // Update status after a short delay
-                        setTimeout(() => {
-                            document.querySelectorAll('.connecting').forEach(el => {
-                                el.textContent = 'Connected';
-                                el.classList.remove('connecting');
-                            });
-                        }, 2000);
-
-                    } catch (e) {
-                        console.error('Error setting up media stream:', e);
-                    }
-
-                    // Control button handlers
-                    document.getElementById('muteBtn').onclick = function() {
-                        if (localStream) {
-                            const audioTracks = localStream.getAudioTracks();
-                            if (audioTracks.length) {
-                                isMuted = !isMuted;
-                                audioTracks[0].enabled = !isMuted;
-                                this.classList.toggle('muted', isMuted);
-                                this.querySelector('i').className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
-                            }
-                        }
-                    };
-
-                    const videoBtn = document.getElementById('videoBtn');
-                    if (videoBtn) {
-                        videoBtn.onclick = function() {
-                            if (localStream) {
-                                const videoTracks = localStream.getVideoTracks();
-                                if (videoTracks.length) {
-                                    isVideoOn = !isVideoOn;
-                                    videoTracks[0].enabled = isVideoOn;
-                                    this.classList.toggle('off', !isVideoOn);
-                                    this.querySelector('i').className = isVideoOn ? 'fas fa-video' : 'fas fa-video-slash';
-                                }
-                            }
-                        };
-                    }
-
-                    document.getElementById('endCallBtn').onclick = function() {
-                        endCall();
-                    };
-
-                    function endCall() {
-                        if (localStream) {
-                            localStream.getTracks().forEach(track => track.stop());
-                        }
-                        if (callWindow && !callWindow.closed) {
-                            callWindow.close();
-                        }
-                    }
-
-                    // Handle window close
-                    window.onbeforeunload = function() {
-                        if (localStream) {
-                            localStream.getTracks().forEach(track => track.stop());
-                        }
-                    };
-
-                    // Handle page visibility change (when user switches tabs)
-                    document.addEventListener('visibilitychange', function() {
-                        if (document.hidden && localStream) {
-                            // Could pause tracks or show notification
-                        }
-                    });
-                </script>
-            </body>
-            </html>
         `;
 
-        // Open call window
-        const callWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=no,resizable=yes,status=no,toolbar=no,menubar=no');
+        overlay.innerHTML = callWindowHTML;
+        document.body.appendChild(overlay);
 
-        if (callWindow) {
-            callWindow.document.write(callWindowHTML);
-            callWindow.document.close();
-
-            // Pass the stream to the new window
-            callWindow.localStream = stream;
-
-            // Handle window close
-            const checkClosed = setInterval(() => {
-                if (callWindow.closed) {
-                    clearInterval(checkClosed);
-                    // Stop all tracks when call window is closed
-                    stream.getTracks().forEach(track => track.stop());
-                }
-            }, 1000);
-        } else {
-            this.showToast('Please allow popups for calls', 'error');
-            // Stop media tracks if window couldn't open
-            stream.getTracks().forEach(track => track.stop());
+        // កំណត់ Video Stream ទៅកាន់ Elements
+        const localVideo = document.getElementById('localVideo');
+        if (localVideo && stream) {
+            localVideo.srcObject = stream;
         }
+
+        if (existingCall) {
+            existingCall.on('stream', function(remoteStream) {
+                const remoteVideo = document.getElementById('remoteVideo');
+                if (remoteVideo) {
+                    remoteVideo.style.display = 'block';
+                    remoteVideo.srcObject = remoteStream;
+                }
+                document.querySelectorAll('.connecting').forEach(el => {
+                    el.textContent = 'Connected';
+                    el.classList.remove('connecting');
+                });
+            });
+            
+            // ពេលមិត្តភក្តិទម្លាក់ទូរស័ព្ទ (End Call)
+            existingCall.on('close', function() {
+                stream.getTracks().forEach(track => track.stop());
+                let overlay = document.getElementById('lc-call-overlay');
+                if (overlay) overlay.remove();
+                if (window.chatApp) window.chatApp.showToast('Call ended', 'info');
+            });
+        }
+
+        // Control Buttons Logic
+        let isMuted = false;
+        let isVideoOn = true;
+
+        document.getElementById('muteBtn').onclick = function() {
+            const audioTracks = stream.getAudioTracks();
+            if (audioTracks.length) {
+                isMuted = !isMuted;
+                audioTracks[0].enabled = !isMuted;
+                this.classList.toggle('muted', isMuted);
+                this.querySelector('i').className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+            }
+        };
+
+        const videoBtn = document.getElementById('videoBtn');
+        if (videoBtn) {
+            videoBtn.onclick = function() {
+                const videoTracks = stream.getVideoTracks();
+                if (videoTracks.length) {
+                    isVideoOn = !isVideoOn;
+                    videoTracks[0].enabled = isVideoOn;
+                    this.classList.toggle('off', !isVideoOn);
+                    this.querySelector('i').className = isVideoOn ? 'fas fa-video' : 'fas fa-video-slash';
+                }
+            };
+        }
+
+        // មុខងារបិទការខល
+        document.getElementById('endCallBtn').onclick = function() {
+            stream.getTracks().forEach(track => track.stop());
+            if (existingCall) existingCall.close();
+            document.getElementById('lc-call-overlay').remove();
+        };
     }
     
     showMediaModal(src, type) {

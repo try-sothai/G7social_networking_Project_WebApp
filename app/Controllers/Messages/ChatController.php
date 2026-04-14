@@ -5,6 +5,39 @@ require_once __DIR__ . "/../../Models/Messages/MessageModel.php";
 
 header('Content-Type: application/json');
 
+// Image compression function
+function compressImage(string $source, string $destination, int $quality) {
+    $info = @getimagesize($source);
+    if (!$info) return false;
+
+    $image = null;
+
+    if ($info['mime'] == 'image/jpeg') {
+        $image = @imagecreatefromjpeg($source);
+        if ($image) imagejpeg($image, $destination, $quality);
+    } elseif ($info['mime'] == 'image/png') {
+        $image = @imagecreatefrompng($source);
+        if ($image) {
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+            imagepng($image, $destination, 9);
+        }
+    } elseif ($info['mime'] == 'image/gif') {
+        $image = @imagecreatefromgif($source);
+        if ($image) imagegif($image, $destination);
+    } elseif ($info['mime'] == 'image/webp') {
+        if (function_exists('imagecreatefromwebp')) {
+            $image = @imagecreatefromwebp($source);
+            if ($image) imagewebp($image, $destination, $quality);
+        }
+    }
+
+    if ($image) {
+        return true;
+    }
+    return false;
+}
+
 $current_user_id = (int)($_SESSION['user_id'] ?? 0);
 
 if (!$current_user_id) {
@@ -191,6 +224,41 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// Update Peer ID ចូល Database
+if ($action === 'update_peer_id' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $peer_id = $_POST['peer_id'] ?? '';
+        if ($peer_id && $current_user_id) {
+            $stmt = $conn->prepare("UPDATE users SET PeerID = ? WHERE UserID = ?");
+            $stmt->execute([$peer_id, $current_user_id]);
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Missing peer_id or user_id']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// Fetch Peer ID for calling
+if ($action === 'get_peer_id') {
+    try {
+        $user_id = intval($_GET['user_id'] ?? 0);
+        if ($user_id) {
+            $stmt = $conn->prepare("SELECT PeerID FROM users WHERE UserID = ?");
+            $stmt->execute([$user_id]);
+            $peer_id = $stmt->fetchColumn();
+            echo json_encode(['success' => true, 'peer_id' => $peer_id]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Missing user_id']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
 // Start a call
 if ($action === 'start_call') {
     $receiver_id = intval($_POST['receiver_id'] ?? 0);
@@ -278,39 +346,6 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
     exit;
-}
-
-// Image compression function
-function compressImage($source, $destination, $quality) {
-    $info = @getimagesize($source);
-    if (!$info) return false;
-
-    $image = null;
-
-    if ($info['mime'] == 'image/jpeg') {
-        $image = @imagecreatefromjpeg($source);
-        if ($image) imagejpeg($image, $destination, $quality);
-    } elseif ($info['mime'] == 'image/png') {
-        $image = @imagecreatefrompng($source);
-        if ($image) {
-            imagealphablending($image, false);
-            imagesavealpha($image, true);
-            imagepng($image, $destination, 9);
-        }
-    } elseif ($info['mime'] == 'image/gif') {
-        $image = @imagecreatefromgif($source);
-        if ($image) imagegif($image, $destination);
-    } elseif ($info['mime'] == 'image/webp') {
-        if (function_exists('imagecreatefromwebp')) {
-            $image = @imagecreatefromwebp($source);
-            if ($image) imagewebp($image, $destination, $quality);
-        }
-    }
-
-    if ($image) {
-        return true;
-    }
-    return false;
 }
 
 echo json_encode(['error' => 'Invalid action']);
