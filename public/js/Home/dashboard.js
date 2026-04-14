@@ -155,7 +155,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const days = Math.floor(hours / 24);
         if (days < 7) return `${days}d ago`;
 
-        return date.toLocaleDateString();
+        return date.toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+
+    function showAnimatedMessage(element, text, color, duration = 2000) {
+        if (!element) return;
+        
+        if (element.hideTimeout) clearTimeout(element.hideTimeout);
+        if (element.clearTextTimeout) clearTimeout(element.clearTextTimeout);
+
+        element.style.transition = 'none';
+        element.style.opacity = '0';
+        element.textContent = text;
+        element.style.color = color || '';
+
+        if (!text) {
+            element.style.opacity = '1';
+            return;
+        }
+
+        void element.offsetWidth; // Force reflow for CSS transition
+
+        element.style.transition = 'opacity 0.3s ease';
+        element.style.opacity = '1';
+
+        if (duration > 0) {
+            element.hideTimeout = setTimeout(() => {
+                element.style.opacity = '0';
+                element.clearTextTimeout = setTimeout(() => {
+                    element.textContent = '';
+                    element.style.transition = 'none';
+                    element.style.opacity = '1';
+                }, 300);
+            }, duration);
+        }
     }
 
     function addStoryCardTemplate() {
@@ -207,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addStoryCard) {
             addStoryCard.onclick = () => {
                 addStoryModal.classList.add('active');
-                storyModalMessage.textContent = '';
+                showAnimatedMessage(storyModalMessage, '', '', 0);
             };
         }
 
@@ -278,11 +311,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const commentsHtml = (post.Comments && post.Comments.length > 0)
             ? post.Comments.map(c => {
                 const cAvatar = resolveAvatarUrl(c.ProfilePic || FALLBACK_AVATAR);
+                const cCreatedAt = formatTimeAgo(c.CreatedAt || '');
+                const cDateObj = new Date(c.CreatedAt || '');
+                const cExactDate = !Number.isNaN(cDateObj.getTime())
+                    ? cDateObj.toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                    : '';
+                const cTimeDisplay = cExactDate && cCreatedAt !== cExactDate ? `${cCreatedAt} • ${cExactDate}` : cCreatedAt;
                 return `<div style="display: flex; gap: 10px; margin-bottom: 12px;">
                     <a href="../Profile/profile.php?user_id=${escapeHtml(c.UserID || '')}"><img src="${escapeHtml(cAvatar)}" alt="${escapeHtml(c.Username)}" onerror="this.src='${FALLBACK_AVATAR}'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);"></a>
-                    <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; max-width: calc(100% - 45px);">
-                        <a href="../Profile/profile.php?user_id=${escapeHtml(c.UserID || '')}" style="text-decoration: none;"><strong style="display: block; margin-bottom: 2px; color: var(--text-primary, #1e293b);">${escapeHtml(c.Username)}</strong></a>
-                        <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${escapeHtml(c.CommentText)}</span>
+                    <div style="max-width: calc(100% - 45px);">
+                        <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; display: inline-block;">
+                            <a href="../Profile/profile.php?user_id=${escapeHtml(c.UserID || '')}" style="text-decoration: none;"><strong style="display: block; margin-bottom: 2px; color: var(--text-primary, #1e293b);">${escapeHtml(c.Username)}</strong></a>
+                            <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${escapeHtml(c.CommentText)}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px; margin-left: 12px;" title="${escapeHtml(cExactDate)}">${escapeHtml(cTimeDisplay)}</div>
                     </div>
                 </div>`;
             }).join('')
@@ -293,6 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = post.Username || 'User';
         let content = post.Content || '';
         const createdAt = formatTimeAgo(post.CreatedAt || '');
+        const dateObj = new Date(post.CreatedAt || '');
+        const exactDate = !Number.isNaN(dateObj.getTime())
+            ? dateObj.toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+            : '';
+        const timeDisplay = exactDate && createdAt !== exactDate ? `${createdAt} • ${exactDate}` : createdAt;
         const isOwner = Number(post.UserID || 0) === Number(typeof CURRENT_USER_ID !== 'undefined' ? CURRENT_USER_ID : 0);
         
         let isShare = false;
@@ -354,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <h4 style="font-weight: 800;">${escapeHtml(username)}</h4>
                                 ${isShare ? `<span style="color: #64748b; font-weight: 500; font-size: 13px;"><i class="fa-solid fa-share" style="font-size: 11px; margin-right: 4px;"></i>shared a post</span>` : ''}
                             </a>
-                            <span class="post-time">${escapeHtml(createdAt)}</span>
+                            <span class="post-time" title="${escapeHtml(exactDate)}">${escapeHtml(timeDisplay)}</span>
                         </div>
                     </div>
                     <div class="post-menu-wrap">
@@ -553,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (editPostIdInput) editPostIdInput.value = String(editPostState.postId);
         if (editPostContentInput) editPostContentInput.value = content || '';
         if (editPostSelectedFileName) editPostSelectedFileName.textContent = 'No new media selected';
-        if (editPostModalMessage) editPostModalMessage.textContent = '';
+        if (editPostModalMessage) showAnimatedMessage(editPostModalMessage, '', '', 0);
         if (editPostMediaInput) editPostMediaInput.value = '';
 
         renderEditPostPreview();
@@ -567,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editPostState.keepMedia = [];
         editPostState.newFiles = [];
         if (editPostForm) editPostForm.reset();
-        if (editPostModalMessage) editPostModalMessage.textContent = '';
+        if (editPostModalMessage) showAnimatedMessage(editPostModalMessage, '', '', 0);
         if (editPostPreview) editPostPreview.innerHTML = '';
     }
 
@@ -708,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!createPostForm) return;
         createPostForm.reset();
         if (postSelectedFileName) postSelectedFileName.textContent = 'No file chosen';
-        if (postModalMessage) postModalMessage.textContent = '';
+        if (postModalMessage) showAnimatedMessage(postModalMessage, '', '', 0);
         if (postEditorPreview) postEditorPreview.innerHTML = '';
         if (postEditorArea) postEditorArea.classList.remove('active');
         
@@ -752,11 +799,18 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             const file = storyMediaInput.files && storyMediaInput.files[0];
             if (!file) {
-                storyModalMessage.textContent = 'Please choose a file first.';
+                showAnimatedMessage(storyModalMessage, 'Please choose a file first.', '#ef4444');
                 return;
             }
 
-            storyModalMessage.textContent = '';
+            const submitBtn = addStoryForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+
+            showAnimatedMessage(storyModalMessage, '', '', 0);
             addStoryForm.setAttribute('action', 'story_editor.php');
             addStoryForm.setAttribute('method', 'post');
             addStoryForm.submit();
@@ -792,7 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
             postSelectedFileName.textContent = files.length > 0
                 ? `${files.length} media file${files.length > 1 ? 's' : ''} selected`
                 : 'No file chosen';
-            postModalMessage.textContent = '';
+            showAnimatedMessage(postModalMessage, '', '', 0);
             postEditorPreview.innerHTML = '';
 
             if (files.length === 0) {
@@ -815,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             postEditorPreview.innerHTML = `<div class="post-editor-preview-grid">${previews.join('')}</div>`;
             if (files.length > 4) {
-                postModalMessage.textContent = 'You can upload up to 4 media files per post.';
+                showAnimatedMessage(postModalMessage, 'You can upload up to 4 media files per post.', '#ef4444', 0);
             }
             postEditorArea.classList.add('active');
         });
@@ -856,18 +910,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoryVal = categorySelect ? categorySelect.value : 'General';
 
             if (files.length === 0 && content === '' && !locationVal && !feelingVal) {
-                postModalMessage.textContent = 'Please add text, feeling, location, or at least one media file.';
+                showAnimatedMessage(postModalMessage, 'Please add text, feeling, location, or at least one media file.', '#ef4444');
                 return;
             }
             
             if (files.length > 4) {
-                postModalMessage.textContent = 'You can upload up to 4 media files per post.';
+                showAnimatedMessage(postModalMessage, 'You can upload up to 4 media files per post.', '#ef4444');
                 return;
             }
 
             const submitBtn = createPostForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-            postModalMessage.textContent = 'Posting...';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+            showAnimatedMessage(postModalMessage, 'Posting...', '', 0);
 
             const payload = new FormData();
             payload.append('action', 'create');
@@ -888,23 +946,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then((res) => res.json())
                 .then((data) => {
                     if (!data || data.status !== 'success') {
-                        postModalMessage.textContent = (data && data.message) ? data.message : 'Unable to post right now.';
+                        showAnimatedMessage(postModalMessage, (data && data.message) ? data.message : 'Unable to post right now.', '#ef4444');
                         return;
                     }
 
-                    postModalMessage.textContent = 'Posted successfully.';
-                    closePostComposer();
-                    if (document.getElementById('post-feed-list')) {
-                        loadPosts();
-                    } else {
-                        window.location.reload();
-                    }
+                    showAnimatedMessage(postModalMessage, 'Posted successfully.', '#22c55e');
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            closePostComposer();
+                            if (document.getElementById('post-feed-list')) {
+                                loadPosts();
+                            } else {
+                                window.location.reload();
+                            }
+                            resolve();
+                        }, 2000);
+                    });
                 })
                 .catch(() => {
-                    postModalMessage.textContent = 'Unable to post right now.';
+                    showAnimatedMessage(postModalMessage, 'Unable to post right now.', '#ef4444');
                 })
                 .finally(() => {
-                    if (submitBtn) submitBtn.disabled = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '';
+                        submitBtn.style.cursor = '';
+                    }
                 });
         });
     }
@@ -917,19 +984,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const files = quickStatusFileInput ? Array.from(quickStatusFileInput.files || []) : [];
 
             if (!content && files.length === 0) {
-                if (quickStatusMessage) quickStatusMessage.textContent = 'Please write something or add a photo/video.';
+                if (quickStatusMessage) {
+                    showAnimatedMessage(quickStatusMessage, 'Please write something or add a photo/video.', '#ef4444');
+                }
                 if (quickStatusInput) quickStatusInput.focus();
                 return;
             }
             
             if (files.length > 4) {
-                if (quickStatusMessage) quickStatusMessage.textContent = 'You can upload up to 4 media files per post.';
+                if (quickStatusMessage) {
+                    showAnimatedMessage(quickStatusMessage, 'You can upload up to 4 media files per post.', '#ef4444');
+                }
                 return;
             }
 
             const submitBtn = quickStatusForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-            if (quickStatusMessage) quickStatusMessage.textContent = 'Posting...';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+            if (quickStatusMessage) {
+                showAnimatedMessage(quickStatusMessage, 'Posting...', '', 0);
+            }
 
             const payload = new FormData();
             payload.append('action', 'create');
@@ -944,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then((data) => {
                     if (!data || data.status !== 'success') {
                         if (quickStatusMessage) {
-                            quickStatusMessage.textContent = (data && data.message) ? data.message : 'Unable to post status right now.';
+                            showAnimatedMessage(quickStatusMessage, (data && data.message) ? data.message : 'Unable to post status right now.', '#ef4444');
                         }
                         return;
                     }
@@ -958,18 +1035,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     const previewContainer = document.getElementById('quick-status-preview');
                     if (previewContainer) previewContainer.innerHTML = '';
 
-                    if (quickStatusMessage) quickStatusMessage.textContent = 'Status posted successfully.';
-                    if (document.getElementById('post-feed-list')) {
-                        loadPosts();
-                    } else {
-                        window.location.reload();
+                    if (quickStatusMessage) {
+                        showAnimatedMessage(quickStatusMessage, 'Status posted successfully.', '#22c55e');
                     }
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            if (quickStatusMessage) {
+                                showAnimatedMessage(quickStatusMessage, '', '', 0);
+                            }
+                            if (document.getElementById('post-feed-list')) {
+                                loadPosts();
+                            } else {
+                                window.location.reload();
+                            }
+                            resolve();
+                        }, 2000);
+                    });
                 })
                 .catch(() => {
-                    if (quickStatusMessage) quickStatusMessage.textContent = 'Unable to post status right now.';
+                    if (quickStatusMessage) {
+                        showAnimatedMessage(quickStatusMessage, 'Unable to post status right now.', '#ef4444');
+                    }
                 })
                 .finally(() => {
-                    if (submitBtn) submitBtn.disabled = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '';
+                        submitBtn.style.cursor = '';
+                    }
                 });
         });
     }
@@ -1009,9 +1102,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     : 'No new media selected';
             }
             if (editPostModalMessage) {
-                editPostModalMessage.textContent = selected.length > allowedSlots
-                    ? `Only ${MAX_POST_IMAGES} media files are allowed per post.`
-                    : '';
+                if (selected.length > allowedSlots) {
+                    showAnimatedMessage(editPostModalMessage, `Only ${MAX_POST_IMAGES} media files are allowed per post.`, '#ef4444');
+                } else {
+                    showAnimatedMessage(editPostModalMessage, '', '', 0);
+                }
             }
             renderEditPostPreview();
         });
@@ -1050,17 +1145,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const finalCount = editPostState.keepMedia.length + editPostState.newFiles.length;
             const editContent = (editPostContentInput && editPostContentInput.value) ? editPostContentInput.value.trim() : '';
             if (finalCount === 0 && !editContent) {
-                editPostModalMessage.textContent = 'Please keep at least one media file or write some text.';
+                showAnimatedMessage(editPostModalMessage, 'Please keep at least one media file or write some text.', '#ef4444');
                 return;
             }
             if (finalCount > MAX_POST_IMAGES) {
-                editPostModalMessage.textContent = `You can keep up to ${MAX_POST_IMAGES} media files.`;
+                showAnimatedMessage(editPostModalMessage, `You can keep up to ${MAX_POST_IMAGES} media files.`, '#ef4444');
                 return;
             }
 
             const submitBtn = editPostForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-            editPostModalMessage.textContent = 'Saving changes...';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+            showAnimatedMessage(editPostModalMessage, 'Saving changes...', '', 0);
 
             const payload = new FormData();
             payload.append('action', 'update');
@@ -1076,17 +1175,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then((res) => res.json())
                 .then((data) => {
                     if (!data || data.status !== 'success') {
-                        editPostModalMessage.textContent = (data && data.message) ? data.message : 'Unable to save changes.';
+                        showAnimatedMessage(editPostModalMessage, (data && data.message) ? data.message : 'Unable to save changes.', '#ef4444');
                         return;
                     }
-                    closeEditPostModal();
-                    loadPosts();
+                    showAnimatedMessage(editPostModalMessage, 'Changes saved successfully.', '#22c55e');
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            closeEditPostModal();
+                            loadPosts();
+                            resolve();
+                        }, 2000);
+                    });
                 })
                 .catch(() => {
-                    editPostModalMessage.textContent = 'Unable to save changes.';
+                    showAnimatedMessage(editPostModalMessage, 'Unable to save changes.', '#ef4444');
                 })
                 .finally(() => {
-                    if (submitBtn) submitBtn.disabled = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '';
+                        submitBtn.style.cursor = '';
+                    }
                 });
         });
     }

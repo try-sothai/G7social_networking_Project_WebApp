@@ -270,7 +270,7 @@ if ($action === 'fetch') {
                     $post['ViewsCount'] = (int)$stmt->fetchColumn();
                     
                     // Fetch comments
-                    $stmt = $conn->prepare("SELECT i.CommentText, u.UserID, u.Username, u.ProfilePic FROM interactions i JOIN users u ON i.UserID = u.UserID WHERE i.PostID = ? AND i.Type = 'comment' ORDER BY i.CreatedAt ASC");
+                    $stmt = $conn->prepare("SELECT i.CommentText, i.CreatedAt, u.UserID, u.Username, u.ProfilePic FROM interactions i JOIN users u ON i.UserID = u.UserID WHERE i.PostID = ? AND i.Type = 'comment' ORDER BY i.CreatedAt ASC");
                     $stmt->execute([$postId]);
                     $post['Comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } catch (PDOException $e) {

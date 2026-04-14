@@ -373,18 +373,45 @@ function renderComments(comments) {
         return '<div style="padding: 12px; color: #6b7280; text-align: center;">no comments yet</div>';
     }
     
-    return comments.map(comment => `
-        <div class="comment">
-            <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" class="post-user-link" style="display:flex; align-items:flex-start; gap:10px; text-decoration:none; color:inherit;">
-            <img src="${comment.ProfilePic ? `${window.APP_CONFIG.imagePath}${comment.ProfilePic}` : 'https://via.placeholder.com/32'}" alt="${escapeHtml(comment.Username)}" onerror="this.src='https://via.placeholder.com/32'">
-            <div class="comment-content">
-                <strong>${escapeHtml(comment.Username)}</strong>
-                <p>${escapeHtml(comment.CommentText || comment.Comment)}</p>
-                <small style="color: #6b7280;">${new Date(comment.CreatedAt).toLocaleTimeString()}</small>
+    return comments.map(comment => {
+        const dateObj = new Date(comment.CreatedAt || '');
+        let exactDate = '';
+        let timeDisplay = '';
+        
+        if (!Number.isNaN(dateObj.getTime())) {
+            exactDate = dateObj.toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+            
+            const seconds = Math.floor((Date.now() - dateObj.getTime()) / 1000);
+            let timeAgo = 'Just now';
+            if (seconds >= 60) {
+                const mins = Math.floor(seconds / 60);
+                if (mins < 60) timeAgo = `${mins}m ago`;
+                else {
+                    const hours = Math.floor(mins / 60);
+                    if (hours < 24) timeAgo = `${hours}h ago`;
+                    else {
+                        const days = Math.floor(hours / 24);
+                        if (days < 7) timeAgo = `${days}d ago`;
+                        else timeAgo = dateObj.toLocaleDateString();
+                    }
+                }
+            }
+            timeDisplay = exactDate && timeAgo !== exactDate ? `${timeAgo} • ${exactDate}` : timeAgo;
+        }
+
+        return `
+            <div class="comment">
+                <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" class="post-user-link" style="display:flex; align-items:flex-start; gap:10px; text-decoration:none; color:inherit;">
+                <img src="${comment.ProfilePic ? `${window.APP_CONFIG.imagePath}${comment.ProfilePic}` : 'https://via.placeholder.com/32'}" alt="${escapeHtml(comment.Username)}" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                <div class="comment-content" style="flex: 1;">
+                    <strong>${escapeHtml(comment.Username)}</strong>
+                    <p style="margin: 2px 0;">${escapeHtml(comment.CommentText || comment.Comment)}</p>
+                    <small style="color: #6b7280;" title="${escapeHtml(exactDate)}">${escapeHtml(timeDisplay)}</small>
+                </div>
+                </a>
             </div>
-            </a>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function toggleLike(postId, button) {
