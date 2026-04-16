@@ -12,13 +12,13 @@ class FriendModel {
      * Get all accepted friends of a user
      */
     public function getFriends($user_id) {
-        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, 
+        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio,
                        f.CreatedAt as friend_since
                 FROM users u
-                INNER JOIN friends f ON 
+                INNER JOIN friends f ON
                     (f.RequesterID = u.UserID AND f.ReceiverID = :user_id1) OR 
                     (f.ReceiverID = u.UserID AND f.RequesterID = :user_id2)
-                WHERE f.Status = 'Accepted' AND u.UserID != :user_id3
+                WHERE f.Status = 'Accepted' AND u.UserID != :user_id3 AND u.AccountStatus = 'Active'
                 ORDER BY u.Username ASC";
         
         $stmt = $this->conn->prepare($sql);
@@ -30,11 +30,11 @@ class FriendModel {
      * Get pending friend requests received
      */
     public function getReceivedRequests($user_id) {
-        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, 
+        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio,
                        f.CreatedAt as request_sent_at
                 FROM users u
                 INNER JOIN friends f ON f.RequesterID = u.UserID
-                WHERE f.ReceiverID = :user_id AND f.Status = 'Pending'
+                WHERE f.ReceiverID = :user_id AND f.Status = 'Pending' AND u.AccountStatus = 'Active'
                 ORDER BY f.CreatedAt DESC";
         
         $stmt = $this->conn->prepare($sql);
@@ -46,11 +46,11 @@ class FriendModel {
      * Get pending friend requests sent
      */
     public function getSentRequests($user_id) {
-        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, 
+        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio,
                        f.CreatedAt as request_sent_at
                 FROM users u
                 INNER JOIN friends f ON f.ReceiverID = u.UserID
-                WHERE f.RequesterID = :user_id AND f.Status = 'Pending'
+                WHERE f.RequesterID = :user_id AND f.Status = 'Pending' AND u.AccountStatus = 'Active'
                 ORDER BY f.CreatedAt DESC";
         
         $stmt = $this->conn->prepare($sql);
@@ -62,18 +62,25 @@ class FriendModel {
      * Get users not friends and not pending (for suggestions)
      */
     public function getSuggestedFriends($user_id, $limit = 10) {
+        // ORDER BY RAND() is very slow on large tables. This is a more performant way.
+        // 1. Get the max UserID to create a random starting point.
+        $maxIdStmt = $this->conn->query("SELECT MAX(UserID) FROM users");
+        $maxId = ($maxIdStmt) ? $maxIdStmt->fetchColumn() : 0;
+        if (!$maxId) return []; // No users in DB
+        $randOffset = rand(0, (int)$maxId);
+
         $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, u.Locations
                 FROM users u
-                WHERE u.UserID != :user_id
+                WHERE u.AccountStatus = 'Active' AND u.UserID >= :rand_offset AND u.UserID != :user_id
                 AND NOT EXISTS (
                     SELECT 1 FROM friends f 
                     WHERE ((f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID) 
                         OR (f.ReceiverID = :user_id2 AND f.RequesterID = u.UserID))
                 )
-                ORDER BY RAND()
                 LIMIT :limit";
         
         $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':rand_offset', $randOffset, PDO::PARAM_INT);
         $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindValue(':user_id1', $user_id, PDO::PARAM_INT);
         $stmt->bindValue(':user_id2', $user_id, PDO::PARAM_INT);
@@ -97,7 +104,7 @@ class FriendModel {
                     (f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID) OR 
                     (f.ReceiverID = :user_id2 AND f.RequesterID = u.UserID)
                 WHERE u.UserID != :user_id3
-                  AND (u.Username LIKE :search1 OR u.Email LIKE :search2 OR u.Locations LIKE :search3)
+                  AND u.AccountStatus = 'Active' AND (u.Username LIKE :search1 OR u.Email LIKE :search2 OR u.Locations LIKE :search3)
                 ORDER BY u.Username ASC
                 LIMIT 20";
         
@@ -158,14 +165,21 @@ class FriendModel {
      * Accept friend request
      */
     public function acceptFriendRequest($user_id, $friend_id) {
-        $sql = "UPDATE friends SET Status = 'Accepted' 
-                WHERE RequesterID = :friend_id AND ReceiverID = :user_id AND Status = 'Pending'";
-        $stmt = $this->conn->prepare($sql);
-        
-        if ($stmt->execute([':friend_id' => $friend_id, ':user_id' => $user_id]) && $stmt->rowCount() > 0) {
-            // ដកការបង្កើត Notification នេះចេញព្រោះ 'RequestAccepted' មិនមានក្នុង ENUM របស់តារាង notifications ទេ
-            // $this->createNotification($friend_id, $user_id, 'RequestAccepted');
-            return ['success' => true, 'message' => 'Friend request accepted'];
+        try {
+            $sql = "CALL AcceptFriendRequest(:friend_id, :user_id)";
+            $stmt = $this->conn->prepare($sql);
+            
+            if ($stmt->execute([':friend_id' => $friend_id, ':user_id' => $user_id])) {
+                return ['success' => true, 'message' => 'Friend request accepted'];
+            }
+        } catch (PDOException $e) {
+            // ប្រព័ន្ធ Backup ពេលរក Procedure មិនឃើញ
+            $sql = "UPDATE friends SET Status = 'Accepted' 
+                    WHERE RequesterID = :friend_id AND ReceiverID = :user_id AND Status = 'Pending'";
+            $stmt = $this->conn->prepare($sql);
+            if ($stmt->execute([':friend_id' => $friend_id, ':user_id' => $user_id])) {
+                return ['success' => true, 'message' => 'Friend request accepted'];
+            }
         }
         
         return ['success' => false, 'message' => 'Failed to accept request or request not found'];
@@ -324,6 +338,30 @@ class FriendModel {
             ':friend_id3' => $friend_id
         ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Get mutual friends count using the Database Function
+     */
+    public function getMutualFriendsCount($user_id, $friend_id) {
+        try {
+            $sql = "SELECT GetMutualFriendsCount(:user1, :user2) as count";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([':user1' => $user_id, ':user2' => $friend_id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? (int)$row['count'] : 0;
+        } catch (PDOException $e) {
+            // ប្រព័ន្ធ Backup ពេលរក Function មិនឃើញ
+            $sql = "SELECT COUNT(*) as count FROM friends f1
+                    JOIN friends f2 ON (f1.RequesterID = f2.RequesterID OR f1.RequesterID = f2.ReceiverID OR f1.ReceiverID = f2.RequesterID OR f1.ReceiverID = f2.ReceiverID)
+                    WHERE (f1.RequesterID = :user1_1 OR f1.ReceiverID = :user1_2)
+                      AND (f2.RequesterID = :user2_1 OR f2.ReceiverID = :user2_2)
+                      AND f1.Status = 'Accepted' AND f2.Status = 'Accepted' AND f1.FriendshipID <> f2.FriendshipID";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([':user1_1' => $user_id, ':user1_2' => $user_id, ':user2_1' => $friend_id, ':user2_2' => $friend_id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? (int)$row['count'] : 0;
+        }
     }
 }
 ?>

@@ -83,7 +83,7 @@ public function getExplorePosts($category = null, $limit = 20) {
                 SELECT p.*, u.Username, u.ProfilePic 
                 FROM posts p 
                 JOIN users u ON p.UserID = u.UserID 
-                WHERE p.Category = :category OR p.Content LIKE :search OR p.ImagePath LIKE :search
+                WHERE u.AccountStatus = 'Active' AND (p.Category = :category OR p.Content LIKE :search OR p.ImagePath LIKE :search)
                 ORDER BY p.CreatedAt DESC 
                 LIMIT :limit
             ";
@@ -98,6 +98,7 @@ public function getExplorePosts($category = null, $limit = 20) {
                 SELECT p.*, u.Username, u.ProfilePic 
                 FROM posts p 
                 JOIN users u ON p.UserID = u.UserID 
+                WHERE u.AccountStatus = 'Active'
                 ORDER BY p.CreatedAt DESC 
                 LIMIT :limit
             ";

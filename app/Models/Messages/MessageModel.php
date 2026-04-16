@@ -97,7 +97,7 @@ class MessageModel {
             INNER JOIN friends f ON 
                 (f.RequesterID = u.UserID AND f.ReceiverID = :uid) OR 
                 (f.ReceiverID = u.UserID AND f.RequesterID = :uid)
-            WHERE f.Status = 'Accepted' AND u.UserID != :uid
+            WHERE f.Status = 'Accepted' AND u.UserID != :uid AND u.AccountStatus = 'Active'
             ORDER BY last_message_time DESC
         ");
         
@@ -124,7 +124,7 @@ class MessageModel {
             INNER JOIN friends f ON 
                 (f.RequesterID = u.UserID AND f.ReceiverID = :uid) OR 
                 (f.ReceiverID = u.UserID AND f.RequesterID = :uid)
-            WHERE f.Status = 'Accepted' 
+            WHERE f.Status = 'Accepted' AND u.AccountStatus = 'Active'
               AND u.UserID != :uid
               AND (u.Username LIKE :search OR u.Email LIKE :search)
             ORDER BY u.Username ASC
@@ -154,7 +154,7 @@ class MessageModel {
             LEFT JOIN friends f ON 
                 (f.RequesterID = :uid AND f.ReceiverID = u.UserID) OR 
                 (f.ReceiverID = :uid AND f.RequesterID = u.UserID)
-            WHERE u.UserID != :uid
+            WHERE u.UserID != :uid AND u.AccountStatus = 'Active'
               AND (u.Username LIKE :search OR u.Email LIKE :search)
             ORDER BY 
                 CASE 
@@ -191,15 +191,26 @@ class MessageModel {
     
     /* ===== GET UNREAD COUNT ===== */
     public function getUnreadCount($userId) {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) as count 
-            FROM messages 
-            WHERE ReceiverID = :uid AND IsRead = 0
-        ");
-        
-        $stmt->execute([':uid' => $userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['count'];
+        try {
+            $stmt = $this->db->prepare("
+                SELECT unread_count as count 
+                FROM vw_unread_messages 
+                WHERE ReceiverID = :uid
+            ");
+            
+            $stmt->execute([':uid' => $userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? (int)$result['count'] : 0;
+        } catch (PDOException $e) {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) as count 
+                FROM messages 
+                WHERE ReceiverID = :uid AND IsRead = 0
+            ");
+            $stmt->execute([':uid' => $userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? (int)$result['count'] : 0;
+        }
     }
     
     /* ===== GET MESSAGE BY ID ===== */

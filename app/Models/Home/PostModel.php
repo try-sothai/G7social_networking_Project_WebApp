@@ -21,6 +21,7 @@ class PostModel {
                 u.ProfilePic
             FROM posts p
             INNER JOIN users u ON u.UserID = p.UserID
+            WHERE u.AccountStatus = 'Active'
             ORDER BY p.CreatedAt DESC
             LIMIT :limit
         ");
@@ -30,19 +31,41 @@ class PostModel {
     }
 
     public function createPost(int $userId, string $content, string $imagePath, string $privacy = 'Public', ?string $location = null, ?string $feeling = null, string $category = 'General'): bool {
-        $stmt = $this->db->prepare("
-            INSERT INTO posts (UserID, Content, ImagePath, Privacy, Location, Feeling, Category, CreatedAt)
-            VALUES (:user_id, :content, :image_path, :privacy, :location, :feeling, :category, NOW())
-        ");
-        return $stmt->execute([
-            ':user_id' => $userId,
-            ':content' => $content,
-            ':image_path' => $imagePath,
-            ':privacy' => $privacy,
-            ':location' => $location,
-            ':feeling' => $feeling,
-            ':category' => $category
-        ]);
+        // ទាញយកពាក្យ Hashtags ទាំងអស់ពី Content (គាំទ្រទាំងភាសាខ្មែរ និងអង់គ្លេស)
+        preg_match_all('/#([\p{L}\p{N}_]+)/u', $content, $matches);
+        $hashtags = implode(',', $matches[1]);
+        
+        try {
+            // ហៅ Stored Procedure មកប្រើ (បញ្ចូលទាំង parameters ថ្មីៗ)
+            $stmt = $this->db->prepare("
+                CALL CreatePostWithHashtags(:user_id, :content, :image_path, :privacy, :location, :feeling, :category, :hashtags)
+            ");
+            return $stmt->execute([
+                ':user_id' => $userId,
+                ':content' => $content,
+                ':image_path' => $imagePath,
+                ':privacy' => $privacy,
+                ':location' => $location,
+                ':feeling' => $feeling,
+                ':category' => $category,
+                ':hashtags' => $hashtags
+            ]);
+        } catch (PDOException $e) {
+            // ប្រព័ន្ធ Backup ពេល Database មិនទាន់មាន Procedure
+            $stmt = $this->db->prepare("
+                INSERT INTO posts (UserID, Content, ImagePath, Privacy, Location, Feeling, Category, CreatedAt)
+                VALUES (:user_id, :content, :image_path, :privacy, :location, :feeling, :category, NOW())
+            ");
+            return $stmt->execute([
+                ':user_id' => $userId,
+                ':content' => $content,
+                ':image_path' => $imagePath,
+                ':privacy' => $privacy,
+                ':location' => $location,
+                ':feeling' => $feeling,
+                ':category' => $category
+            ]);
+        }
     }
 
     public function getPostByIdForUser(int $postId, int $userId): ?array {
