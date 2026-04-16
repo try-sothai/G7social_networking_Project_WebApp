@@ -97,6 +97,50 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
         body.dark-mode .group-dp { border-color: #1e293b; background: #1e293b; }
         body.dark-mode .member-card { background: #1e293b; border-color: rgba(148, 163, 184, 0.2); }
         body.dark-mode .group-nav-tabs { border-color: rgba(148, 163, 184, 0.2); }
+
+        /* 🎨 Modern Post Actions (Like, Comment, Share) Styling */
+        .modern-post-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color, #e2e8f0);
+            margin-top: 15px;
+        }
+        .action-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: var(--bg-hover, #f1f5f9);
+            color: var(--text-secondary, #64748b);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .action-pill:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .action-pill.liked {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .post-stats-pill {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--text-muted, #94a3b8);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        body.dark-mode .action-pill { background: rgba(148, 163, 184, 0.1); color: #cbd5e1; }
+        body.dark-mode .action-pill:hover { background: rgba(148, 163, 184, 0.2); color: #f8fafc; }
+        body.dark-mode .action-pill.liked { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+        body.dark-mode .modern-post-actions { border-top-color: rgba(148, 163, 184, 0.2); }
         
         /* Responsive សម្រាប់ទូរស័ព្ទ */
         @media (max-width: 768px) {
@@ -128,9 +172,9 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
                 </div>
             </div>
             <div class="group-nav-tabs">
-                <div class="g-tab active" onclick="switchTab('discussion')">Discussion</div>
-                <div class="g-tab" onclick="switchTab('members')">Members</div>
-                <div class="g-tab" onclick="switchTab('about')">About</div>
+                <div class="g-tab active" onclick="switchTab(event, 'discussion')">Discussion</div>
+                <div class="g-tab" onclick="switchTab(event, 'members')">Members</div>
+                <div class="g-tab" onclick="switchTab(event, 'about')">About</div>
             </div>
         </div>
 
@@ -206,7 +250,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
     
     <script>
         // កូដសម្រាប់ចុចប្តូរ Tab ទៅមក (Feed, Members, About)
-        function switchTab(tabName) {
+        function switchTab(event, tabName) {
             document.querySelectorAll('.g-tab').forEach(el => el.classList.remove('active'));
             event.currentTarget.classList.add('active');
             

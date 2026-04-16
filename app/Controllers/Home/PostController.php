@@ -229,7 +229,8 @@ if ($action === 'fetch') {
         ensurePostMediaColumnCapacity($conn);
         ensurePostViewsTable($conn);
         $groupId = (int)($_GET['group_id'] ?? 0);
-        $posts = $postModel->getRecentPosts(25, $groupId);
+        $mediaType = (string)($_GET['media_type'] ?? '');
+        $posts = $postModel->getRecentPosts(25, $groupId, $mediaType);
         if (is_array($posts)) {
             foreach ($posts as &$post) {
                 $mediaList = parseMediaList($post['ImagePath'] ?? '');

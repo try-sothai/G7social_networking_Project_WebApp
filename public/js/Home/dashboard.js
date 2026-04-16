@@ -591,11 +591,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadPosts() {
         if (!postFeedList) return;
-        let url = `${POST_API}?action=fetch`;
+        const url = new URL(POST_API, window.location.href);
+        url.searchParams.set('action', 'fetch');
+
         if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
-            url += `&group_id=${window.CURRENT_GROUP_ID}`;
+            url.searchParams.set('group_id', window.CURRENT_GROUP_ID);
         }
-        fetch(url)
+        if (typeof window.POST_FETCH_MODE !== 'undefined' && window.POST_FETCH_MODE === 'videos') {
+            url.searchParams.set('media_type', 'video');
+        }
+        fetch(url.toString())
             .then((res) => res.json())
             .then((data) => {
                 if (data.status === 'success') {
