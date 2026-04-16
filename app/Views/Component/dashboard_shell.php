@@ -57,7 +57,7 @@ if (!function_exists('lc_shell_default_nav')) {
             'report' => [
                 'href' => BASE_URL . 'app/Views/Report/userReport.php',
                 'icon' => 'fa-solid fa-chart-simple',
-                'label' => 'Report',
+                'label' => 'Dashboard',
             ],
         ];
 
@@ -83,7 +83,7 @@ if (!function_exists('lc_shell_default_nav')) {
         <div class="sidebar app-shell-sidebar">
             <div class="logo-section">
                 <i class="fa-solid fa-cube"></i>
-                <span>LocalConnect</span>
+                <span>Social7</span>
             </div>
 
             <nav class="menu">
