@@ -597,9 +597,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
             url.searchParams.set('group_id', window.CURRENT_GROUP_ID);
         }
-        if (typeof window.POST_FETCH_MODE !== 'undefined' && window.POST_FETCH_MODE === 'videos') {
-            url.searchParams.set('media_type', 'video');
-        }
         fetch(url.toString())
             .then((res) => res.json())
             .then((data) => {

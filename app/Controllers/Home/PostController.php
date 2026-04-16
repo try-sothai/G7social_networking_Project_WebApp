@@ -229,8 +229,7 @@ if ($action === 'fetch') {
         ensurePostMediaColumnCapacity($conn);
         ensurePostViewsTable($conn);
         $groupId = (int)($_GET['group_id'] ?? 0);
-        $mediaType = (string)($_GET['media_type'] ?? '');
-        $posts = $postModel->getRecentPosts(25, $groupId, $mediaType);
+        $posts = $postModel->getRecentPosts(25, $groupId);
         if (is_array($posts)) {
             foreach ($posts as &$post) {
                 $mediaList = parseMediaList($post['ImagePath'] ?? '');
@@ -328,6 +327,7 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!in_array($privacy, ['Public', 'Private', 'Friends'])) {
         $privacy = 'Public';
     }
+    $groupId = (int)($_POST['group_id'] ?? 0);
 
     $category = $_POST['category'] ?? 'General';
     if ($category === 'All') {
@@ -352,7 +352,7 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $postModel->createPost($current_user_id, $content, $mediaValue, $privacy, $location ?: null, $feeling ?: null, $category);
+        $postModel->createPost($current_user_id, $content, $mediaValue, $privacy, $location ?: null, $feeling ?: null, $category, $groupId);
         echo json_encode(['status' => 'success', 'message' => 'Post published successfully.']);
     } catch (PDOException $e) {
         deleteMediaFiles($uploadDirAbs, $savedMedia);
