@@ -1245,6 +1245,7 @@ body.fb-dashboard .stories-container .story-card.story-item {
 
 #create-post-modal .story-modal-header {
     padding: 22px 24px 16px;
+    background: #ffffff;
 }
 
 #create-post-modal .story-modal-header h3 {
@@ -1840,6 +1841,15 @@ body.dark-mode .story-modal-header {
     border-color: rgba(148, 163, 184, 0.25);
 }
 
+body.dark-mode #add-story-modal .story-modal-header {
+    background: #1e293b;
+}
+
+body.dark-mode .story-modal-close {
+    background: rgba(148, 163, 184, 0.15);
+    color: #e2e8f0;
+}
+
 body.dark-mode .post-menu-dropdown {
     background: #0f172a;
     border-color: rgba(148, 163, 184, 0.3);
@@ -1858,6 +1868,7 @@ body.dark-mode #create-post-modal .post-modal-card {
 }
 
 body.dark-mode #create-post-modal .story-modal-header {
+    background: #0f172a;
     border-bottom-color: rgba(148, 163, 184, 0.25);
 }
 

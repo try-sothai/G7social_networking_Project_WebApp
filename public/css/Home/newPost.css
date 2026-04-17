@@ -68,3 +68,32 @@
 .action-btn.photo i { color: #4ade80; }
 .action-btn.video i { color: #60a5fa; }
 .action-btn.event i { color: #f472b6; }
+
+/* ============================================
+   Dark Mode
+   ============================================ */
+body.dark-mode .create-post-card {
+    background: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .create-post-header {
+    border-bottom-color: rgba(148, 163, 184, 0.15);
+}
+
+body.dark-mode .create-post-header .fake-input {
+    background: #0f172a;
+    color: #64748b;
+}
+
+body.dark-mode .create-post-header .fake-input:hover {
+    background: #162032;
+}
+
+body.dark-mode .action-btn {
+    color: #94a3b8;
+}
+
+body.dark-mode .action-btn:hover {
+    background-color: rgba(148, 163, 184, 0.1);
+}

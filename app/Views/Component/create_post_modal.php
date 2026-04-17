@@ -1,7 +1,7 @@
 
 <div class="story-modal-overlay" id="create-post-modal" style="z-index: 9999;">
     <div class="story-modal-card post-modal-card" style="max-height: 90vh; overflow-y: auto; margin: 15px; width: 100%; max-width: 550px;">
-        <div class="story-modal-header" style="position: sticky; top: 0; background: var(--bg-card, #fff); z-index: 10; padding-bottom: 10px;">
+        <div class="story-modal-header" style="position: sticky; top: 0; z-index: 10; padding-bottom: 10px;">
             <h3>Create New Post</h3>
             <button class="story-modal-close" id="close-create-post" type="button">
                 <i class="fa-solid fa-xmark"></i>
@@ -17,7 +17,7 @@
                         <option value="Friends">Friends</option>
                         <option value="Private">Only me</option>
                     </select>
-                    <select name="category" class="create-post-privacy" style="margin-left: 5px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #475569;">
+                    <select name="category" class="create-post-privacy" style="margin-left: 5px;">
                         <option value="All">All (General)</option>
                         <option value="Photography">Photography</option>
                         <option value="Travel">Travel</option>

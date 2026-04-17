@@ -39,20 +39,25 @@ if (!function_exists('lc_admin_table_exists')) {
         }
 
         if (!lc_admin_table_exists($conn, 'admin_reports')) {
+            // Schema ត្រូវជាមួយ AdminModel.php (EntityType, EntityID, Details, ReviewedBy)
             $conn->exec("
                 CREATE TABLE admin_reports (
-                    ReportID INT AUTO_INCREMENT PRIMARY KEY,
-                    PostID INT NOT NULL,
-                    ReporterID INT NOT NULL,
-                    Reason VARCHAR(255) NOT NULL,
-                    Status ENUM('Pending', 'Reviewed', 'Resolved') DEFAULT 'Pending',
-                    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    ReviewedAt DATETIME NULL,
-                    CONSTRAINT fk_report_post FOREIGN KEY (PostID) REFERENCES posts(PostID) ON DELETE CASCADE,
-                    CONSTRAINT fk_report_user FOREIGN KEY (ReporterID) REFERENCES users(UserID) ON DELETE CASCADE,
-                    KEY idx_admin_reports_status (Status),
+                    ReportID   INT           AUTO_INCREMENT PRIMARY KEY,
+                    ReporterID INT           NOT NULL,
+                    EntityType VARCHAR(50)   NOT NULL DEFAULT 'post',
+                    EntityID   INT           NOT NULL,
+                    Reason     VARCHAR(255)  NOT NULL,
+                    Details    TEXT          NULL,
+                    Status     ENUM('Pending','Reviewed','Resolved','Dismissed') DEFAULT 'Pending',
+                    ReviewedBy INT           NULL,
+                    ReviewedAt DATETIME      NULL,
+                    CreatedAt  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT fk_report_reporter FOREIGN KEY (ReporterID) REFERENCES users(UserID) ON DELETE CASCADE,
+                    CONSTRAINT fk_report_reviewer FOREIGN KEY (ReviewedBy) REFERENCES users(UserID) ON DELETE SET NULL,
+                    UNIQUE KEY unique_report (ReporterID, EntityType, EntityID),
+                    KEY idx_admin_reports_status     (Status),
                     KEY idx_admin_reports_created_at (CreatedAt)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3
             ");
         }
 

@@ -71,9 +71,52 @@ body.dark-mode .fake-input {
 body.dark-mode .create-post-card,
 body.dark-mode .group-card,
 body.dark-mode .group-filters-container,
-body.dark-mode .stat-card {
+body.dark-mode .stat-card,
+body.dark-mode .no-groups {
     background: #111827 !important;
     border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+body.dark-mode .group-name {
+    color: #f1f5f9;
+}
+
+body.dark-mode .group-desc {
+    color: #94a3b8;
+}
+
+body.dark-mode .group-meta {
+    color: #64748b;
+}
+
+body.dark-mode .group-avatar {
+    border-color: #111827;
+}
+
+body.dark-mode .stat-card h3 {
+    color: #f1f5f9;
+}
+
+body.dark-mode .stat-card span {
+    color: #94a3b8;
+}
+
+body.dark-mode .filter-btn {
+    color: #94a3b8;
+}
+
+body.dark-mode .filter-btn:hover {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+}
+
+body.dark-mode .no-groups h3,
+body.dark-mode .no-groups p {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .no-groups i {
+    color: #374151;
 }
 
 /* New Two-Column Layout */

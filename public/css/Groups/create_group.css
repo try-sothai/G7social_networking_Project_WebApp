@@ -190,28 +190,91 @@ small {
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-/* Dark Mode Styles */
+/* ============================================
+   Dark Mode Styles
+   ============================================ */
+body.dark-mode {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
 body.dark-mode .back-link {
     color: #94a3b8;
 }
 body.dark-mode .back-link:hover {
     color: #a5b4fc;
 }
-body.dark-mode .avatar-preview, 
+
+body.dark-mode .form-container {
+    background: #1e293b;
+    box-shadow: 0 10px 25px rgba(2, 6, 23, 0.4);
+}
+
+body.dark-mode h1 {
+    color: #f1f5f9;
+}
+
+body.dark-mode .subtitle {
+    color: #94a3b8;
+}
+
+body.dark-mode label {
+    color: #cbd5e1;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: #0f172a;
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #e2e8f0;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    background: #1e293b;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #475569;
+}
+
+body.dark-mode select option {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+body.dark-mode .error {
+    background: rgba(220, 38, 38, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+body.dark-mode small {
+    color: #64748b;
+}
+
+body.dark-mode .avatar-preview,
 body.dark-mode .banner-preview {
-    border-color: #374151;
-    background: #1f2937;
+    border-color: rgba(148, 163, 184, 0.25);
+    background: #0f172a;
 }
-body.dark-mode .avatar-preview i, 
+
+body.dark-mode .avatar-preview i,
 body.dark-mode .banner-preview i,
-body.dark-mode .avatar-preview span, 
+body.dark-mode .avatar-preview span,
 body.dark-mode .banner-preview span {
-    color: #6b7280;
+    color: #475569;
 }
+
 body.dark-mode .file-upload:hover .avatar-preview,
 body.dark-mode .file-upload:hover .banner-preview {
     border-color: #6366f1;
-    background: #111827;
+    background: #1e293b;
 }
 
 @media (max-width: 640px) {

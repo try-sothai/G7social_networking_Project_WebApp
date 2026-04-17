@@ -132,7 +132,7 @@ if ($profilePicPath === '') {
                 <a href="<?php echo BASE_URL; ?>app/Views/Profile/settings.php" style="text-decoration: none;">
                     <button class="btn_st"><i class="fa-solid fa-gear"></i> Settings</button>
                 </a>
-                <a href="<?php echo BASE_URL; ?>app/Controllers/Auth/logout.php" style="text-decoration: none;">
+                <a href="<?php echo BASE_URL; ?>app/Views/Login/logout.php" style="text-decoration: none;">
                     <button class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
                 </a>
             </div>
