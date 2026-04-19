@@ -38,6 +38,9 @@
     <link rel="stylesheet" href="../../../public/css/Messages/message.css?v=<?php echo filemtime(__DIR__.'/../../../public/css/Messages/message.css'); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <style>
+        /* Hide Create Post FAB on Messages page */
+        .mobile-fab { display: none !important; }
+
         /* Mobile Chat Responsive Fix */
         .mobile-back-btn {
             display: none;
@@ -209,8 +212,6 @@
     <script src="../../../public/js/Messages/message.js?v=<?php echo filemtime(__DIR__.'/../../../public/js/Messages/message.js'); ?>"></script>
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
-    <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
-    <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>
 </html>

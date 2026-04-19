@@ -9,8 +9,11 @@ lc_admin_ensure_schema($conn);
 $clientID = env('GOOGLE_CLIENT_ID');
 $clientSecret = env('GOOGLE_CLIENT_SECRET');
 
-// Automatically build the full Redirect URI
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+// Automatically build the full Redirect URI (supports ngrok/reverse proxy)
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
+    || ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on';
+$protocol = $isHttps ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'];
 $redirectUri = $protocol . $host . rtrim(BASE_URL, '/') . '/app/Controllers/Auth/google_auth.php';
 
@@ -68,12 +71,12 @@ if (isset($_GET['code'])) {
                 $_SESSION['account_status'] = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
             } else {
                 // If not found, automatically create a new account
-                $insert = $conn->prepare("INSERT INTO users (Username, Email, ProfilePic, Password) VALUES (:name, :email, :pic, :pass)");
+                $insert = $conn->prepare("INSERT INTO users (Username, Email, ProfilePic, Password, AccountStatus, Role) VALUES (:name, :email, :pic, :pass, 'Active', 'User')");
                 $insert->execute([
                     ':name' => $name,
                     ':email' => $email,
                     ':pic' => $picture,
-                    ':pass' => password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT) // Random password
+                    ':pass' => password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT)
                 ]);
                 $_SESSION['user_id'] = (int)$conn->lastInsertId();
                 $_SESSION['Email'] = $email;
