@@ -28,14 +28,14 @@
     }
 ?>
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - LocalConnect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous"> 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../public/css/Messages/message.css">
+    <link rel="stylesheet" href="../../../public/css/Messages/message.css?v=<?php echo filemtime(__DIR__.'/../../../public/css/Messages/message.css'); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <style>
         /* Mobile Chat Responsive Fix */
@@ -168,7 +168,7 @@
             const chatActive = document.getElementById('chat-active');
             const backBtn = document.getElementById('mobile-back-to-list');
 
-            // បង្ហាញផ្ទាំងឆាតពេលចុចលើឈ្មោះមិត្តភក្តិ (សម្រាប់តែទូរស័ព្ទ)
+            // Show chat panel when a friend name is clicked (mobile only)
             if (userList) {
                 userList.addEventListener('click', (e) => {
                     const item = e.target.closest('div');
@@ -177,7 +177,7 @@
                     }
                 });
             }
-            // លាក់ផ្ទាំងឆាតវិញពេលចុចប៊ូតុង Back
+            // Hide the chat panel when the Back button is pressed
             if (backBtn) {
                 backBtn.addEventListener('click', () => {
                     chatActive.classList.remove('mobile-active');
@@ -206,7 +206,7 @@
         const MY_AVATAR = <?= json_encode(!empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : 'https://via.placeholder.com/40') ?>;
         window.APP_CONFIG = <?php echo getJsConfig(); ?>;
     </script>
-    <script src="../../../public/js/Messages/message.js"></script>
+    <script src="../../../public/js/Messages/message.js?v=<?php echo filemtime(__DIR__.'/../../../public/js/Messages/message.js'); ?>"></script>
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>

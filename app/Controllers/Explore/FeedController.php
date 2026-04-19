@@ -15,7 +15,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 if ($action === 'get_feed') {
     try {
-        // កំណត់ចំនួន Post ដែលចង់ទាញយកម្តងៗ (Default គឺ 10)
+        // Set the number of posts to fetch per request (default is 10)
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
         
         $profileModel = new ProfileModel($conn);

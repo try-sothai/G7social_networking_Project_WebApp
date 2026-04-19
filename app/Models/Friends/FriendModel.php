@@ -173,8 +173,8 @@ class FriendModel {
                 return ['success' => true, 'message' => 'Friend request accepted'];
             }
         } catch (PDOException $e) {
-            // ប្រព័ន្ធ Backup ពេលរក Procedure មិនឃើញ
-            $sql = "UPDATE friends SET Status = 'Accepted' 
+            // Fallback when the stored procedure is not found
+            $sql = "UPDATE friends SET Status = 'Accepted'
                     WHERE RequesterID = :friend_id AND ReceiverID = :user_id AND Status = 'Pending'";
             $stmt = $this->conn->prepare($sql);
             if ($stmt->execute([':friend_id' => $friend_id, ':user_id' => $user_id])) {
@@ -351,7 +351,7 @@ class FriendModel {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ? (int)$row['count'] : 0;
         } catch (PDOException $e) {
-            // ប្រព័ន្ធ Backup ពេលរក Function មិនឃើញ
+            // Fallback when the database function is not found
             $sql = "SELECT COUNT(*) as count FROM friends f1
                     JOIN friends f2 ON (f1.RequesterID = f2.RequesterID OR f1.RequesterID = f2.ReceiverID OR f1.ReceiverID = f2.RequesterID OR f1.ReceiverID = f2.ReceiverID)
                     WHERE (f1.RequesterID = :user1_1 OR f1.ReceiverID = :user1_2)

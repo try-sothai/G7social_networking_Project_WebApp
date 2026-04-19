@@ -5,17 +5,17 @@ require_once '../../Helpers/admin.php';
 
 lc_admin_ensure_schema($conn);
 
-// ⚠️ សំខាន់៖ សូមយក Client ID និង Client Secret ដែលបងទើបតែបានពី Google មក Paste ជំនួសត្រង់នេះ
+// ⚠️ Important: Paste your Client ID and Client Secret obtained from Google here
 $clientID = '373812776585-kdb825tsdi71rq22gksnepnalpiaoegq.apps.googleusercontent.com';
 $clientSecret = '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';
 
-// បង្កើត Redirect URI ពេញលេញដោយស្វ័យប្រវត្តិ
+// Automatically build the full Redirect URI
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'];
 $redirectUri = $protocol . $host . rtrim(BASE_URL, '/') . '/app/Controllers/Auth/google_auth.php';
 
 if (isset($_GET['code'])) {
-    // ប្តូរ Code យក Access Token
+    // Exchange code for an Access Token
     $tokenUrl = 'https://oauth2.googleapis.com/token';
     $postData = [
         'code' => $_GET['code'],
@@ -30,14 +30,14 @@ if (isset($_GET['code'])) {
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // សំខាន់សម្រាប់ WAMP Localhost ដើម្បីកុំឲ្យ Error SSL
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Required on WAMP localhost to prevent SSL errors
     $response = curl_exec($ch);
     curl_close($ch);
 
     $token = json_decode($response, true);
 
     if (isset($token['access_token'])) {
-        // ប្រើ Access Token ទៅទាញយកទិន្នន័យពី Google (ឈ្មោះ, អ៊ីមែល, រូបភាព)
+        // Use the Access Token to fetch user info from Google (name, email, picture)
         $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $token['access_token'];
         $ch2 = curl_init();
         curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
@@ -52,26 +52,26 @@ if (isset($_GET['code'])) {
             $name = $userInfo['name'];
             $picture = $userInfo['picture'] ?? '';
 
-            // ឆែកមើលថាមាន Email នេះក្នុង Database ឬនៅ
+            // Check if this email already exists in the database
             $stmt = $conn->prepare("SELECT UserID, Username, Email, Role, AccountStatus FROM users WHERE Email = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
-                // បើមាន ឲ្យ Login ចូលតែម្ដង
+                // If found, log the user in immediately
                 $_SESSION['user_id'] = (int)$user['UserID'];
                 $_SESSION['Email'] = $user['Email'];
                 $_SESSION['username'] = $user['Username'];
                 $_SESSION['user_role'] = lc_admin_normalize_role($user['Role'] ?? 'User');
                 $_SESSION['account_status'] = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
             } else {
-                // បើមិនទាន់មាន បង្កើតគណនីថ្មីឲ្យដោយស្វ័យប្រវត្តិ
+                // If not found, automatically create a new account
                 $insert = $conn->prepare("INSERT INTO users (Username, Email, ProfilePic, Password) VALUES (:name, :email, :pic, :pass)");
                 $insert->execute([
                     ':name' => $name,
                     ':email' => $email,
                     ':pic' => $picture,
-                    ':pass' => password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT) // លេខកូដសម្ងាត់ចៃដន្យ
+                    ':pass' => password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT) // Random password
                 ]);
                 $_SESSION['user_id'] = (int)$conn->lastInsertId();
                 $_SESSION['Email'] = $email;
@@ -95,7 +95,7 @@ if (isset($_GET['code'])) {
     exit();
 }
 
-// បញ្ជូនទៅកាន់ទំព័រ Google ពេលចុចប៊ូតុង
+// Redirect to Google's authorization page when button is clicked
 $authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" . http_build_query(['client_id' => $clientID, 'redirect_uri' => $redirectUri, 'response_type' => 'code', 'scope' => 'email profile', 'access_type' => 'online']);
 header("Location: $authUrl");
 exit();

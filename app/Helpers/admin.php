@@ -39,7 +39,7 @@ if (!function_exists('lc_admin_table_exists')) {
         }
 
         if (!lc_admin_table_exists($conn, 'admin_reports')) {
-            // Schema ត្រូវជាមួយ AdminModel.php (EntityType, EntityID, Details, ReviewedBy)
+            // Schema must match AdminModel.php (EntityType, EntityID, Details, ReviewedBy)
             $conn->exec("
                 CREATE TABLE admin_reports (
                     ReportID   INT           AUTO_INCREMENT PRIMARY KEY,

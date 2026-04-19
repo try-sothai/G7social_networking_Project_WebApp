@@ -304,10 +304,17 @@
     word-break: break-word;
 }
 
-.msg-bubble-audio {
+.me .msg-bubble-audio,
+.them .msg-bubble-audio,
+.message-wrapper .msg-bubble-audio {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.audio-download-btn {
+    display: none !important;
 }
 
 .me .msg-bubble {
@@ -392,55 +399,24 @@
 
 /* Audio Message */
 .audio-message {
-    position: relative;
-    width: min(360px, 78vw);
-    border-radius: 18px;
-    padding: 8px 0 0;
-    background: transparent;
-    border: none;
-}
-
-.audio-download-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 34px;
-    height: 34px;
-    border: none;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.65);
-    color: #ffffff;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.audio-download-btn:hover {
-    background: rgba(15, 23, 42, 0.85);
-    transform: translateY(-1px);
+    width: min(280px, 72vw);
 }
 
 .audio-player-wrap {
     background: #ffffff;
     border-radius: 999px;
-    padding: 8px 10px;
+    padding: 6px 10px;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
 }
 
 .audio-message audio {
-    height: 40px;
+    height: 36px;
     width: 100%;
     border-radius: 999px;
     background: transparent;
 }
 
-.message-wrapper.me .audio-message {
-    background: transparent;
-    border: none;
-}
-
+.message-wrapper.me .audio-message,
 .message-wrapper.them .audio-message {
     background: transparent;
     border: none;

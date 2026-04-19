@@ -186,7 +186,7 @@ if ($headerPicPath === '') {
 ?>
 
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -457,7 +457,7 @@ if ($headerPicPath === '') {
                                 $sharedOriginalUser = 'Original user';
                             }
                             
-                            // បំប្លែងការចុះបន្ទាត់ឲ្យបានស្អាត
+                            // Convert newlines to clean HTML line breaks
                             $displayContent = nl2br(htmlspecialchars($content));
                         ?>
                         <div class="post-card" data-post-id="<?php echo (int)$post['post_id']; ?>">
@@ -648,7 +648,7 @@ if ($headerPicPath === '') {
         </div>
     </div>
 
-    <!-- Toast Notification សម្រាប់ Add Friend -->
+    <!-- Toast Notification for Add Friend -->
     <div id="toast" style="position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; color: white; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: 0.3s;"></div>
 
     <!-- Lightbox -->
@@ -717,10 +717,10 @@ if ($headerPicPath === '') {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast(data.message, '#10b981'); // ពណ៌បៃតងពេលជោគជ័យ
+                    showToast(data.message, '#10b981'); // Green color on success
                     button.innerHTML = '<i class="fa-solid fa-clock"></i> Request Sent';
                 } else {
-                    showToast(data.message, '#ef4444'); // ពណ៌ក្រហមពេលមានបញ្ហា
+                    showToast(data.message, '#ef4444'); // Red color on error
                     button.innerHTML = originalText;
                     button.disabled = false;
                 }

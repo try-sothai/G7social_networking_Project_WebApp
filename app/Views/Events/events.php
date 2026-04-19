@@ -5,7 +5,7 @@
 
     require_once '../../Models/Profile/ProfileModel.php';
     require_once __DIR__ . '/../Component/dashboard_shell.php';
-    // សុវត្ថិភាព
+    // Security check
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
@@ -115,7 +115,7 @@ $dashboardJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/d
 $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/responsive.js') ?: time());
 ?>
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -302,7 +302,7 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
                 bellBtn.addEventListener('click', () => {
                     bellBtn.classList.add('active');
                     setTimeout(() => bellBtn.classList.remove('active'), 350);
-                    alert('មិនមានការជូនដំណឹងថ្មីទេ');
+                    alert('No new notifications.');
                 });
             }
 

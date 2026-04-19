@@ -6,11 +6,11 @@ require_once '../../Helpers/admin.php';
 
 lc_admin_ensure_schema($conn);
 
-// ⚠️ ១. សូមយក App ID និង App Secret របស់ហ្វេសប៊ុកបង មកដាក់ទីនេះ
+// ⚠️ 1. Enter your Facebook App ID and App Secret here
 $appID = '1823607298598252';
 $appSecret = 'c3cf21805947286a1a3b4a05dd3a42be';
 
-// ⚠️ ២. កំណត់ Link ឲ្យចំ (វាត្រូវគ្នានឹងអ្វីដែលបងបាន Save ក្នុង Facebook មិញនេះ)
+// ⚠️ 2. Set the Redirect URI to match what you saved in the Facebook Developer Console
 $redirectUri = 'http://localhost/G7social_networking_Project_WebApp/app/Controllers/Auth/facebook_auth.php';
 
 if (isset($_GET['code'])) {
@@ -21,7 +21,7 @@ if (isset($_GET['code'])) {
         'code' => $_GET['code']
     ]);
 
-    // ប្រើ cURL ដើម្បីរំលង SSL លើ WAMP
+    // Use cURL to bypass SSL on WAMP
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $tokenUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -34,7 +34,7 @@ if (isset($_GET['code'])) {
     if (isset($token['access_token'])) {
         $userInfoUrl = "https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=" . $token['access_token'];
         
-        // រំលង SSL ពេលទាញយកព័ត៌មាន (ឈ្មោះ, អ៊ីមែល, រូបតំណាង)
+        // Bypass SSL when fetching user info (name, email, profile picture)
         $ch2 = curl_init();
         curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
         curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
@@ -44,7 +44,7 @@ if (isset($_GET['code'])) {
 
         $userInfo = json_decode($userInfoResponse, true);
 
-        // បើ Facebook អត់ឲ្យ Email មកទេ (ដោយសារ User ចុះឈ្មោះប្រើលេខទូរស័ព្ទ) យើងបង្កើត Email ជំនួសឲ្យគាត់
+        // If Facebook doesn't provide an email (e.g., user registered with phone number), generate a fallback email
         $email = !empty($userInfo['email']) ? $userInfo['email'] : $userInfo['id'] . '@facebook.com';
         $name = $userInfo['name'] ?? 'Facebook User';
         $picture = $userInfo['picture']['data']['url'] ?? '';

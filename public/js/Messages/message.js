@@ -222,12 +222,60 @@ class MessageChat {
     }
 
     startPolling() {
+        // Poll only for NEW messages every 3 seconds (append only, no full re-render)
         this.pollingInterval = setInterval(() => {
-            if (this.activeReceiverID) {
-                this.loadMessages();
-            }
+            if (this.activeReceiverID) this.loadNewMessages();
+        }, 3000);
+        // Poll friends list every 60 seconds
+        this.friendsInterval = setInterval(() => {
             this.fetchFriends();
-        }, 300000);
+        }, 60000);
+    }
+
+    loadNewMessages() {
+        const lastId = this.messages.length > 0
+            ? Math.max(...this.messages.map(m => parseInt(m.MessageID)))
+            : 0;
+        fetch(`${API_PATH}?action=fetch&receiver_id=${this.activeReceiverID}&after_id=${lastId}`)
+            .then(res => res.json())
+            .then(newMsgs => {
+                if (!Array.isArray(newMsgs) || newMsgs.length === 0) return;
+                newMsgs.forEach(m => {
+                    this.messages.push(m);
+                    const html = this.buildMessageHTML(m);
+                    if (html) this.elements.chatBox.insertAdjacentHTML('beforeend', html);
+                });
+                this.elements.chatBox.scrollTop = this.elements.chatBox.scrollHeight;
+            })
+            .catch(() => {});
+    }
+
+    buildMessageHTML(m) {
+        const myAvatar = this.elements.myAvatar.src;
+        const receiverAvatar = this.elements.activeUserImg.src;
+        const isMe = m.SenderID == CURRENT_USER_ID;
+        const avatar = isMe ? myAvatar : (m.ProfilePic ? `${window.APP_CONFIG.imagePath}${m.ProfilePic}` : receiverAvatar);
+        const messageContent = this.formatMessageContent(m);
+        if (!messageContent.trim()) return '';
+        const timeStr = this.formatTime(m.SentAt);
+        const canEdit = isMe && this.canEditMessage(m);
+        const otherUserProfileUrl = this.getProfileUrl(m.SenderID);
+        return `
+            <div class="message-wrapper ${isMe ? 'me' : 'them'}" id="message-${m.MessageID}">
+                ${!isMe ? `<a href="${otherUserProfileUrl}" style="display:inline-flex;" title="View profile"><img src="${avatar}" class="msg-avatar"></a>` : ''}
+                <div class="message-content">
+                    ${m.MessageType === 'audio'
+                        ? `<div style="background:transparent;border:none;padding:0;box-shadow:none;">${messageContent}</div>`
+                        : `<div class="msg-bubble">${messageContent}</div>`
+                    }
+                    <span class="msg-time">${timeStr}</span>
+                    <div class="message-actions">
+                        ${canEdit ? `<button class="btn-edit" onclick="chatApp.openEditModal(${m.MessageID}, '${this.escapeJs(m.MessageBody)}')" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
+                        <button class="btn-delete" onclick="chatApp.confirmDeleteMessage(${m.MessageID})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                ${isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
+            </div>`;
     }
     
     fetchFriends() {
@@ -385,43 +433,11 @@ class MessageChat {
     }
 
     renderMessages() {
-        const myAvatar = this.elements.myAvatar.src;
-        const receiverAvatar = this.elements.activeUserImg.src;
-
-        this.elements.chatBox.innerHTML = this.messages.map(m => {
-            if (this.pendingDeletes[m.MessageID]) return '';
-
-            const isMe = m.SenderID == CURRENT_USER_ID;
-            const avatar = isMe ? myAvatar : (m.ProfilePic ? `${window.APP_CONFIG.imagePath}${m.ProfilePic}` : receiverAvatar);
-            let messageContent = this.formatMessageContent(m);
-            if (!messageContent.trim()) return '';
-            const timeStr = this.formatTime(m.SentAt);
-
-            const canEdit = isMe && this.canEditMessage(m);
-            const actionButtons = isMe ? `
-                <div class="msg-actions">
-                    ${canEdit ? `<button class="msg-action-btn edit-btn" onclick="chatApp.openEditModal(${m.MessageID}, '${this.escapeJs(m.MessageBody)}')" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
-                    <button class="msg-action-btn delete-btn" onclick="chatApp.confirmDeleteMessage(${m.MessageID})" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            ` : '';
-
-            const otherUserProfileUrl = this.getProfileUrl(m.SenderID);
-            return `
-                <div class="message-wrapper ${isMe ? 'me' : 'them'}" id="message-${m.MessageID}">
-                    ${!isMe ? `<a href="${otherUserProfileUrl}" style="display:inline-flex;" title="View profile"><img src="${avatar}" class="msg-avatar"></a>` : ''}
-                    <div class="message-content">
-                        <div class="msg-bubble ${m.MessageType === 'audio' ? 'msg-bubble-audio' : ''}">${messageContent}</div>
-                        <span class="msg-time">${timeStr}</span>
-                        <div class="message-actions">
-                            ${canEdit ? `<button class="btn-edit" onclick="chatApp.openEditModal(${m.MessageID}, '${this.escapeJs(m.MessageBody)}')" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
-                            <button class="btn-delete" onclick="chatApp.confirmDeleteMessage(${m.MessageID})" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    ${isMe ? `<img src="${avatar}" class="msg-avatar">` : ''}
-                </div>
-            `;
-        }).join('');
-
+        this.elements.chatBox.innerHTML = this.messages
+            .filter(m => !this.pendingDeletes[m.MessageID])
+            .map(m => this.buildMessageHTML(m))
+            .filter(h => h)
+            .join('');
         this.elements.chatBox.scrollTop = this.elements.chatBox.scrollHeight;
     }
     
@@ -464,16 +480,7 @@ class MessageChat {
                 
             case 'audio':
                 if (message.FileUrl) {
-                    content = `
-                        <div class="audio-message">
-                            <button class="audio-download-btn" onclick="chatApp.downloadFile('${window.APP_CONFIG.chatPath}${message.FileUrl}')" title="Download audio">
-                                <i class="fa-solid fa-download"></i>
-                            </button>
-                            <div class="audio-player-wrap">
-                                <audio controls src="${window.APP_CONFIG.chatPath}${message.FileUrl}"></audio>
-                            </div>
-                        </div>
-                    `;
+                    content = `<audio controls src="${window.APP_CONFIG.chatPath}${message.FileUrl}" style="height:38px;width:240px;border-radius:999px;display:block;"></audio>`;
                 }
                 break;
                 

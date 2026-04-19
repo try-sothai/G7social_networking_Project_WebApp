@@ -14,13 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $result = ['success' => false, 'message' => 'Invalid action'];
 
-    // ទទួល Request Join ពី Javascript ខាងក្រោម
+    // Handle Join request from JavaScript below
     if ($action === 'join_group') {
         $controller->joinGroup();
         exit();
     }
 
-    // ទទួល Request Leave ពី Javascript
+    // Handle Leave request from JavaScript
     if ($action === 'leave_group') {
         $controller->leaveGroup();
         exit();
@@ -74,7 +74,7 @@ if ($profilePicPath === '') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -351,15 +351,15 @@ if ($profilePicPath === '') {
             return false; // Prevent default form submission
         }
 
-        // កូដសម្រាប់ចុច Join Group
+        // Code for clicking Join Group
         document.querySelectorAll('.btn-join:not(.joined)').forEach(btn => {
             if (btn.tagName.toLowerCase() === 'button' && btn.hasAttribute('data-group-id')) {
                 btn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // ការពារកុំអោយលោតទៅ Page Group Detail
+                    e.stopPropagation(); // Prevent navigating to Group Detail page
                     const groupId = this.getAttribute('data-group-id');
                     const originalHtml = this.innerHTML;
-                    
-                    // ដូរទៅជា Loading ពេលកំពុងចុច
+
+                    // Switch to Loading state while processing
                     this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Joining...';
                     this.disabled = true;
 
@@ -391,13 +391,13 @@ if ($profilePicPath === '') {
             }
         });
 
-        // កូដសម្រាប់ Leave Group ពេលចុចលើប៊ូតុង Joined
+        // Code for leaving the group when clicking the Joined button
         document.querySelectorAll('.btn-join.joined').forEach(btn => {
             if (btn.tagName.toLowerCase() === 'button' && btn.hasAttribute('data-group-id')) {
                 btn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // ការពារកុំអោយលោតទៅ Page Group Detail
+                    e.stopPropagation(); // Prevent navigating to Group Detail page
                     const groupId = this.getAttribute('data-group-id');
-                    
+
                     Swal.fire({
                         title: 'Leave Group?',
                         text: "Are you sure you want to leave this group?",
@@ -424,7 +424,7 @@ if ($profilePicPath === '') {
                             .then(data => {
                                 if (data.success) {
                                     Swal.fire({ icon: 'success', title: 'Left Group', text: data.message, showConfirmButton: false, timer: 1500 });
-                                    setTimeout(() => location.reload(), 1500); // ធ្វើការ Refresh ទំព័រ
+                                    setTimeout(() => location.reload(), 1500); // Refresh the page
                                 } else {
                                     this.innerHTML = originalHtml;
                                     this.disabled = false;

@@ -34,7 +34,7 @@ if ($profilePicPath === '') {
 function time_ago($datetime) {
     $time = strtotime($datetime);
     $now = time();
-    $diff = max(0, $now - $time); // ទប់ស្កាត់កុំឲ្យចេញលេខអវិជ្ជមាន (Negative)
+    $diff = max(0, $now - $time); // Prevent negative time difference
     
     if ($diff < 60) {
         return $diff == 0 ? 'Just now' : $diff . ' seconds ago';
@@ -54,7 +54,7 @@ function time_ago($datetime) {
 ?>
 
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -155,7 +155,7 @@ function time_ago($datetime) {
         }
 
         .request-avatar {
-            flex-shrink: 0; /* ការពារកុំឱ្យទំហំប្រអប់រូបភាពរីក ឬរួញ */
+            flex-shrink: 0; /* Prevent the avatar box from growing or shrinking */
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -165,7 +165,7 @@ function time_ago($datetime) {
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden; /* ចាក់សោរឱ្យវាចេញជារាងមូលជានិច្ច ទោះមានបញ្ហាអក្សរលោតចេញក៏ដោយ */
+            overflow: hidden; /* Lock to circular shape regardless of content overflow */
         }
 
         .request-avatar img {
@@ -177,7 +177,7 @@ function time_ago($datetime) {
 
         .request-info {
             flex: 1;
-            min-width: 0; /* ការពារកុំឱ្យអក្សរវែងរុញទម្លុះប្រអប់ */
+            min-width: 0; /* Prevent long text from overflowing the container */
             overflow: hidden;
         }
 
@@ -186,7 +186,7 @@ function time_ago($datetime) {
             font-size: 1rem;
             color: #1e293b;
             margin-bottom: 5px;
-            overflow-wrap: anywhere; /* ធ្លាក់ចុះបន្ទាត់បានស្អាតសម្រាប់ឈ្មោះ/អ៊ីមែលវែងៗ */
+            overflow-wrap: anywhere; /* Allow clean line breaks for long names or emails */
             line-height: 1.3;
         }
 

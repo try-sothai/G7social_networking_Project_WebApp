@@ -147,12 +147,12 @@ class EventModel {
     }
 
     public function updateEventForUser($event_id, $user_id, $title, $description, $location, $event_datetime, $image_path = null) {
-        // ហៅទៅប្រើប្រាស់ updateEvent តែម្តង ដើម្បីកាត់បន្ថយការសរសេរកូដជាន់គ្នា
+        // Delegate to updateEvent to avoid code duplication
         return $this->updateEvent($event_id, $user_id, $title, $description, $location, $event_datetime, $image_path);
     }
 
     public function deleteEventForUser($event_id, $user_id) {
-        // ហៅទៅប្រើប្រាស់ deleteEvent តែម្តង ដើម្បីកាត់បន្ថយការសរសេរកូដជាន់គ្នា
+        // Delegate to deleteEvent to avoid code duplication
         return $this->deleteEvent($event_id, $user_id);
     }
 }

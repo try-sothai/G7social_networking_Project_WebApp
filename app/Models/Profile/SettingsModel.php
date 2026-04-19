@@ -6,7 +6,7 @@ class SettingsModel {
         $this->conn = $db;
     }
 
-    // ទាញយកលេខសម្ងាត់ចាស់ដើម្បីផ្ទៀងផ្ទាត់
+    // Retrieve the current password hash for verification
     public function getPasswordHash($userId) {
         $stmt = $this->conn->prepare("SELECT Password FROM users WHERE UserID = :id");
         $stmt->execute(['id' => $userId]);
@@ -14,7 +14,7 @@ class SettingsModel {
         return $row ? $row['Password'] : null;
     }
 
-    // ធ្វើបច្ចុប្បន្នភាពលេខសម្ងាត់ថ្មី
+    // Update the user's password with a new hash
     public function updatePassword($userId, $newPasswordHash) {
         $stmt = $this->conn->prepare("UPDATE users SET Password = :password WHERE UserID = :id");
         return $stmt->execute([
@@ -23,7 +23,7 @@ class SettingsModel {
         ]);
     }
 
-    // លុបគណនីអ្នកប្រើប្រាស់
+    // Delete the user's account
     public function deleteAccount($userId) {
         $stmt = $this->conn->prepare("DELETE FROM users WHERE UserID = :id");
         return $stmt->execute(['id' => $userId]);

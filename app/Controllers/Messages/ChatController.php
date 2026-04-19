@@ -105,7 +105,8 @@ if ($action === 'fetch') {
         // Mark messages as read
         $messageModel->markAsRead($current_user_id, $receiver_id);
 
-        $messages = $messageModel->getChatHistory($current_user_id, $receiver_id);
+        $afterId = intval($_GET['after_id'] ?? 0);
+        $messages = $messageModel->getChatHistory($current_user_id, $receiver_id, $afterId);
         echo json_encode($messages);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
@@ -182,9 +183,9 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Compress image if it's an image
         if ($type === 'image') {
-            $compressed = compressImage($file['tmp_name'], $uploadPath, 80); // ប្តូរពី 800 មក 80
+            $compressed = compressImage($file['tmp_name'], $uploadPath, 80); // Changed from 800 to 80
             if (!$compressed) {
-                // បើគាបរូបភាពមិនបានជោគជ័យ អនុញ្ញាតឱ្យរក្សាទុករូបភាពដើមធម្មតា
+                // If image compression fails, fall back to saving the original image
                 move_uploaded_file($file['tmp_name'], $uploadPath);
             }
         } else {
@@ -224,7 +225,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Update Peer ID ចូល Database
+// Update Peer ID in the database
 if ($action === 'update_peer_id' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $peer_id = $_POST['peer_id'] ?? '';
@@ -323,14 +324,14 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // ១. ទាញយកសារសិនដើម្បីឆែកមើលថាមាន File ដែរឬទេ
+        // 1. Fetch the message first to check if it has an attached file
         $msgData = $messageModel->getMessageById($message_id);
 
-        // ២. ធ្វើការ Update Database (Soft Delete)
+        // 2. Update database (soft delete)
         $success = $messageModel->deleteMessage($message_id, $current_user_id);
 
         if ($success) {
-            // ៣. បើមាន File ត្រូវលុបវាចេញពី Server
+            // 3. If there is a file, delete it from the server
             if ($msgData && !empty($msgData['FileUrl'])) {
                 $baseDir = str_starts_with($msgData['FileUrl'], time() . '_call_') ? 'calls/' : 'chat/';
                 $filePath = "../../../public/uploads/" . $baseDir . basename($msgData['FileUrl']);

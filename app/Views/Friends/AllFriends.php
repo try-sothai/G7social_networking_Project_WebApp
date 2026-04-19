@@ -6,9 +6,10 @@ require_once __DIR__ . '/../Component/dashboard_shell.php';
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Friends/FriendModel.php';
-require_once '../../Helpers/functions.php'; // បើអ្នកដាក់ time_ago ក្នុង Helper
+require_once '../../Models/Events/EventModel.php';
+require_once '../../Helpers/functions.php'; // Load if time_ago is defined in a Helper
 
-// សុវត្ថិភាព
+// Security check
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
     exit();
@@ -19,11 +20,14 @@ $friendModel = new FriendModel($conn);
 $user_id = $_SESSION['user_id'];
 $u_d = $model->getUserData($user_id);
 
-// ទាញយកបញ្ជីមិត្តភក្តិទាំងអស់
+// Fetch the full list of friends
 $friends = $friendModel->getFriends($user_id);
 $friendCount = $friendModel->getFriendCount($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
+$eventModel = new EventModel($conn);
+$upcoming_events = array_slice($eventModel->getUpcomingEvents($user_id), 0, 3);
+
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
     $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
@@ -37,7 +41,7 @@ if ($profilePicPath === '') {
 ?>
 
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -588,26 +592,27 @@ if ($profilePicPath === '') {
                         Upcoming Events
                     </h3>
                     <div class="event-card-small">
-                        <div class="event-item">
-                            <div class="event-date-box">
-                                <span class="event-month">MAR</span>
-                                <span class="event-day">25</span>
-                            </div>
-                            <div class="event-details">
-                                <span class="event-name">Tech Meetup 2024</span>
-                                <span class="event-location">Phnom Penh</span>
-                            </div>
-                        </div>
-                        <div class="event-item">
-                            <div class="event-date-box">
-                                <span class="event-month">APR</span>
-                                <span class="event-day">05</span>
-                            </div>
-                            <div class="event-details">
-                                <span class="event-name">Developer Conference</span>
-                                <span class="event-location">Online</span>
-                            </div>
-                        </div>
+                        <?php if (empty($upcoming_events)): ?>
+                            <p style="font-size: 0.85rem; color: #64748b; text-align: center; padding: 10px 0;">No upcoming events.</p>
+                        <?php else: ?>
+                            <?php foreach ($upcoming_events as $ev): ?>
+                                <?php
+                                    $dt = new DateTime($ev['EventDateTime']);
+                                    $month = strtoupper($dt->format('M'));
+                                    $day   = $dt->format('j');
+                                ?>
+                                <div class="event-item">
+                                    <div class="event-date-box">
+                                        <span class="event-month"><?php echo $month; ?></span>
+                                        <span class="event-day"><?php echo $day; ?></span>
+                                    </div>
+                                    <div class="event-details">
+                                        <span class="event-name"><?php echo htmlspecialchars($ev['Title']); ?></span>
+                                        <span class="event-location"><?php echo htmlspecialchars($ev['Location']); ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         <button class="btn-view-event" onclick="location.href='../Events/events.php'">
                             View All Events
                         </button>

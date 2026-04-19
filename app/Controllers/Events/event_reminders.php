@@ -4,19 +4,19 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// Load Composer's autoloader (ផ្លាស់ប្តូរទីតាំងទៅតាមជាក់ស្តែង)
+// Load Composer's autoloader (update path according to actual project structure)
 require_once __DIR__ . '/../../../vendor/autoload.php';
-// ទីតាំង File config ភ្ជាប់ទៅកាន់ Database
+// Path to the database config file
 require_once __DIR__ . '/../../../config/db_config.php';
 
-// កំណត់ Timezone ទៅជាម៉ោងនៅកម្ពុជា
+// Set timezone to Cambodia (Phnom Penh)
 date_default_timezone_set('Asia/Phnom_Penh');
 
 try {
-    // ធានាថាការទាញទិន្នន័យអាចអានអក្សរខ្មែរ (UTF-8) បានត្រឹមត្រូវ
+    // Ensure data retrieval supports UTF-8 encoding correctly
     $conn->exec("SET NAMES 'utf8mb4'");
 
-    // ទាញយក Event ដែលនឹងចាប់ផ្តើមនៅ "ថ្ងៃស្អែក" ព្រមទាំងអ្នកដែលបានចុចចូលរួម (Interested)
+    // Fetch events starting "tomorrow" along with participants who marked Interested
     $query = "
         SELECT e.EventID, e.Title, e.Description, e.EventDateTime, e.Location,
                u.Email, u.Username
@@ -31,34 +31,34 @@ try {
     $stmt->execute();
     $reminders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // បង្កើត Object PHPMailer ថ្មី
+    // Create a new PHPMailer instance
     $mail = new PHPMailer(true);
     
-    // កំណត់រចនាសម្ព័ន្ធ SMTP (ឧទាហរណ៍៖ ប្រើ Gmail)
+    // Configure SMTP settings (example: using Gmail)
     $mail->isSMTP();
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'shy784162@gmail.com'; // ដាក់ Email របស់អ្នកទីនេះ
-    $mail->Password   = 'obmnqzigmrupwhbq';    // ដាក់ App Password របស់អ្នកទីនេះ
+    $mail->Username   = 'shy784162@gmail.com'; // Enter your email address here
+    $mail->Password   = 'obmnqzigmrupwhbq';    // Enter your App Password here
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port       = 587;
     
-    $mail->CharSet    = 'UTF-8'; // កំណត់ CharSet ជា UTF-8 ដើម្បីផ្ញើអក្សរខ្មែរមិនឲ្យ Error
+    $mail->CharSet    = 'UTF-8'; // Set CharSet to UTF-8 to prevent encoding errors
     
     $mail->setFrom('shy784162@gmail.com', 'LocalConnect');
-    $mail->isHTML(true); // កំណត់ថាជាទម្រង់ HTML
+    $mail->isHTML(true); // Set email format to HTML
 
     $count = 0;
     foreach ($reminders as $row) {
         try {
-            $mail->clearAddresses(); // លុប Email ចាស់ចេញមុននឹងផ្ញើទៅអ្នកថ្មី
+            $mail->clearAddresses(); // Clear previous email addresses before sending to new recipient
             $mail->addAddress($row['Email'], $row['Username']);
             
             $mail->Subject = "Reminder: Upcoming Event - " . $row['Title'];
             
             $time = date('g:i A', strtotime($row['EventDateTime']));
             
-            // ទម្រង់ HTML ស្អាតៗ
+            // Build clean HTML email body
             $mail->Body = "
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);'>
                     <img src='https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=600&q=80' alt='Event Banner' style='width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;'>

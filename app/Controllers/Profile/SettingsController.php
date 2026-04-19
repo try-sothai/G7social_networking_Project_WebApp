@@ -25,7 +25,7 @@ if ($action === 'change_password') {
 
     $currentHash = $settingsModel->getPasswordHash($userId);
 
-    // Verify password (គាំទ្រទាំង password_hash ថ្មី និង md5/text ចាស់)
+    // Verify password (supports both new password_hash and old md5/plain-text formats)
     if (password_verify($currentPwd, $currentHash) || md5($currentPwd) === $currentHash || $currentPwd === $currentHash) {
         $newHash = password_hash($newPwd, PASSWORD_DEFAULT);
         $updated = $settingsModel->updatePassword($userId, $newHash);
@@ -44,7 +44,7 @@ if ($action === 'change_password') {
 if ($action === 'delete_account') {
     $deleted = $settingsModel->deleteAccount($userId);
     if ($deleted) {
-        // ការ Logout នឹងត្រូវបានគ្រប់គ្រងនៅលើ Frontend ពេលដែលជោគជ័យ
+        // Logout will be handled on the frontend upon success
         echo json_encode(['success' => true, 'message' => 'Account deleted.']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to delete account.']);

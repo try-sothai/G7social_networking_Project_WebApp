@@ -62,7 +62,7 @@ if ($profilePicPath === '') {
     $profilePicPath = 'https://via.placeholder.com/150';
 }
 
-// ទាញយករូបភាព Avatar និង Banner ចាស់មកបង្ហាញប្រសិនបើស្ថិតក្នុង Edit Mode
+// Load existing Avatar and Banner images if in Edit Mode
 $currentAvatarUrl = '';
 $currentBannerUrl = '';
 if ($isEditMode && $groupId > 0) {
@@ -78,7 +78,7 @@ if ($isEditMode && $groupId > 0) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -207,7 +207,7 @@ if ($isEditMode && $groupId > 0) {
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- ១. កូដសម្រាប់ Preview រូបភាព (កូដចាស់របស់អ្នក) ---
+        // --- 1. Code for image preview ---
         const avatarInput = document.getElementById('avatarInput');
         const avatarPreview = document.getElementById('avatarPreview');
         

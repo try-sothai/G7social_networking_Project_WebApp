@@ -94,7 +94,7 @@ function admin_short_text(?string $value, int $length = 110): string
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Admin/admin.css')) ?>">
-    <!-- Libraries សម្រាប់ Export PDF -->
+    <!-- Libraries for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -120,8 +120,8 @@ function admin_short_text(?string $value, int $length = 110): string
         /* 📐 Page Alignment & Spacing */
         .admin-page {
             margin-top: 20px;
-            max-width: 100% !important; /* បង្ខំឲ្យទំព័រលាតសន្ធឹងពេញស្មើជាមួយ Header */
-            padding: 0 !important; /* ដកគម្លាតដែលរុញវាចូលក្នុងចេញ */
+            max-width: 100% !important; /* Force page to stretch full width to match Header */
+            padding: 0 !important; /* Remove padding that pushes the content inward */
         }
 
         /*  Primary Blue Buttons (Filter & Actions) */
@@ -358,7 +358,7 @@ function admin_short_text(?string $value, int $length = 110): string
                 -webkit-overflow-scrolling: touch;
             }
             .admin-table {
-                min-width: 800px; /* អនុញ្ញាតឲ្យអូសទៅឆ្វេងស្ដាំបាន */
+                min-width: 800px; /* Allow horizontal scrolling left and right */
             }
             .admin-report-grid {
                 grid-template-columns: 1fr !important;
@@ -658,20 +658,20 @@ function admin_short_text(?string $value, int $length = 110): string
     <script src="<?= htmlspecialchars(lc_public_asset('js/Home/responsive.js')) ?>"></script>
     
     <script>
-        // ទាញយកទិន្នន័យពី PHP មកទុកក្នុង JavaScript
+        // Load data from PHP into JavaScript
         const exportUsersData = <?= json_encode($users) ?>;
         const exportReportsData = <?= json_encode($reports) ?>;
 
         function toggleExportMenu(menuId, e) {
             e.preventDefault();
-            // បិទ Menu ផ្សេងទៀត
+            // Close other menus
             document.querySelectorAll('.export-menu.show-menu').forEach(menu => {
                 if(menu.id !== menuId) menu.classList.remove('show-menu');
             });
             document.getElementById(menuId).classList.toggle('show-menu');
         }
 
-        // បិទ Menu ពេលចុចកន្លែងផ្សេង
+        // Close menu when clicking elsewhere
         window.addEventListener('click', function(event) {
             if (!event.target.closest('.export-dropdown')) {
                 document.querySelectorAll('.export-menu.show-menu').forEach(menu => {
@@ -689,7 +689,7 @@ function admin_short_text(?string $value, int $length = 110): string
             let title = "";
             let filename = "";
 
-            // ចាប់យកតម្លៃថ្ងៃខែពី Input
+            // Get date range values from inputs
             let startDateStr = document.getElementById('export_' + dataset + '_from').value;
             let endDateStr = document.getElementById('export_' + dataset + '_to').value;
 
@@ -703,10 +703,10 @@ function admin_short_text(?string $value, int $length = 110): string
             }
             
             let rawData = dataset === 'users' ? exportUsersData : exportReportsData;
-            
-            // ចម្រាញ់ទិន្នន័យតាមកាលបរិច្ឆេទ (បើមាន)
+
+            // Filter data by date range (if provided)
             let filteredData = rawData.filter(item => {
-                let itemDate = new Date(item.CreatedAt.replace(' ', 'T')); // សម្រួល Format ឱ្យត្រូវគ្រប់ Browser
+                let itemDate = new Date(item.CreatedAt.replace(' ', 'T')); // Normalize format for all browsers
                 if (startDateStr) {
                     let start = new Date(startDateStr);
                     start.setHours(0, 0, 0, 0);
@@ -725,7 +725,7 @@ function admin_short_text(?string $value, int $length = 110): string
                 return;
             }
 
-            // រៀបចំទិន្នន័យផ្អែកលើប្រភេទដែលចង់ Export
+            // Prepare data based on the selected export type
             if (dataset === 'users') {
                 headers = ["ID", "Username", "Email", "Role", "Status", "Joined"];
                 rows = filteredData.map(u => [u.UserID, u.Username, u.Email, u.Role, u.AccountStatus, u.CreatedAt]);
@@ -739,7 +739,7 @@ function admin_short_text(?string $value, int $length = 110): string
             }
 
             if (type === 'csv') {
-                // ប្រើសញ្ញាធ្មេញកណ្ដុរ "" ដើម្បីការពារបញ្ហាដាច់ Text ដែលមានសញ្ញាក្បៀស (,)
+                // Wrap cells in double quotes to prevent issues with commas in values
                 let csvContent = "data:text/csv;charset=utf-8," 
                     + `"${title}"\n"${dateRangeText}"\n"Total Records: ${rows.length}"\n\n`
                     + headers.join(",") + "\n" 
@@ -759,12 +759,12 @@ function admin_short_text(?string $value, int $length = 110): string
             }
             else if (type === 'pdf') {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF(dataset === 'reports' ? 'l' : 'p'); // ប្រើ Landscape សម្រាប់ Reports ព្រោះវាវែង
+                const doc = new jsPDF(dataset === 'reports' ? 'l' : 'p'); // Use Landscape for Reports because they are wide
                 doc.text(title, 14, 15);
                 doc.setFontSize(10);
-                doc.text(dateRangeText, 14, 22); // បង្ហាញចន្លោះកាលបរិច្ឆេទ
-                doc.text("Total Records: " + rows.length, 14, 28); // បង្ហាញចំនួនសរុប
-                doc.autoTable({ startY: 32, head: [headers], body: rows }); // រុញតារាងចុះក្រោមបន្តិច
+                doc.text(dateRangeText, 14, 22); // Show date range
+                doc.text("Total Records: " + rows.length, 14, 28); // Show total count
+                doc.autoTable({ startY: 32, head: [headers], body: rows }); // Push table down slightly
                 doc.save(filename + ".pdf");
             }
             else if (type === 'print') {

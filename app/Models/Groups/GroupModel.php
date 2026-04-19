@@ -5,7 +5,7 @@ class GroupModel {
     private $conn;
     
     public function __construct($db) {
-        $this->conn = $db; // $db គឺជា PDO connection
+        $this->conn = $db; // $db is a PDO connection
     }
     
     /**

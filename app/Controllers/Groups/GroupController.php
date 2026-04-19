@@ -90,7 +90,7 @@ class GroupController {
             $groupInfo = $this->getGroupById($group_id);
             if ($groupInfo && isset($groupInfo['CreatedBy'])) {
                 $creatorId = $groupInfo['CreatedBy'];
-                // កុំផ្ញើសារបើគាត់ជាម្ចាស់គ្រុបស្រាប់
+                // Do not send notification if the joiner is already the group owner
                 if ($creatorId != $user_id) {
                     $creatorData = $this->profileModel->getUserData($creatorId);
                     $joinerData = $this->profileModel->getUserData($user_id);
@@ -131,7 +131,7 @@ class GroupController {
             return;
         }
         
-        // ឆែកមើលថាអ្នកចុចពិតជា Owner/Admin មែនឬអត់
+        // Verify that the current user is the Owner/Admin
         $group = $this->groupModel->getGroupById($groupId);
         if (!$group || (int)$group['CreatedBy'] !== (int)$userId) {
             echo json_encode(['success' => false, 'message' => 'Permission denied: You are not the owner']);
@@ -169,7 +169,7 @@ class GroupController {
             return;
         }
         
-        // ឆែកមើលថាបើគាត់ជាម្ចាស់គ្រុប គាត់មិនអាច Leave បានទេ
+        // Check if the user is the group owner — owners cannot leave the group
         $group = $this->groupModel->getGroupById($groupId);
         if ($group && (int)$group['CreatedBy'] === $userId) {
             echo json_encode(['success' => false, 'message' => 'Creator cannot leave the group. You must delete it instead.']);
@@ -259,7 +259,7 @@ class GroupController {
     }
 
     public function getGroupById($groupId) {
-        // ទាញទិន្នន័យពី Model ដោយផ្ទាល់
+        // Fetch group data directly from the Model
         return $this->groupModel->getGroupById($groupId);
     }
 
@@ -391,7 +391,7 @@ class GroupController {
     }
 
     /**
-     * មុខងារសម្រាប់ផ្ញើ Email ទៅម្ចាស់គ្រុប
+     * Function for sending email notification to the group owner
      */
     private function sendJoinGroupEmail($toEmail, $toName, $joinerName, $groupName, $status) {
         $autoloadPath = dirname(__DIR__, 3) . '/vendor/autoload.php';

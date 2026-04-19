@@ -26,7 +26,7 @@ class ProfileModel {
     }
     
 
-    // កែសម្រួល likePost ឱ្យបញ្ចូលទៅក្នុង interactions
+    // Updated likePost to insert into interactions table
     public function likePost($post_id, $user_id) {
         $stmt = $this->conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
         $stmt->execute([$post_id, $user_id]);
@@ -40,13 +40,13 @@ class ProfileModel {
         }
     }
 
-    // កែសម្រួល addComment ឱ្យបញ្ចូលទៅក្នុង interactions
+    // Updated addComment to insert into interactions table
     public function addComment($post_id, $user_id, $comment) {
         $stmt = $this->conn->prepare("INSERT INTO interactions (PostID, UserID, Type, CommentText, CreatedAt) VALUES (?, ?, 'comment', ?, NOW())");
         return $stmt->execute([$post_id, $user_id, $comment]);
     }
 
-    // កែសម្រួល getComments ឱ្យទាញពី interactions
+    // Updated getComments to fetch from interactions table
     public function getComments($post_id) {
         $stmt = $this->conn->prepare("
             SELECT i.CommentText as Comment, i.CreatedAt, u.UserID, u.Username, u.ProfilePic 
@@ -127,7 +127,7 @@ public function checkLikeStatus($post_id, $user_id) {
     }
 }
 
-    // ហៅ Stored Procedure ទាញយក Feed ដែលបានបង្កើតក្នុង Database
+    // Call the Stored Procedure to fetch the feed created in the Database
     public function getUserFeed($user_id, $limit = 10) {
         $stmt = $this->conn->prepare("CALL GetUserFeed(:user_id, :limit)");
         $stmt->execute([':user_id' => $user_id, ':limit' => $limit]);

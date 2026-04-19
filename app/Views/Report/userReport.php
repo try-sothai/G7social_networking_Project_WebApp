@@ -163,7 +163,7 @@ function timeAgo($datetime) {
     <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Report/userReport.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Library សម្រាប់ Export PDF -->
+    <!-- Library for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -598,7 +598,7 @@ function timeAgo($datetime) {
     </script>
 
     <script>
-        // ទិន្នន័យសម្រាប់ Export (ទាញចេញពី PHP)
+        // Export data (loaded from PHP)
         const exportUsersData = <?php echo json_encode($topActiveUsers); ?>;
 
         function toggleExportMenu(e) {
@@ -606,7 +606,7 @@ function timeAgo($datetime) {
             document.getElementById('exportMenu').classList.toggle('show-menu');
         }
 
-        // បិទ Dropdown ពេលចុចកន្លែងផ្សេង
+        // Close dropdown when clicking elsewhere
         window.addEventListener('click', function(event) {
             if (!event.target.closest('.export-dropdown')) {
                 document.querySelectorAll('.export-menu.show-menu').forEach(menu => {
@@ -617,7 +617,7 @@ function timeAgo($datetime) {
 
         function exportData(type, e) {
             e.preventDefault();
-            document.getElementById('exportMenu').classList.remove('show-menu'); // បិទ Menu
+            document.getElementById('exportMenu').classList.remove('show-menu'); // Close menu
             
             let startDateStr = document.getElementById('export_users_from').value;
             let endDateStr = document.getElementById('export_users_to').value;
@@ -631,9 +631,9 @@ function timeAgo($datetime) {
                 dateRangeText = `Date Range: Until ${endDateStr}`;
             }
 
-            // ចម្រាញ់ទិន្នន័យតាមកាលបរិច្ឆេទ
+            // Filter data by date range
             let filteredData = exportUsersData.filter(item => {
-                if (!item.CreatedAt) return true; // ការពារបើគ្មានទិន្នន័យ
+                if (!item.CreatedAt) return true; // Skip items with no date
                 let itemDate = new Date(item.CreatedAt.replace(' ', 'T'));
                 if (startDateStr) {
                     let start = new Date(startDateStr);

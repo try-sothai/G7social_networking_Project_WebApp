@@ -31,7 +31,7 @@
     }
 ?>
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,7 +133,7 @@
             border-radius: 24px !important;
             border: none !important;
             box-shadow: 0 10px 30px rgba(226, 232, 240, 0.6) !important;
-            padding: 0 !important; /* លុបគម្លាតដើម្បីឱ្យរូបភាពលាតពេញគែម */
+            padding: 0 !important; /* Remove padding so images extend to the full edge */
             margin-bottom: 25px;
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -152,7 +152,7 @@
             line-height: 1.6 !important;
         }
         .post-media-grid, .post-image {
-            border-radius: 0 !important; /* លាតពេញគែមសងខាង */
+            border-radius: 0 !important; /* Stretch to fill both sides */
             margin: 0 !important;
             width: 100% !important;
         }

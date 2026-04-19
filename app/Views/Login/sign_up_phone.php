@@ -3,105 +3,65 @@ session_start();
 
 require_once __DIR__ . '/../../../config/db_config.php';
 require_once __DIR__ . '/../../Helpers/admin.php';
-require_once __DIR__ . '/../../Helpers/mailer.php';
 
 lc_admin_ensure_schema($conn);
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// AJAX handler for Firebase phone signup
+if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_signup') {
+    header('Content-Type: application/json');
 
-$error = '';
-$formData = [
-    'name' => '',
-    'email' => '',
-    'phone' => '',
-];
+    $name = trim($_POST['name'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
 
-if (isset($_POST['send_otp'])) {
-    $csrf = (string) ($_POST['csrf_token'] ?? '');
-    $name = trim((string) ($_POST['name'] ?? ''));
-    $email = trim((string) ($_POST['email'] ?? ''));
-    $phone = trim((string) ($_POST['phone'] ?? ''));
-    $password = (string) ($_POST['password'] ?? '');
-    $confirmPassword = (string) ($_POST['confirm_password'] ?? '');
-
-    $formData['name'] = $name;
-    $formData['email'] = $email;
-    $formData['phone'] = $phone;
-
-    if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
-        $error = 'Invalid request token. Please refresh and try again.';
-    } elseif ($name === '' || $email === '' || $phone === '' || $password === '' || $confirmPassword === '') {
-        $error = 'Please fill in all fields.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
-    } elseif (mb_strlen($name, 'UTF-8') < 3 || mb_strlen($name, 'UTF-8') > 50) {
-        $error = 'Name must be between 3 and 50 characters.';
-    } elseif (!preg_match('/^[0-9+\-\s]{8,20}$/', $phone)) {
-        $error = 'Please enter a valid phone number.';
-    } elseif (strlen($password) < 8) {
-        $error = 'Password must be at least 8 characters.';
-    } elseif ($password !== $confirmPassword) {
-        $error = 'Password and Confirm Password do not match.';
-    } else {
-        try {
-            $checkExisting = $conn->prepare('SELECT UserID, Email, Phone FROM users WHERE Email = :email OR Phone = :phone LIMIT 1');
-            $checkExisting->bindValue(':email', $email, PDO::PARAM_STR);
-            $checkExisting->bindValue(':phone', $phone, PDO::PARAM_STR);
-            $checkExisting->execute();
-            $existingUser = $checkExisting->fetch(PDO::FETCH_ASSOC);
-
-            if ($existingUser) {
-                if (strcasecmp((string) ($existingUser['Email'] ?? ''), $email) === 0) {
-                    $error = 'This email is already registered.';
-                } else {
-                    $error = 'This phone number is already registered.';
-                }
-            } else {
-                $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                $_SESSION['signup_otp'] = [
-                    'name' => $name,
-                    'email' => $email,
-                    'phone' => $phone,
-                    'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-                    'otp' => $otp,
-                    'expires_at' => time() + 300,
-                    'sent_at' => time(),
-                ];
-
-                $sendResult = lc_send_otp_email($email, $name, $otp);
-
-                if ($sendResult['success']) {
-                    header('Location: sign_up_phone_otp.php');
-                    exit();
-                }
-
-                unset($_SESSION['signup_otp']);
-                $error = (string) $sendResult['message'];
-            }
-        } catch (PDOException $e) {
-            $error = 'Unable to start verification right now. Please try again.';
-        }
-    }
-}
-
-if (false && isset($_POST['send_otp'])) {
-    $name = trim($_POST['name']);
-    $phone = trim($_POST['phone']);
-
-    if(!empty($name) && !empty($phone)){
-        // រក្សាទុកទិន្នន័យក្នុង Session
-        $_SESSION['signup_name'] = $name;
-        $_SESSION['phone'] = $phone;
-        
-        // បង្កើតលេខកូដ OTP (ឧទាហរណ៍៖ 123456 សម្រាប់តេស្ត ឬ rand)
-        $_SESSION['generated_otp'] = "123456"; 
-
-        // ប្តូរទៅកាន់ទំព័របញ្ចូល OTP
-        header("Location: sign_up_phone_otp.php");
+    if (empty($name) || empty($phone)) {
+        echo json_encode(['success' => false, 'message' => 'Please fill in all required fields.']);
         exit();
     }
+    
+    // Generate random password since phone signup doesn't require one
+    $password = bin2hex(random_bytes(8));
+
+    try {
+        // Check if phone or email already exists
+        $query = "SELECT UserID, Phone FROM users WHERE Phone = :phone LIMIT 1";
+
+        $checkExisting = $conn->prepare($query);
+        $checkExisting->bindValue(':phone', $phone, PDO::PARAM_STR);
+        $checkExisting->execute();
+        $existingUser = $checkExisting->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingUser) {
+            echo json_encode(['success' => false, 'message' => 'This phone number is already registered.']);
+            exit();
+        }
+
+        // Insert new user
+        $stmt = $conn->prepare('INSERT INTO users (Username, Email, Phone, Password, Role, AccountStatus) VALUES (:username, :email, :phone, :password, :role, :status)');
+        $stmt->bindValue(':username', $name, PDO::PARAM_STR);
+        $stmt->bindValue(':email', NULL, PDO::PARAM_STR);
+        $stmt->bindValue(':phone', $phone, PDO::PARAM_STR);
+        $stmt->bindValue(':password', password_hash($password, PASSWORD_DEFAULT), PDO::PARAM_STR);
+        $stmt->bindValue(':role', 'User', PDO::PARAM_STR);
+        $stmt->bindValue(':status', 'Active', PDO::PARAM_STR);
+
+        if ($stmt->execute()) {
+            $newUserId = (int) $conn->lastInsertId();
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $newUserId;
+            $_SESSION['username'] = $name;
+            $_SESSION['Email'] = '';
+            $_SESSION['user_role'] = 'User';
+            $_SESSION['account_status'] = 'Active';
+
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to create your account.']);
+        }
+    } catch (PDOException $e) {
+        error_log('Firebase signup error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error during sign up.']);
+    }
+    exit();
 }
 ?>
 
@@ -119,42 +79,37 @@ if (false && isset($_POST['send_otp'])) {
 
 <div class="auth-card">
     <h1 class="auth-logo">Social7</h1>
-    <p class="auth-subtitle">Verify phone sign up with a free email OTP</p>
+    <p class="auth-subtitle">Sign up with your phone number</p>
 
     <div class="auth-tabs">
         <a href="sign_up_email.php" class="auth-tab"><span><i class="fa-regular fa-envelope"></i></span> Email</a>
         <a href="sign_up_phone.php" class="auth-tab active"><span><i class="fa-solid fa-phone"></i></span> Phone</a>
     </div>
 
-    <?php if ($error !== ''): ?>
-        <div class="auth-msg error"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
+    <div id="auth-messages"></div>
 
-    <form class="auth-form" action="sign_up_phone.php" method="POST" autocomplete="off">
-    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars((string) $_SESSION['csrf_token']); ?>">
-    <div class="form-group">
-        <label>Name</label>
-        <input type="text" name="name" placeholder="Enter your name" minlength="3" maxlength="50" value="<?php echo htmlspecialchars($formData['name']); ?>" required autofocus>
-    </div>
-    <div class="form-group">
-        <label>Email for OTP</label>
-        <input type="email" name="email" placeholder="Enter your email" value="<?php echo htmlspecialchars($formData['email']); ?>" required>
-        <small>We will send a 6-digit code to this email.</small>
-    </div>
-    <div class="form-group">
-        <label>Phone Number</label>
-        <input type="text" name="phone" placeholder="+855..." value="<?php echo htmlspecialchars($formData['phone']); ?>" required>
-    </div>
-    <div class="form-group">
-        <label>Password</label>
-        <input type="password" name="password" placeholder="Create a password" minlength="8" required>
-    </div>
-    <div class="form-group">
-        <label>Confirm Password</label>
-        <input type="password" name="confirm_password" placeholder="Re-enter your password" minlength="8" required>
-    </div>
-    <button type="submit" name="send_otp" class="btn-primary">Send OTP to Email</button>
-</form>
+    <form class="auth-form" id="signup-form" onsubmit="return false;">
+        <div id="step-1">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="Enter your name" minlength="3" maxlength="50" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" placeholder="+855 12345678" required>
+            </div>
+            <div id="recaptcha-container"></div>
+            <button type="button" id="btn-send-otp" onclick="sendSignupOTP()" class="btn-primary">Send OTP to Phone</button>
+        </div>
+
+        <div id="step-2" class="otp-section" style="display: none;">
+            <div class="form-group">
+                <label for="otp_code">Enter 6-digit OTP</label>
+                <input type="text" id="otp_code" placeholder="Enter OTP code" maxlength="6">
+            </div>
+            <button type="button" onclick="verifySignupOTP()" class="btn-primary">Verify & Sign Up</button>
+        </div>
+    </form>
 
     <div class="auth-divider">or</div>
 
@@ -170,5 +125,89 @@ if (false && isset($_POST['send_otp'])) {
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtPwcXmOtm9hfhAgtwVoEq5uzhR4aXw7M",
+    authDomain: "social7-auth.firebaseapp.com",
+    projectId: "social7-auth",
+    storageBucket: "social7-auth.firebasestorage.app",
+    messagingSenderId: "879266826673",
+    appId: "1:879266826673:web:af4a873b712fc9bb03d590",
+    measurementId: "G-85S0R9RZ3L"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  window.onload = function() {
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+      'size': 'invisible'
+    });
+  };
+
+  function showMessage(msg, isError = false) {
+      const container = document.getElementById('auth-messages');
+      if (container) {
+        container.innerHTML = `<div class="auth-msg ${isError ? 'error' : 'success'}">${msg}</div>`;
+      }
+  }
+
+  function sendSignupOTP() {
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+
+    if (!name || !phone) {
+        showMessage('Please fill in all required fields.', true);
+        return;
+    }
+
+    const appVerifier = window.recaptchaVerifier;
+    
+    auth.signInWithPhoneNumber(phone, appVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        showMessage("OTP has been sent to your phone!");
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+      }).catch((error) => {
+        showMessage(error.message, true);
+        grecaptcha.reset();
+      });
+  }
+
+  function verifySignupOTP() {
+    const code = document.getElementById('otp_code').value;
+    if (!code || code.length !== 6) {
+        showMessage('Please enter a valid 6-digit OTP.', true);
+        return;
+    }
+
+    confirmationResult.confirm(code).then((result) => {
+      const user = result.user;
+      showMessage("Verification successful! Creating account...");
+
+      const formData = new FormData();
+      formData.append('action', 'firebase_phone_signup');
+      formData.append('name', document.getElementById('name').value);
+      formData.append('phone', user.phoneNumber);
+
+      fetch('sign_up_phone.php', { method: 'POST', body: formData })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              window.location.href = '<?php echo BASE_URL; ?>app/Views/Home/dashboard.php';
+          } else {
+              showMessage('Sign up failed: ' + data.message, true);
+          }
+      })
+      .catch(error => showMessage('Server error occurred.', true));
+    }).catch((error) => {
+      showMessage("Invalid OTP code!", true);
+    });
+  }
+</script>
 </body>
 </html>

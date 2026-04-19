@@ -33,23 +33,24 @@ class MessageModel {
     }
 
     /* ===== GET CHAT HISTORY ===== */
-    public function getChatHistory($user1, $user2) {
+    public function getChatHistory($user1, $user2, $afterId = 0) {
+        $afterClause = $afterId > 0 ? 'AND m.MessageID > :after_id' : '';
         $stmt = $this->db->prepare("
-            SELECT m.MessageID, m.SenderID, m.ReceiverID, m.MessageBody, m.MessageType, m.FileUrl, m.SentAt, 
+            SELECT m.MessageID, m.SenderID, m.ReceiverID, m.MessageBody, m.MessageType, m.FileUrl, m.SentAt,
                    u.ProfilePic, u.Username
             FROM messages m
             JOIN users u ON m.SenderID = u.UserID
-            WHERE 
-                (m.SenderID = :u1 AND m.ReceiverID = :u2)
+            WHERE
+                ((m.SenderID = :u1 AND m.ReceiverID = :u2)
                 OR
-                (m.SenderID = :u2 AND m.ReceiverID = :u1)
+                (m.SenderID = :u2 AND m.ReceiverID = :u1))
+                $afterClause
             ORDER BY m.SentAt ASC
         ");
 
-        $stmt->execute([
-            ':u1' => $user1,
-            ':u2' => $user2
-        ]);
+        $params = [':u1' => $user1, ':u2' => $user2];
+        if ($afterId > 0) $params[':after_id'] = $afterId;
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

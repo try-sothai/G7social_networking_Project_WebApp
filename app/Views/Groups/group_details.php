@@ -38,12 +38,12 @@ if (!$group) {
     exit();
 }
 
-// ទាញយកសមាជិកទាំងអស់របស់គ្រុប
+// Fetch all members of the group
 $members = $controller->getGroupMembers($group_id);
 $isMember = $group['is_member'] > 0;
 $isOwner = ((int)($group['CreatedBy'] ?? 0) === $user_id);
 
-// ទាញយករូប Profile របស់ User បច្ចុប្បន្ន
+// Fetch profile picture of the current user
 require_once dirname(__DIR__, 2) . '/Models/Profile/ProfileModel.php';
 $profileModel = new ProfileModel($conn);
 $u_d = $profileModel->getUserData($user_id);
@@ -51,7 +51,7 @@ $profilePicPath = !empty($u_d['ProfilePic']) && file_exists(__DIR__ . '/../../..
     ? '../../../public/img/' . $u_d['ProfilePic'] 
     : 'https://via.placeholder.com/150';
 
-// កំណត់រូប Group
+// Set group avatar and banner images
 $groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/img/groups/' . $group['GroupAvatar']) 
     ? '../../../public/img/groups/' . $group['GroupAvatar'] 
     : 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&name=' . urlencode(substr($group['GroupName'], 0, 2));
@@ -60,7 +60,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
     : '../../../public/img/groups/banners/default_banner.jpg';
 ?>
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -142,7 +142,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
         body.dark-mode .action-pill.liked { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
         body.dark-mode .modern-post-actions { border-top-color: rgba(148, 163, 184, 0.2); }
         
-        /* Responsive សម្រាប់ទូរស័ព្ទ */
+        /* Responsive layout for mobile devices */
         @media (max-width: 768px) {
             .group-header-info { flex-direction: column; align-items: center; text-align: center; margin-top: -60px; padding: 15px; }
             .group-meta-tags { justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
@@ -249,7 +249,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
     
     <script>
-        // កូដសម្រាប់ចុចប្តូរ Tab ទៅមក (Feed, Members, About)
+        // Code for switching between tabs (Feed, Members, About)
         function switchTab(event, tabName) {
             document.querySelectorAll('.g-tab').forEach(el => el.classList.remove('active'));
             event.currentTarget.classList.add('active');
@@ -258,7 +258,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
             document.getElementById('tab-' + tabName).classList.add('active');
         }
 
-        // កូដសម្រាប់ Owner ដកសមាជិកចេញពីគ្រុប
+        // Code for Owner to remove a member from the group
         function removeMember(groupId, memberId) {
             Swal.fire({
                 title: 'Are you sure?',
@@ -299,7 +299,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
             });
         }
 
-        // កូដសម្រាប់ Leave Group (ចាកចេញដោយខ្លួនឯង)
+        // Code for leaving the group (self-initiated)
         function leaveGroup(groupId) {
             Swal.fire({
                 title: 'Leave Group?',
@@ -323,7 +323,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
                     .then(data => {
                         if (data.success) {
                             Swal.fire({ icon: 'success', title: 'Left!', text: data.message, showConfirmButton: false, timer: 1500 });
-                            setTimeout(() => window.location.href = 'groups.php', 1500); // ត្រលប់ទៅទំព័រ Groups វិញ
+                            setTimeout(() => window.location.href = 'groups.php', 1500); // Redirect back to Groups page
                         } else {
                             Swal.fire('Error', data.message || 'Failed to leave group', 'error');
                         }

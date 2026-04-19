@@ -437,7 +437,7 @@ if ($action === 'report' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($postToShare) {
                 $contentToShare = $postToShare['Content'];
                 
-                // បើសិនជា Share បន្តពីការ Share របស់គេ ឱ្យទាញយកម្ចាស់ដើមពិតប្រាកដ
+                // If re-sharing someone else's shared post, retrieve the true original author
                 if (str_starts_with($contentToShare, '[SHARED_POST]')) {
                     $parsed = json_decode(substr($contentToShare, 13), true);
                     if ($parsed) {
