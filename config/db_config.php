@@ -28,8 +28,13 @@ if (!defined('BASE_URL')) {
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     die("Connection failed: " . $e->getMessage());
+}
+
+// Generate CSRF token for the session
+if (session_status() === PHP_SESSION_ACTIVE && empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>

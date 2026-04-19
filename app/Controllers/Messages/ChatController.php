@@ -116,6 +116,12 @@ if ($action === 'fetch') {
 
 // Send message (with file upload)
 if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrf = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf)) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid request token.']);
+        exit;
+    }
+
     $messageBody = $_POST['message'] ?? '';
     $receiver_id = intval($_POST['receiver_id'] ?? 0);
     $type = $_POST['type'] ?? 'text';
@@ -145,14 +151,45 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $file = $_FILES['chat_file'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $fileName = time() . '_' . uniqid() . '.' . $ext;
+
+        // Validate real MIME type using finfo (cannot be spoofed)
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $realMime = $finfo->file($file['tmp_name']);
+
+        $allowedMimes = [
+            // Images
+            'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            // Videos
+            'video/mp4' => 'mp4', 'video/quicktime' => 'mov', 'video/x-msvideo' => 'avi',
+            'video/x-matroska' => 'mkv', 'video/webm' => 'webm',
+            // Audio
+            'audio/mpeg' => 'mp3', 'audio/wav' => 'wav', 'audio/ogg' => 'ogg',
+            'audio/aac' => 'aac', 'audio/mp4' => 'm4a', 'audio/webm' => 'webm',
+            // Documents
+            'application/pdf' => 'pdf',
+            'application/msword' => 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'application/vnd.ms-excel' => 'xls',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+            'text/plain' => 'txt',
+        ];
+
+        if (!array_key_exists($realMime, $allowedMimes)) {
+            echo json_encode(['status' => 'error', 'message' => 'File type not allowed.']);
+            exit;
+        }
+
+        // Use the validated extension from mime type (not from filename)
+        $safeExt = $allowedMimes[$realMime];
+        $fileName = time() . '_' . bin2hex(random_bytes(8)) . '.' . $safeExt;
         $uploadPath = $uploadDir . $fileName;
 
-        // Determine file type
-        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', '3gp', 'ogv', 'mts', 'ts', 'm2ts'];
-        $audioExtensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac', 'wma'];
+        // Determine file type from validated mime
+        $ext = $safeExt;
+        $imageExtensions = ['jpg', 'png', 'gif', 'webp'];
+        $videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
+        $audioExtensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
 
         // File size limits (in bytes)
         $maxImageSize = 50 * 1024 * 1024;     // 50 MB for images

@@ -536,11 +536,12 @@ class MessageChat {
         const formData = new FormData();
         formData.append('action', 'send');
         formData.append('receiver_id', this.activeReceiverID);
-        
+        formData.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
+
         if (message) {
             formData.append('message', message);
         }
-        
+
         if (this.elements.fileInput.files.length > 0) {
             formData.append('chat_file', this.elements.fileInput.files[0]);
         }
@@ -672,7 +673,8 @@ class MessageChat {
                 formData.append('receiver_id', this.activeReceiverID);
                 formData.append('type', 'audio');
                 formData.append('chat_file', audioFile);
-                
+                formData.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
+
                 fetch(API_PATH, { method: 'POST', body: formData })
                     .then(res => res.json())
                     .then(data => {

@@ -22,7 +22,8 @@ function getJsConfig() {
         'imagePath' => BASE_URL . 'public/img/',
         'postsImagePath' => BASE_URL . 'public/uploads/posts/',
         'uploadsPath' => BASE_URL . 'public/uploads/',
-        'chatPath' => BASE_URL . 'public/uploads/chat/'
+        'chatPath' => BASE_URL . 'public/uploads/chat/',
+        'csrfToken' => $_SESSION['csrf_token'] ?? ''
     ]);
 }
 

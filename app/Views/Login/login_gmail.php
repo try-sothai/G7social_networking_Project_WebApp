@@ -50,14 +50,6 @@ if (isset($_POST['login'])) {
 
                     if (password_verify($Password, $stored)) {
                         $passwordOk = true;
-                    } elseif (hash_equals($stored, $Password)) {
-                        // Legacy plain-text fallback + auto-migrate to hashed password.
-                        $passwordOk = true;
-                        $newHash = password_hash($Password, PASSWORD_DEFAULT);
-                        $upgradeStmt = $conn->prepare('UPDATE users SET Password = :Password WHERE UserID = :UserID LIMIT 1');
-                        $upgradeStmt->bindValue(':Password', $newHash, PDO::PARAM_STR);
-                        $upgradeStmt->bindValue(':UserID', (int) $user['UserID'], PDO::PARAM_INT);
-                        $upgradeStmt->execute();
                     }
                 }
 

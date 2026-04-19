@@ -3,15 +3,13 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/admin.php';
+require_once '../../../config/env.php';
 
 lc_admin_ensure_schema($conn);
 
-// ⚠️ 1. Enter your Facebook App ID and App Secret here
-$appID = '1823607298598252';
-$appSecret = 'c3cf21805947286a1a3b4a05dd3a42be';
-
-// ⚠️ 2. Set the Redirect URI to match what you saved in the Facebook Developer Console
-$redirectUri = 'http://localhost/G7social_networking_Project_WebApp/app/Controllers/Auth/facebook_auth.php';
+$appID = env('FACEBOOK_APP_ID');
+$appSecret = env('FACEBOOK_APP_SECRET');
+$redirectUri = env('FACEBOOK_REDIRECT_URI', 'http://localhost/G7social_networking_Project_WebApp/app/Controllers/Auth/facebook_auth.php');
 
 if (isset($_GET['code'])) {
     $tokenUrl = "https://graph.facebook.com/v12.0/oauth/access_token?" . http_build_query([
@@ -21,11 +19,11 @@ if (isset($_GET['code'])) {
         'code' => $_GET['code']
     ]);
 
-    // Use cURL to bypass SSL on WAMP
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $tokenUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_CAINFO, ini_get('curl.cainfo') ?: 'C:/wamp64/bin/php/php8.2.29/extras/ssl/cacert.pem');
     $response = curl_exec($ch);
     curl_close($ch);
 
@@ -34,11 +32,11 @@ if (isset($_GET['code'])) {
     if (isset($token['access_token'])) {
         $userInfoUrl = "https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=" . $token['access_token'];
         
-        // Bypass SSL when fetching user info (name, email, profile picture)
         $ch2 = curl_init();
         curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
         curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch2, CURLOPT_CAINFO, ini_get('curl.cainfo') ?: 'C:/wamp64/bin/php/php8.2.29/extras/ssl/cacert.pem');
         $userInfoResponse = curl_exec($ch2);
         curl_close($ch2);
 

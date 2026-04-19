@@ -526,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = new FormData();
         payload.append('action', 'view');
         payload.append('post_id', String(id));
+        payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
         fetch(POST_API, {
             method: 'POST',
@@ -722,6 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payload = new FormData();
                 payload.append('action', 'delete');
                 payload.append('post_id', String(postId));
+                payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
                 fetch(POST_API, { method: 'POST', body: payload })
                     .then((res) => res.json())
@@ -753,6 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload.append('action', 'report');
                 payload.append('post_id', String(postId));
                 payload.append('reason', reason.trim());
+                payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
                 fetch(POST_API, { method: 'POST', body: payload })
                     .then((res) => res.json())
@@ -769,6 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payload = new FormData();
                 payload.append('action', 'like');
                 payload.append('post_id', postId);
+                payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
                 fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
                     if(data.status === 'success') loadPosts();
                 });
@@ -793,6 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload.append('action', 'comment');
                 payload.append('post_id', postId);
                 payload.append('comment', input.value);
+                payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
                 fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
                     if(data.status === 'success') {
                         window.activeCommentPostId = postId;
@@ -827,6 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
                     payload.append('group_id', window.CURRENT_GROUP_ID);
                 }
+                payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
                 fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
                     if(data.status === 'success') loadPosts();
                 });
@@ -1021,6 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.CURRENT_GROUP_ID !== 'undefined' && window.CURRENT_GROUP_ID > 0) {
                 payload.append('group_id', window.CURRENT_GROUP_ID);
             }
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
             fetch(POST_API, {
                 method: 'POST',
@@ -1095,6 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('action', 'create');
             payload.append('content', content);
             files.forEach((file) => payload.append('post_media[]', file));
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
             fetch(POST_API, {
                 method: 'POST',
@@ -1250,6 +1258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('content', (editPostContentInput && editPostContentInput.value) ? editPostContentInput.value : '');
             payload.append('keep_media', JSON.stringify(editPostState.keepMedia));
             editPostState.newFiles.forEach((file) => payload.append('new_media[]', file));
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
             fetch(POST_API, {
                 method: 'POST',

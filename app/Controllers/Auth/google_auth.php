@@ -2,12 +2,12 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/admin.php';
+require_once '../../../config/env.php';
 
 lc_admin_ensure_schema($conn);
 
-// ⚠️ Important: Paste your Client ID and Client Secret obtained from Google here
-$clientID = '373812776585-kdb825tsdi71rq22gksnepnalpiaoegq.apps.googleusercontent.com';
-$clientSecret = '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';
+$clientID = env('GOOGLE_CLIENT_ID');
+$clientSecret = env('GOOGLE_CLIENT_SECRET');
 
 // Automatically build the full Redirect URI
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
@@ -30,7 +30,8 @@ if (isset($_GET['code'])) {
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Required on WAMP localhost to prevent SSL errors
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_CAINFO, ini_get('curl.cainfo') ?: 'C:/wamp64/bin/php/php8.2.29/extras/ssl/cacert.pem');
     $response = curl_exec($ch);
     curl_close($ch);
 
@@ -42,7 +43,8 @@ if (isset($_GET['code'])) {
         $ch2 = curl_init();
         curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
         curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch2, CURLOPT_CAINFO, ini_get('curl.cainfo') ?: 'C:/wamp64/bin/php/php8.2.29/extras/ssl/cacert.pem');
         $userInfoResponse = curl_exec($ch2);
         curl_close($ch2);
         $userInfo = json_decode($userInfoResponse, true);
