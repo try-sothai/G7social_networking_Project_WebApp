@@ -12,6 +12,15 @@ $username = "root";
 $password = "";
 
 if (!defined('BASE_URL')) {
+    // ពិនិត្យមើលថាតើកំពុងប្រើប្រាស់ HTTP ឬ HTTPS (Ngrok ប្រើ HTTPS)
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' 
+        || $_SERVER['SERVER_PORT'] == 443 
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')) 
+        ? "https://" : "http://";
+
+    // ទាញយកឈ្មោះ Host
+    $serverHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
     $projectRoot = str_replace('\\', '/', realpath(__DIR__ . '/..'));
     $documentRoot = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'] ?? ''));
 
@@ -23,7 +32,8 @@ if (!defined('BASE_URL')) {
         $basePath = '/' . basename($projectRoot ?: 'G7social_networking_Project_WebApp') . '/';
     }
 
-    define('BASE_URL', $basePath);
+    // កំណត់ BASE_URL ដោយស្វ័យប្រវត្តិរួមទាំង Protocol និង Host
+    define('BASE_URL', $protocol . $serverHost . $basePath);
 }
 
 try {

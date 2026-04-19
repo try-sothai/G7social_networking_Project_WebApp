@@ -1,6 +1,10 @@
 <?php 
 session_start();
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Groups/GroupModel.php';
@@ -195,6 +199,11 @@ if ($headerPicPath === '') {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Profile/profile.css">
+    <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
+        };
+    </script>
     <style>
         /* Lightbox */
         .profile-lightbox {

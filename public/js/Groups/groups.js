@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             postModalMessage.textContent = '';
             const formData = new FormData(createPostForm);
             formData.append('action', 'create');
+            formData.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
             const submitBtn = createPostForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;

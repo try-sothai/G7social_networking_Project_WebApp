@@ -8,6 +8,10 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Dummy data for user profile - replace with actual data fetching
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Events/EventModel.php';
@@ -73,6 +77,11 @@ if (isset($_GET['error'])) {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo $dashboardCssVersion; ?>">
     <link rel="stylesheet" href="../../../public/css/Events/create_event.css?v=<?php echo $createEventCssVersion; ?>">
+    <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
+        };
+    </script>
     <style>
         .alert-box {
             margin: 1rem 2rem 0;
@@ -121,6 +130,7 @@ if (isset($_GET['error'])) {
                 <?php if ($isEditMode): ?>
                     <input type="hidden" name="event_id" value="<?php echo (int)($editingEvent['EventID'] ?? $editingEvent['id'] ?? $editingEvent['ID'] ?? 0); ?>">
                 <?php endif; ?>
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
                 <div class="form-group">
                     <label for="title">Event Title</label>

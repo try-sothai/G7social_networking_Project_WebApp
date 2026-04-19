@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = new FormData();
             payload.append('action', 'delete');
             payload.append('post_id', String(postId));
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
             fetch(POST_API, { method: 'POST', body: payload })
                 .then((res) => res.json())
@@ -240,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payload.append('content', (editPostContentInput && editPostContentInput.value) ? editPostContentInput.value : '');
             payload.append('keep_media', JSON.stringify(editPostState.keepMedia));
             editPostState.newFiles.forEach((file) => payload.append('new_media[]', file));
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
 
             fetch(POST_API, { method: 'POST', body: payload })
                 .then((res) => res.json())

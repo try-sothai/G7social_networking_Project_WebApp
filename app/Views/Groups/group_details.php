@@ -4,6 +4,10 @@ require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../Login/login_gmail.php");
     exit();
@@ -69,6 +73,11 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Home/newPost.css">
+    <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
+        };
+    </script>
     <style>
         .group-header-wrap { background: var(--bg-card, #fff); border-radius: 0 0 16px 16px; overflow: hidden; box-shadow: var(--card-shadow); margin-bottom: 20px; }
         .group-cover { height: 300px; background-size: cover; background-position: center; position: relative; }

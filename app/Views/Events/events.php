@@ -11,6 +11,10 @@
         exit();
     }
 
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
     $model = new ProfileModel($conn);
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
@@ -124,6 +128,11 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Events/events.css?v=<?php echo $eventsCssVersion; ?>">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo $dashboardCssVersion; ?>">
+    <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
+        };
+    </script>
     <style>
         .tab {
             cursor: pointer;

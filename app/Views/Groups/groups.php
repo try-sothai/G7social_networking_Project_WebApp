@@ -7,6 +7,10 @@ require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Initialize controller and get data
 $controller = new GroupController($conn);
 
@@ -84,6 +88,11 @@ if ($profilePicPath === '') {
     <link rel="stylesheet" href="../../../public/css/Groups/groups.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Home/newPost.css">
+    <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
+        };
+    </script>
     <style>
         /* 🎛️ Modern Group Filters Styling */
         .group-filters-container {

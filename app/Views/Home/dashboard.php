@@ -2,14 +2,18 @@
     session_start();
 
     require_once '../../../config/db_config.php';
+    require_once '../../Helpers/functions.php';
 
-    require_once '../../Models/Profile/ProfileModel.php'; // For user data
-    require_once '../../Models/Friends/FriendModel.php'; // For notifications
-    require_once '../../Models/Groups/GroupModel.php'; // For trending groups
+    require_once '../../Models/Profile/ProfileModel.php';
+    require_once '../../Models/Friends/FriendModel.php';
+    require_once '../../Models/Groups/GroupModel.php';
     require_once __DIR__ . '/../Component/dashboard_shell.php';
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../Login/login_gmail.php");
         exit();
+    }
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
     $model = new ProfileModel($conn);
     $groupModel = new GroupModel($conn);
@@ -40,6 +44,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
+        };
         (function () {
             const key = 'localconnect_theme';
             if (!localStorage.getItem(key)) {
