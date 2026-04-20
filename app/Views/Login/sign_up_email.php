@@ -38,24 +38,43 @@ if (isset($_POST['signup'])) {
                 $error = 'This Email is already registered!';
             } else {
                 $passwordHash = password_hash($pass_val, PASSWORD_DEFAULT);
+                $token = bin2hex(random_bytes(32));
 
-                $stmt = $conn->prepare('INSERT INTO users (Username, Email, Password) VALUES (:Username, :Email, :Password)');
+                $stmt = $conn->prepare("INSERT INTO users (Username, Email, Password, AccountStatus, VerificationToken, Role) VALUES (:Username, :Email, :Password, 'Pending', :VerificationToken, 'User')");
                 $stmt->bindValue(':Username', $username_val, PDO::PARAM_STR);
                 $stmt->bindValue(':Email', $email_val, PDO::PARAM_STR);
                 $stmt->bindValue(':Password', $passwordHash, PDO::PARAM_STR);
+                $stmt->bindValue(':VerificationToken', $token, PDO::PARAM_STR);
 
                 if ($stmt->execute()) {
-                    $new_user_id = (int) $conn->lastInsertId();
-                    session_regenerate_id(true);
-                    $_SESSION['user_id'] = $new_user_id;
-                    $_SESSION['username'] = $username_val;
-                    $_SESSION['Email'] = $email_val;
+                    require_once '../../../vendor/autoload.php';
+                    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                    try {
+                        $mail->isSMTP();
+                        $mail->Host = 'smtp.gmail.com';
+                        $mail->SMTPAuth = true;
+                        $mail->Username = 'YOUR_EMAIL@gmail.com'; // ⚠️ ប្តូរជា Email របស់បង
+                        $mail->Password = 'YOUR_APP_PASSWORD'; // ⚠️ ប្តូរជា App Password ១៦ខ្ទង់ដែល Copy អម្បាញ់មិញ
+                        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                        $mail->Port = 587;
 
-                    header('Location: ' . BASE_URL . 'app/Views/Home/dashboard.php');
-                    exit();
+                        $mail->setFrom('YOUR_EMAIL@gmail.com', 'LocalConnect'); // ⚠️ ប្តូរជា Email របស់បង
+                        $mail->addAddress($email_val, $username_val);
+
+                        $mail->isHTML(true);
+                        $mail->Subject = 'Verify your LocalConnect Account';
+                        $verifyLink = BASE_URL . 'app/Views/Login/verify.php?token=' . $token;
+                        $mail->Body    = "សួស្តី {$username_val},<br><br>សូមចុចលើតំណរខាងក្រោមដើម្បីបញ្ជាក់គណនីរបស់អ្នក៖<br><br><a href='{$verifyLink}'>ចុចទីនេះដើម្បី Verify Account</a><br><br>អរគុណ!";
+                        $mail->AltBody = "សួស្តី {$username_val},\n\nសូមចូលទៅកាន់តំណរខាងក្រោមដើម្បីបញ្ជាក់គណនីរបស់អ្នក៖\n{$verifyLink}\n\nអរគុណ!";
+
+                        $mail->send();
+                        $message = 'Account created successfully! Please check your email to verify your account.';
+                    } catch (\Exception $e) {
+                        $error = 'Account created, but failed to send verification email. Mailer Error: ' . $mail->ErrorInfo;
+                    }
+                } else {
+                    $error = 'Failed to create account.';
                 }
-
-                $error = 'Failed to create account.';
             }
         } catch (PDOException $e) {
             $error = 'Unable to create account right now. Please try again.';

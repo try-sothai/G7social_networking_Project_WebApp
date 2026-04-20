@@ -9,7 +9,9 @@ lc_admin_ensure_schema($conn);
 
 $appID = env('FACEBOOK_APP_ID');
 $appSecret = env('FACEBOOK_APP_SECRET');
-$redirectUri = env('FACEBOOK_REDIRECT_URI', 'http://localhost/G7social_networking_Project_WebApp/app/Controllers/Auth/facebook_auth.php');
+
+// កំណត់ Redirect URI ដោយប្រើប្រាស់ BASE_URL ផ្ទាល់ (គាំទ្រទាំង Ngrok ទាំង Localhost)
+$redirectUri = BASE_URL . 'app/Controllers/Auth/facebook_auth.php';
 
 if (isset($_GET['code'])) {
     $tokenUrl = "https://graph.facebook.com/v12.0/oauth/access_token?" . http_build_query([
@@ -58,7 +60,7 @@ if (isset($_GET['code'])) {
             $_SESSION['user_role'] = lc_admin_normalize_role($user['Role'] ?? 'User');
             $_SESSION['account_status'] = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
         } else {
-            $insert = $conn->prepare("INSERT INTO users (Username, Email, ProfilePic, Password) VALUES (:name, :email, :pic, :pass)");
+            $insert = $conn->prepare("INSERT INTO users (Username, Email, ProfilePic, Password, AccountStatus, Role) VALUES (:name, :email, :pic, :pass, 'Active', 'User')");
             $insert->execute([
                 ':name' => $name,
                 ':email' => $email,
@@ -89,7 +91,8 @@ if (isset($_GET['code'])) {
 $authUrl = "https://www.facebook.com/v12.0/dialog/oauth?" . http_build_query([
     'client_id' => $appID,
     'redirect_uri' => $redirectUri,
-    'scope' => 'email,public_profile'
+    'scope' => 'email,public_profile',
+    'display' => 'popup'
 ]);
 header("Location: $authUrl");
 exit();

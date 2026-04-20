@@ -9,13 +9,8 @@ lc_admin_ensure_schema($conn);
 $clientID = env('GOOGLE_CLIENT_ID');
 $clientSecret = env('GOOGLE_CLIENT_SECRET');
 
-// Automatically build the full Redirect URI (supports ngrok/reverse proxy)
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
-    || ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on';
-$protocol = $isHttps ? "https://" : "http://";
-$host = $_SERVER['HTTP_HOST'];
-$redirectUri = $protocol . $host . rtrim(BASE_URL, '/') . '/app/Controllers/Auth/google_auth.php';
+// កំណត់ Redirect URI ដោយប្រើប្រាស់ BASE_URL ផ្ទាល់តែម្ដង (គាំទ្រទាំង Ngrok និង Localhost)
+$redirectUri = BASE_URL . 'app/Controllers/Auth/google_auth.php';
 
 if (isset($_GET['code'])) {
     // Exchange code for an Access Token
