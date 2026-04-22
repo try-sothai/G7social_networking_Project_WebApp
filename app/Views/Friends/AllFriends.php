@@ -49,438 +49,7 @@ if ($profilePicPath === '') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
-    <style>
-        /* Friends Container Layout */
-        .friends-container {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 30px;
-            margin-top: 20px;
-        }
-
-        /* Left Content */
-        .left-content {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(255, 37, 37, 0.05);
-        }
-
-        /* Friends Tabs */
-        .friends-tabs {
-            background: #e2e8f0;
-            padding: 8px;
-            border-radius: 16px;
-            display: inline-flex;
-            gap: 10px;
-            width: fit-content;
-            margin-bottom: 30px;
-        }
-
-        .tab-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 12px;
-            background: transparent;
-            font-weight: 600;
-            color: #1e293b;
-            cursor: pointer;
-            transition: 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .tab-btn.active {
-            background: #2563eb;
-            color: white;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        .tab-btn:not(.active):hover {
-            background: rgba(37, 99, 235, 0.1);
-        }
-
-        /* Friends Grid */
-        .friends-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 30px;
-        }
-
-        .friend-profile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-            text-align: center;
-            padding: 15px;
-            border-radius: 16px;
-            background: #f8fafc;
-            transition: all 0.3s ease;
-        }
-
-        .friend-profile:hover {
-            transform: translateY(-5px);
-            background: #f1f5f9;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .friend-profile img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .friend-profile .name {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #1e293b;
-        }
-
-        .friend-profile .friend-since {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .friend-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .btn-message, .btn-remove-friend {
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-message {
-            background: #2563eb;
-            color: white;
-        }
-
-        .btn-message:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-remove-friend {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-remove-friend:hover {
-            background: #dc2626;
-        }
-
-        /* Right Sidebar */
-        .right-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .sidebar-section {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #1e293b;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Suggestions */
-        .suggestion-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .suggestion-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            border-radius: 12px;
-            transition: 0.3s;
-        }
-
-        .suggestion-item:hover {
-            background: #f8fafc;
-        }
-
-        .suggestion-item img {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .suggest-info {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .suggest-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #1e293b;
-        }
-
-        .suggest-mutual {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .suggest-add {
-            color: #2563eb;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: 0.2s;
-            padding: 8px;
-            border-radius: 50%;
-        }
-
-        .suggest-add:hover {
-            background: #eff6ff;
-            transform: scale(1.1);
-        }
-
-        /* Event Card */
-        .event-card-small {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .event-item {
-            display: flex;
-            gap: 12px;
-            padding: 10px;
-            border-radius: 12px;
-            background: #f8fafc;
-        }
-
-        .event-date-box {
-            background: #dbeafe;
-            padding: 8px 12px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-width: 55px;
-        }
-
-        .event-month {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #2563eb;
-        }
-
-        .event-day {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #1e3a8a;
-        }
-
-        .event-details {
-            flex: 1;
-        }
-
-        .event-name {
-            display: block;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #1e293b;
-        }
-
-        .event-location {
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .btn-view-event {
-            width: 100%;
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-
-        .btn-view-event:hover {
-            background: #1d4ed8;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #64748b;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 1.2rem;
-            margin-bottom: 8px;
-            color: #1e293b;
-        }
-
-        .empty-state p {
-            font-size: 0.9rem;
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: white;
-            display: none;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-
-        .toast.success {
-            background: #10b981;
-        }
-
-        .toast.error {
-            background: #ef4444;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Dark Mode */
-        body.dark-mode .left-content,
-        body.dark-mode .sidebar-section {
-            background: #1e293b;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode .friend-profile {
-            background: #0f172a;
-        }
-
-        body.dark-mode .friend-profile .name {
-            color: #f1f5f9;
-        }
-
-        body.dark-mode .suggestion-item:hover {
-            background: #0f172a;
-        }
-
-        body.dark-mode .event-item {
-            background: #0f172a;
-        }
-    
-        /* Dark mode */
-        body.dark-mode .friends-tabs {
-            background: #1e293b;
-        }
-
-        body.dark-mode .friends-card,
-        body.dark-mode .left-content,
-        body.dark-mode .right-content,
-        body.dark-mode .friend-card,
-        body.dark-mode .friend-profile,
-        body.dark-mode .search-results,
-        body.dark-mode .suggestions-section,
-        body.dark-mode .requests-section,
-        body.dark-mode .empty-state,
-        body.dark-mode .request-card {
-            background: #111827 !important;
-            color: #e2e8f0 !important;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-        }
-
-        body.dark-mode .tab-btn {
-            color: #cbd5e1;
-        }
-
-        body.dark-mode .tab-btn:not(.active):hover {
-            background: #334155;
-        }
-
-        body.dark-mode .search-box input,
-        body.dark-mode #searchInput {
-            background: #0f172a;
-            color: #e2e8f0;
-            border-color: rgba(148, 163, 184, 0.3);
-        }
-
-        body.dark-mode .section-title,
-        body.dark-mode .friend-name,
-        body.dark-mode h2,
-        body.dark-mode h3,
-        body.dark-mode h4 {
-            color: #e2e8f0 !important;
-        }
-
-        body.dark-mode .friend-location,
-        body.dark-mode .friend-bio,
-        body.dark-mode .empty-state p,
-        body.dark-mode p,
-        body.dark-mode small {
-            color: #94a3b8 !important;
-        }
-
-        @media (max-width: 1024px) {
-            .friends-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        @media (max-width: 768px) {
-            .friends-tabs {
-                display: flex;
-                flex-wrap: wrap;
-                width: 100%;
-            }
-            .tab-btn {
-                flex: 1;
-                text-align: center;
-                padding: 10px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Friends/friends.css')); ?>">
 </head>
 <body>
     <?php lc_shell_render_sidebar(['active' => 'friends']); ?>
@@ -509,121 +78,126 @@ if ($profilePicPath === '') {
             ]);
         ?>
 
-        <div class="friends-container">
-            <div class="left-content">
-                <div class="friends-tabs">
-                    <a href="AllFriends.php"><button class="tab-btn active">All Friends <span style="background: #2563eb20; padding: 2px 8px; border-radius: 20px; margin-left: 8px;"><?php echo $friendCount; ?></span></button></a>
-                    <a href="AddFriends.php"><button class="tab-btn">Add Friends</button></a>
-                    <a href="FriendsRequest.php"><button class="tab-btn">Friend Request</button></a>
-                </div>
-
-                <div class="friends-card">
-                    <?php if (empty($friends)): ?>
-                        <div class="empty-state">
-                            <i class="fa-solid fa-user-friends"></i>
-                            <h3>No friends yet</h3>
-                            <p>Start connecting with people by adding friends!</p>
-                            <a href="AddFriends.php" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2563eb; color: white; border-radius: 8px; text-decoration: none;">Find Friends</a>
-                        </div>
-                    <?php else: ?>
-                        <div class="friends-grid" id="friendsGrid">
-                            <?php foreach ($friends as $friend): ?>
-                                <div class="friend-profile" data-name="<?php echo strtolower(htmlspecialchars($friend['Username'])); ?>">
-                                <a href="../Profile/profile.php?user_id=<?php echo $friend['UserID']; ?>" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-                                    <img src="<?php 
-                                        $path = '../../../public/img/' . $friend['ProfilePic'];
-                                        if (!empty($friend['ProfilePic']) && file_exists($path)) {
-                                            echo $path;
-                                        } else {
-                                            echo 'https://via.placeholder.com/100';
-                                        }
-                                    ?>" alt="<?php echo htmlspecialchars($friend['Username']); ?>">
-                                    <span class="name"><?php echo htmlspecialchars($friend['Username']); ?></span>
-                                </a>
-                                    <span class="friend-since">
-                                        <i class="fa-regular fa-clock"></i> 
-                                        Friend since <?php echo date('M Y', strtotime($friend['friend_since'])); ?>
-                                    </span>
-                                    <div class="friend-actions">
-                                        <button class="btn-message" onclick="startChat(<?php echo $friend['UserID']; ?>)">
-                                            <i class="fa-regular fa-message"></i> Message
-                                        </button>
-                                        <button class="btn-remove-friend" onclick="removeFriend(<?php echo $friend['UserID']; ?>, this)">
-                                            <i class="fa-regular fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+        <div class="friends-page">
+            <div class="friends-tabs">
+                <a href="AllFriends.php" class="tab-btn active">
+                    <i class="fa-solid fa-user-group"></i> All Friends
+                    <span class="tab-count"><?php echo $friendCount; ?></span>
+                </a>
+                <a href="AddFriends.php" class="tab-btn">
+                    <i class="fa-solid fa-user-plus"></i> Add Friends
+                </a>
+                <a href="FriendsRequest.php" class="tab-btn">
+                    <i class="fa-solid fa-inbox"></i> Requests
+                </a>
             </div>
 
-            <aside class="right-sidebar">
-                <div class="sidebar-section">
-                    <h3 class="section-title">
-                        <i class="fa-solid fa-user-plus"></i>
-                        Suggestions
-                    </h3>
-                    <div class="suggestion-list">
-                        <?php if (empty($suggested_friends)): ?>
-                            <div style="text-align: center; color: #64748b; padding: 20px;">
-                                <i class="fa-solid fa-users-slash"></i>
-                                <p>No suggestions available</p>
+            <div class="friends-layout">
+                <div>
+                    <div class="friends-card">
+                        <div class="sec-header">
+                            <h2 class="sec-title"><i class="fa-solid fa-users"></i> Your Friends</h2>
+                        </div>
+                        <?php if (empty($friends)): ?>
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="fa-solid fa-user-group"></i></div>
+                                <h3>No friends yet</h3>
+                                <p>Start connecting with people!</p>
+                                <a href="AddFriends.php" class="btn-find-friends"><i class="fa-solid fa-user-plus"></i> Find Friends</a>
                             </div>
                         <?php else: ?>
-                            <?php foreach ($suggested_friends as $suggest): ?>
-                                <div class="suggestion-item">
-                                    <img src="<?php 
-                                        $path = '../../../public/img/' . $suggest['ProfilePic'];
-                                        echo (!empty($suggest['ProfilePic']) && file_exists($path)) ? $path : 'https://via.placeholder.com/45';
-                                    ?>" alt="<?php echo htmlspecialchars($suggest['Username']); ?>">
-                                    <div class="suggest-info">
-                                        <span class="suggest-name"><?php echo htmlspecialchars($suggest['Username']); ?></span>
-                                        <?php if (!empty($suggest['Locations'])): ?>
-                                            <span class="suggest-mutual"><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($suggest['Locations']); ?></span>
-                                        <?php endif; ?>
+                            <div class="friends-grid" id="friendsGrid">
+                                <?php foreach ($friends as $friend): ?>
+                                    <?php
+                                        $fPath = '../../../public/img/' . $friend['ProfilePic'];
+                                        $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : 'https://ui-avatars.com/api/?name=' . urlencode($friend['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
+                                    ?>
+                                    <div class="friend-card-item" data-name="<?php echo strtolower(htmlspecialchars($friend['Username'])); ?>">
+                                        <div class="f-avatar">
+                                            <img src="<?php echo $fImg; ?>" alt="<?php echo htmlspecialchars($friend['Username']); ?>">
+                                        </div>
+                                        <a href="../Profile/profile.php?user_id=<?php echo $friend['UserID']; ?>" class="f-name">
+                                            <?php echo htmlspecialchars($friend['Username']); ?>
+                                        </a>
+                                        <span class="f-since">
+                                            <i class="fa-regular fa-clock"></i>
+                                            Since <?php echo date('M Y', strtotime($friend['friend_since'])); ?>
+                                        </span>
+                                        <div class="f-actions">
+                                            <button class="btn-msg" onclick="startChat(<?php echo $friend['UserID']; ?>)">
+                                                <i class="fa-regular fa-message"></i> Message
+                                            </button>
+                                            <button class="btn-rm" title="Remove friend" onclick="removeFriend(<?php echo $friend['UserID']; ?>, this)">
+                                                <i class="fa-solid fa-user-minus"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <i class="fa-solid fa-user-plus suggest-add" onclick="sendFriendRequest(<?php echo $suggest['UserID']; ?>, this)"></i>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
 
-                <div class="sidebar-section">
-                    <h3 class="section-title">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        Upcoming Events
-                    </h3>
-                    <div class="event-card-small">
+                <aside class="right-sidebar">
+                    <div class="sidebar-box">
+                        <div class="sec-header">
+                            <h3 class="sec-title"><i class="fa-solid fa-user-plus"></i> Suggestions</h3>
+                        </div>
+                        <?php if (empty($suggested_friends)): ?>
+                            <p style="font-size:.8rem;color:#94a3b8;text-align:center;padding:12px 0;">No suggestions right now.</p>
+                        <?php else: ?>
+                            <?php foreach ($suggested_friends as $suggest): ?>
+                                <?php
+                                    $sPath = '../../../public/img/' . $suggest['ProfilePic'];
+                                    $sImg  = (!empty($suggest['ProfilePic']) && file_exists($sPath)) ? $sPath : 'https://ui-avatars.com/api/?name=' . urlencode($suggest['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
+                                ?>
+                                <div class="inline-suggestion">
+                                    <img src="<?php echo $sImg; ?>" alt="<?php echo htmlspecialchars($suggest['Username']); ?>">
+                                    <div class="inline-suggest-info">
+                                        <div class="inline-suggest-name"><?php echo htmlspecialchars($suggest['Username']); ?></div>
+                                        <?php if (!empty($suggest['Locations'])): ?>
+                                            <div class="inline-suggest-sub"><i class="fa-solid fa-location-dot" style="font-size:.65rem"></i> <?php echo htmlspecialchars($suggest['Locations']); ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button class="btn-add-inline" title="Add friend" onclick="sendFriendRequest(<?php echo $suggest['UserID']; ?>, this)">
+                                        <i class="fa-solid fa-user-plus"></i>
+                                    </button>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="sidebar-box">
+                        <div class="sec-header">
+                            <h3 class="sec-title"><i class="fa-solid fa-calendar-days"></i> Upcoming Events</h3>
+                        </div>
                         <?php if (empty($upcoming_events)): ?>
-                            <p style="font-size: 0.85rem; color: #64748b; text-align: center; padding: 10px 0;">No upcoming events.</p>
+                            <p style="font-size:.8rem;color:#94a3b8;text-align:center;padding:10px 0;">No upcoming events.</p>
                         <?php else: ?>
                             <?php foreach ($upcoming_events as $ev): ?>
                                 <?php
-                                    $dt = new DateTime($ev['EventDateTime']);
+                                    $dt    = new DateTime($ev['EventDateTime']);
                                     $month = strtoupper($dt->format('M'));
                                     $day   = $dt->format('j');
                                 ?>
-                                <div class="event-item">
-                                    <div class="event-date-box">
-                                        <span class="event-month"><?php echo $month; ?></span>
-                                        <span class="event-day"><?php echo $day; ?></span>
+                                <div class="ev-item">
+                                    <div class="ev-date">
+                                        <div class="ev-month"><?php echo $month; ?></div>
+                                        <div class="ev-day"><?php echo $day; ?></div>
                                     </div>
-                                    <div class="event-details">
-                                        <span class="event-name"><?php echo htmlspecialchars($ev['Title']); ?></span>
-                                        <span class="event-location"><?php echo htmlspecialchars($ev['Location']); ?></span>
+                                    <div class="ev-info">
+                                        <span class="ev-name"><?php echo htmlspecialchars($ev['Title']); ?></span>
+                                        <span class="ev-loc"><i class="fa-solid fa-location-dot" style="font-size:.62rem"></i> <?php echo htmlspecialchars($ev['Location']); ?></span>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
-                        <button class="btn-view-event" onclick="location.href='../Events/events.php'">
-                            View All Events
+                        <button class="btn-all-events" onclick="location.href='../Events/events.php'">
+                            <i class="fa-solid fa-calendar-days"></i> View All Events
                         </button>
                     </div>
-                </div>
-            </aside>
+                </aside>
+            </div>
         </div>
     </div>
 
