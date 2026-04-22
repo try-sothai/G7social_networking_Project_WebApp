@@ -121,7 +121,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_signup') {
     </button>
 
     <div class="auth-footer">
-        Already have an account? <a href="login_gmail.php">Log in</a>
+        Already have an account? <a href="login_phone.php">Log in</a>
     </div>
 </div>
 
