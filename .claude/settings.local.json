@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(xargs cat *)",
+      "Bash(grep -n 'session\\\\|user_id\\\\|$_SESSION' c:/wamp64/www/G7social_networking_Project_WebApp/app/Views/Groups/groups.php)"
+    ]
+  }
+}

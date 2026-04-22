@@ -4,6 +4,7 @@
     require_once '../../Helpers/functions.php';
     require_once '../../Models/Profile/ProfileModel.php';
     require_once '../../Models/Messages/MessageModel.php';
+    require_once '../../Models/Friends/FriendModel.php';
     require_once __DIR__ . '/../Component/dashboard_shell.php';
 
     if (!isset($_SESSION['user_id'])) {
@@ -13,9 +14,11 @@
 
     $model = new ProfileModel($conn);
     $messageModel = new MessageModel($conn);
+    $friendModel = new FriendModel($conn);
     $user_id = $_SESSION['user_id'];
     $u_d = $model->getUserData($user_id);
     $unreadCount = $messageModel->getUnreadCount($user_id);
+    $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
     $profilePicPath = '';
     if (!empty($u_d['ProfilePic'])) {
         $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
@@ -89,15 +92,20 @@
             ob_start();
         ?>
             <i class="fa-solid fa-bell"></i>
-            <?php if ($unreadCount > 0): ?>
-                <span class="notification-badge"><?php echo $unreadCount; ?></span>
+            <?php if ($unread_notifications > 0): ?>
+                <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
             <?php endif; ?>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">Notifications</div>
+                <div id="notificationsList" class="notification-list"></div>
+            </div>
         <?php
             $messagesNotificationHtml = ob_get_clean();
             lc_shell_render_header([
                 'search_input_id' => 'message-header-search',
                 'search_placeholder' => 'Search friends...',
                 'notification_html' => $messagesNotificationHtml,
+                'notification_button_id' => 'notificationBtn',
                 'user_name' => (string)$u_d['Username'],
                 'user_name_class' => '',
                 'user_name_attrs' => 'id="current-user-name" data-id="' . (int)$user_id . '"',
@@ -212,6 +220,7 @@
     <script src="../../../public/js/Messages/message.js?v=<?php echo filemtime(__DIR__.'/../../../public/js/Messages/message.js'); ?>"></script>
     <script src="../../../public/js/Messages/send_img.js"></script>
     <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script src="../../../public/js/common/notifications.js"></script>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>
 </html>

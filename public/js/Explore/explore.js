@@ -130,20 +130,6 @@ function setupEventListeners() {
         });
     }
 
-    // Notifications
-    const notificationBtn = document.getElementById('notificationBtn');
-    if (notificationBtn) {
-        notificationBtn.addEventListener('click', toggleNotifications);
-    }
-
-    // Close notifications when clicking outside
-    document.addEventListener('click', (e) => {
-        const notificationBtn = document.getElementById('notificationBtn');
-        const dropdown = document.getElementById('notificationsDropdown');
-        if (notificationBtn && dropdown && !notificationBtn.contains(e.target)) {
-            dropdown.classList.remove('show');
-        }
-    });
 }
 
 function loadPosts() {
@@ -543,49 +529,6 @@ function addComment(postId) {
         console.error('Error:', error);
         alert('Error adding comment');
     });
-}
-
-function toggleNotifications() {
-    const dropdown = document.getElementById('notificationsDropdown');
-    dropdown.classList.toggle('show');
-    
-    if (dropdown.classList.contains('show')) {
-        loadNotifications();
-    }
-}
-
-function loadNotifications() {
-    fetch('../../../app/Controllers/Explore/explore_controller.php?action=get_notifications')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayNotifications(data.notifications);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading notifications:', error);
-        });
-}
-
-function displayNotifications(notifications) {
-    const container = document.getElementById('notificationsList');
-    
-    if (!notifications || notifications.length === 0) {
-        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">មិនទាន់មានការជូនដំណឹង</div>';
-        return;
-    }
-    
-    container.innerHTML = notifications.map(notif => `
-        <div class="notification-item ${notif.IsRead == 0 ? 'unread' : ''}" data-id="${notif.NotificationID}">
-            <a href="${escapeHtml(getProfileUrl(notif.TriggerID || notif.UserID || 0))}" class="post-user-link" style="display: flex; gap: 10px; align-items: center; text-decoration:none; color:inherit;">
-                <img src="${window.APP_CONFIG.imagePath}${notif.ProfilePic}" style="width: 30px; height: 30px; border-radius: 50%;" onerror="this.src='https://via.placeholder.com/30'">
-                <div>
-                    <p style="margin: 0; font-size: 13px;"><strong>${escapeHtml(notif.Username)}</strong> បាន ${notif.Type} លើផុសរបស់អ្នក</p>
-                    <small style="color: #6b7280;">${new Date(notif.CreatedAt).toLocaleString()}</small>
-                </div>
-            </a>
-        </div>
-    `).join('');
 }
 
 function escapeHtml(text) {

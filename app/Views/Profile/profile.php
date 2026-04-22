@@ -8,6 +8,7 @@ if (empty($_SESSION['csrf_token'])) {
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Groups/GroupModel.php';
+require_once '../../Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -21,6 +22,8 @@ $is_own_profile = ($current_user_id === $profile_user_id);
 
 $model = new ProfileModel($conn);
 $groupModel = new GroupModel($conn);
+$friendModel = new FriendModel($conn);
+$unread_notifications = $friendModel->getUnreadNotificationsCount($current_user_id);
 // Current user data (for header/sidebar)
 $current_u_d = $model->getUserData($current_user_id);
 
@@ -354,13 +357,20 @@ if ($headerPicPath === '') {
             ob_start();
         ?>
             <i class="fa-solid fa-bell"></i>
-            <span class="app-shell-notification-dot"></span>
+            <?php if ($unread_notifications > 0): ?>
+                <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+            <?php endif; ?>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">Notifications</div>
+                <div id="notificationsList" class="notification-list"></div>
+            </div>
         <?php
             $profileNotificationHtml = ob_get_clean();
             lc_shell_render_header([
                 'notification_html' => $profileNotificationHtml,
-            'user_name' => (string)$current_u_d['Username'],
-            'profile_image' => $headerPicPath,
+                'notification_button_id' => 'notificationBtn',
+                'user_name' => (string)$current_u_d['Username'],
+                'profile_image' => $headerPicPath,
             ]);
         ?>
 

@@ -3,6 +3,7 @@ session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/ProfileModel.php';
+require_once '../../Models/Friends/FriendModel.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../Login/login_gmail.php');
@@ -10,8 +11,10 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $model = new ProfileModel($conn);
+$friendModel = new FriendModel($conn);
 $user_id = $_SESSION['user_id'];
 $u_d = $model->getUserData($user_id);
+$unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
 ?>
 <!DOCTYPE html>
@@ -22,11 +25,22 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
     <title>Story View</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../../public/css/Home/story_dashboard.css">
+    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
 </head>
 <body>
     <div class="story-layout">
         <aside class="story-left">
             <a href="dashboard.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <div class="story-notif-wrap" id="notificationBtn" style="position:relative;display:inline-flex;align-items:center;cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.08);margin-bottom:10px;">
+                <i class="fa-solid fa-bell" style="font-size:18px;"></i>
+                <?php if ($unread_notifications > 0): ?>
+                    <span class="notification-badge" style="position:absolute;top:-4px;right:-4px;"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+                <?php endif; ?>
+                <div class="notifications-dropdown" id="notificationsDropdown" style="left:0;right:auto;">
+                    <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">Notifications</div>
+                    <div id="notificationsList" class="notification-list"></div>
+                </div>
+            </div>
             <div class="profile-chip">
                 <img src="<?php 
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
@@ -88,5 +102,6 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
         const CURRENT_USER_ID = <?php echo (int)$user_id; ?>;
     </script>
     <script src="../../../public/js/Home/story_dashboard.js"></script>
+    <script src="../../../public/js/common/notifications.js"></script>
 </body>
 </html>

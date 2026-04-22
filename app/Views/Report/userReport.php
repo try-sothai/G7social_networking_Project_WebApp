@@ -9,6 +9,7 @@ require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
 require_once '../../Models/Report/ReportModel.php';
 require_once '../../Models/Profile/ProfileModel.php';
+require_once '../../Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 
@@ -21,6 +22,8 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $model = new ProfileModel($conn);
 $u_d = $model->getUserData($user_id);
+$friendModel = new FriendModel($conn);
+$unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
     $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
@@ -312,13 +315,20 @@ function timeAgo($datetime) {
             ob_start();
         ?>
             <i class="fa-solid fa-bell"></i>
-            <span class="app-shell-notification-dot"></span>
+            <?php if ($unread_notifications > 0): ?>
+                <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+            <?php endif; ?>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">Notifications</div>
+                <div id="notificationsList" class="notification-list"></div>
+            </div>
         <?php
             $reportNotificationHtml = ob_get_clean();
             lc_shell_render_header([
                 'search_input_id' => 'reportGlobalSearch',
                 'search_placeholder' => 'Search users or sections...',
                 'notification_html' => $reportNotificationHtml,
+                'notification_button_id' => 'notificationBtn',
                 'user_name' => (string)$u_d['Username'],
                 'profile_image' => $profilePicPath,
             ]);

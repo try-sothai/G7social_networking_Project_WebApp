@@ -2,6 +2,7 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
+require_once '../../Models/Friends/FriendModel.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../Login/login_gmail.php');
@@ -9,8 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $model = new ProfileModel($conn);
+$friendModel = new FriendModel($conn);
 $user_id = (int)$_SESSION['user_id'];
 $u_d = $model->getUserData($user_id);
+$unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
 $allowedTypes = [
     'image/jpeg',
@@ -94,13 +97,26 @@ if ($tempMediaDb === '' && $error === '') {
     <title>Edit Story</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../../public/css/Home/story_editor.css">
+    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
 </head>
 <body>
     <div class="editor-shell">
         <header class="editor-topbar">
             <a href="dashboard.php" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i> Back</a>
             <h1>Story Editor</h1>
-            <button id="post-story-btn" class="topbar-btn primary" type="button">Post Story</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div id="notificationBtn" style="position:relative;display:inline-flex;align-items:center;cursor:pointer;padding:6px 10px;border-radius:8px;">
+                    <i class="fa-solid fa-bell" style="font-size:18px;"></i>
+                    <?php if ($unread_notifications > 0): ?>
+                        <span class="notification-badge" style="position:absolute;top:-4px;right:-4px;"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
+                    <?php endif; ?>
+                    <div class="notifications-dropdown" id="notificationsDropdown" style="right:0;left:auto;">
+                        <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">Notifications</div>
+                        <div id="notificationsList" class="notification-list"></div>
+                    </div>
+                </div>
+                <button id="post-story-btn" class="topbar-btn primary" type="button">Post Story</button>
+            </div>
         </header>
 
         <?php if ($error !== ''): ?>
@@ -165,5 +181,6 @@ if ($tempMediaDb === '' && $error === '') {
         };
     </script>
     <script src="../../../public/js/Home/story_editor.js"></script>
+    <script src="../../../public/js/common/notifications.js"></script>
 </body>
 </html>

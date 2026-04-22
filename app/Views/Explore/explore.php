@@ -214,13 +214,13 @@ if ($profilePicPath === '') {
     ?>
         <i class="fa-solid fa-bell"></i>
         <?php if ($unread_notifications > 0): ?>
-            <span class="app-shell-notification-dot"></span>
+            <span class="notification-badge"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
         <?php endif; ?>
         <div class="notifications-dropdown" id="notificationsDropdown">
-            <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb;">
+            <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">
                 Notifications
             </div>
-            <div id="notificationsList"></div>
+            <div id="notificationsList" class="notification-list"></div>
         </div>
     <?php
         $exploreNotificationHtml = ob_get_clean();
