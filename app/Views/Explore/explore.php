@@ -19,13 +19,17 @@ $notifications = $model->getNotifications($user_id);
 $unread_notifications = $model->getUnreadNotificationCount($user_id);
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+    if (str_starts_with($u_d['ProfilePic'], 'http://') || str_starts_with($u_d['ProfilePic'], 'https://')) {
+        $profilePicPath = $u_d['ProfilePic'];
+    } else {
+        $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+        if (is_file($candidate)) {
+            $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        }
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'User') . '&background=dbeafe&color=1d4ed8&bold=true';
 }
 ?>
 <!DOCTYPE html>
@@ -268,7 +272,7 @@ if ($profilePicPath === '') {
 window.currentUser = <?php echo json_encode([
     'id' => $user_id, 
     'username' => $u_d['Username'], 
-    'profilePic' => !empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : 'https://via.placeholder.com/50'
+    'profilePic' => !empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'User') . '&background=dbeafe&color=1d4ed8'
 ]); ?>;
 window.APP_CONFIG = <?php echo getJsConfig(); ?>;
 </script>

@@ -3,6 +3,10 @@
 
 // Get the image URL path
 function getImageUrl($imagePath = '') {
+    if (empty($imagePath)) return '';
+    if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
+        return $imagePath;
+    }
     return BASE_URL . 'public/img/' . ltrim($imagePath, '/');
 }
 

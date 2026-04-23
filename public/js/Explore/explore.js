@@ -282,15 +282,50 @@ function createPostElement(post) {
     }
 
     if (rawImgPath) {
-        rawImgPath = String(rawImgPath).replace(/\\/g, '/'); // ប្តូរ \ ទៅជា / ទាំងអស់ការពារ Error Path
-        if (rawImgPath.startsWith('http') || rawImgPath.startsWith('data:') || rawImgPath.startsWith('/')) {
+        rawImgPath = String(rawImgPath).replace(/\\/g, '/');
+        if (rawImgPath.startsWith('data:')) {
+            MediaPath = rawImgPath;
+        } else if (rawImgPath.startsWith('http')) {
+            // If URL contains an uploads path, extract just the filename and serve locally.
+            // This handles images stored with old tunnel URLs (loca.lt, cloudflare, etc.).
+            if (rawImgPath.includes('/uploads/posts/')) {
+                const fileName = rawImgPath.split('/uploads/posts/').pop().split('?')[0];
+                MediaPath = `../../../public/uploads/posts/${fileName}`;
+            } else if (rawImgPath.includes('/public/img/')) {
+                const fileName = rawImgPath.split('/public/img/').pop().split('?')[0];
+                MediaPath = `../../../public/img/${fileName}`;
+            } else {
+                MediaPath = rawImgPath;
+            }
+        } else if (rawImgPath.startsWith('/')) {
             MediaPath = rawImgPath;
         } else {
-            // ចាប់យកតែឈ្មោះ File ខាងចុង (ឧ. post_123.mp4) ដើម្បីការពារការជាន់ Path គ្នា
-            let fileName = rawImgPath.split('/').pop();
-            // ប្រើ Path ធៀបទៅនឹងទីតាំង explore.php
+            const fileName = rawImgPath.split('/').pop();
             MediaPath = `../../../public/uploads/posts/${fileName}`;
         }
+    }
+
+    // Detect [SHARED_POST] content and extract embedded JSON
+    let isSharedPost = false;
+    let sharedData = null;
+    if (post.Content && post.Content.startsWith('[SHARED_POST]')) {
+        try {
+            sharedData = JSON.parse(post.Content.slice(13));
+            isSharedPost = true;
+            // If no media of its own, try the original post's image
+            if (!MediaPath && sharedData.original_image) {
+                const origImg = String(sharedData.original_image).replace(/\\/g, '/');
+                if (origImg.startsWith('http')) {
+                    if (origImg.includes('/uploads/posts/')) {
+                        MediaPath = `../../../public/uploads/posts/${origImg.split('/uploads/posts/').pop().split('?')[0]}`;
+                    } else if (origImg.includes('/public/img/')) {
+                        MediaPath = `../../../public/img/${origImg.split('/public/img/').pop().split('?')[0]}`;
+                    }
+                } else if (origImg) {
+                    MediaPath = `../../../public/uploads/posts/${origImg.split('/').pop()}`;
+                }
+            }
+        } catch (e) { /* malformed — fall through to plain content display */ }
     }
 
     // Function សម្រាប់ឆែកមើលថាជាវីដេអូឬអត់
@@ -300,7 +335,10 @@ function createPostElement(post) {
         return clean.endsWith('.mp4') || clean.endsWith('.webm') || clean.endsWith('.mov') || clean.endsWith('.ogg');
     };
 
-    const profilePic = post.ProfilePic ? `${window.APP_CONFIG.imagePath}${post.ProfilePic}` : 'https://via.placeholder.com/50';
+    const encodedUsername = encodeURIComponent(post.Username || 'User');
+    const profilePic = post.ProfilePic
+        ? (post.ProfilePic.startsWith('http') ? post.ProfilePic : `${window.APP_CONFIG.imagePath}${post.ProfilePic}`)
+        : `https://ui-avatars.com/api/?name=${encodedUsername}&background=dbeafe&color=1d4ed8`;
     const profileUrl = getProfileUrl(post.UserID || 0);
     const postDate = new Date(post.CreatedAt).toLocaleDateString('km-KH');
     
@@ -325,13 +363,40 @@ function createPostElement(post) {
                     <i class="fa-solid fa-video"></i> Video
                 </div>`;
         } else {
-            const fallbackImg = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='16' fill='%2364748b'%3EImage Not Found%3C/text%3E%3C/svg%3E";
+            const fallbackImg = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22300%22%3E%3Crect%20fill%3D%22%23e2e8f0%22%20width%3D%22400%22%20height%3D%22300%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%20font-size%3D%2216%22%20fill%3D%22%2364748b%22%3EImage%20Not%20Found%3C%2Ftext%3E%3C%2Fsvg%3E";
             mediaHtml = `<img src="${escapeHtml(MediaPath)}" class="explore-post-image" alt="Post preview" style="cursor: pointer;" onclick="openExploreLightbox(this.src)" onerror="this.onerror=null; this.src='${fallbackImg}';">`;
         }
+    } else if (isSharedPost) {
+        mediaHtml = `<div class="explore-text-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <h3><i class="fa-solid fa-share-nodes"></i>&nbsp; Shared Post</h3>
+                     </div>`;
     } else {
         mediaHtml = `<div class="explore-text-thumbnail" style="background: ${randomGradient};">
                         <h3>${escapeHtml(post.Content).substring(0, 100)}${post.Content.length > 100 ? '...' : ''}</h3>
                      </div>`;
+    }
+
+    let contentBodyHtml;
+    if (isSharedPost && sharedData) {
+        const sharedAvatar = sharedData.original_avatar
+            ? (String(sharedData.original_avatar).startsWith('http')
+                ? sharedData.original_avatar
+                : `../../../public/img/${sharedData.original_avatar}`)
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(sharedData.original_user || 'U')}&background=dbeafe&color=1d4ed8`;
+        const origContent = sharedData.original_content ? String(sharedData.original_content) : '';
+        contentBodyHtml = `
+            <p style="font-size:0.8rem;color:#64748b;margin:0 0 8px;display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-share-nodes"></i> Shared a post
+            </p>
+            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;background:#f8fafc;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+                    <img src="${escapeHtml(sharedAvatar)}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=U&background=dbeafe&color=1d4ed8'">
+                    <strong style="font-size:0.82rem;color:#1e293b;">${escapeHtml(sharedData.original_user || 'Unknown')}</strong>
+                </div>
+                ${origContent ? `<p style="font-size:0.8rem;color:#475569;margin:0;line-height:1.4;">${escapeHtml(origContent.substring(0, 150))}${origContent.length > 150 ? '...' : ''}</p>` : ''}
+            </div>`;
+    } else {
+        contentBodyHtml = `<p>${escapeHtml(post.Content)}</p>`;
     }
 
     postDiv.innerHTML = `
@@ -340,7 +405,7 @@ function createPostElement(post) {
         </div>
         <div class="post-header explore-post-header">
             <a href="${escapeHtml(profileUrl)}" class="post-user-link" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
-                <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/50'">
+                <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodedUsername}&background=dbeafe&color=1d4ed8'">
                 <div class="post-user-info" style="line-height: 1.2;">
                     <h4 style="margin: 0; font-size: 14px;">${escapeHtml(post.Username)}</h4>
                     <p style="margin: 4px 0 0 0; font-size: 11px; color: #64748b;">${postDate}</p>
@@ -348,7 +413,7 @@ function createPostElement(post) {
             </a>
         </div>
         <div class="post-content explore-post-content">
-            <p>${escapeHtml(post.Content)}</p>
+            ${contentBodyHtml}
         </div>
         <div class="post-actions explore-post-actions">
             <button class="like-btn ${post.liked ? 'liked' : ''}" data-post-id="${postId}" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: ${post.liked ? '#ef4444' : '#64748b'}; font-weight: 600;">
@@ -413,6 +478,10 @@ function renderComments(comments) {
     }
     
     return comments.map(comment => {
+        const cPic = comment.ProfilePic
+            ? (comment.ProfilePic.startsWith('http') ? comment.ProfilePic : `${window.APP_CONFIG.imagePath}${comment.ProfilePic}`)
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.Username || 'U')}&background=dbeafe&color=1d4ed8`;
+        const cFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.Username || 'U')}&background=dbeafe&color=1d4ed8`;
         const dateObj = new Date(comment.CreatedAt || '');
         let exactDate = '';
         let timeDisplay = '';
@@ -442,7 +511,7 @@ function renderComments(comments) {
             <div class="comment" style="margin-bottom: 12px;">
                 <div style="display:flex; align-items:flex-start; gap:10px;">
                     <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" style="text-decoration:none; flex-shrink: 0;">
-                        <img src="${comment.ProfilePic ? `${window.APP_CONFIG.imagePath}${comment.ProfilePic}` : 'https://via.placeholder.com/32'}" alt="${escapeHtml(comment.Username)}" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <img src="${escapeHtml(cPic)}" alt="${escapeHtml(comment.Username)}" onerror="this.onerror=null; this.src='${cFallback}'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     </a>
                     <div class="comment-content" style="max-width: calc(100% - 45px);">
                         <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; display: inline-block;">
