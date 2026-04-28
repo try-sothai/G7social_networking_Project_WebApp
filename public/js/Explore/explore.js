@@ -3,17 +3,16 @@ let currentCategory = 'All';
 let isLoading = false;
 let exploreVideoObserver = null;
 
-// ធានាថាអថេរពណ៌ (CSS Variables) សម្រាប់ Dark Mode ត្រូវបានកំណត់
 if (!document.getElementById('social-dark-mode-vars')) {
     const style = document.createElement('style');
     style.id = 'social-dark-mode-vars';
     style.innerHTML = `
         body.dark-mode {
-            --bg-secondary: #111827 !important;
-            --bg-hover: #1e293b !important;
-            --border-color: rgba(148, 163, 184, 0.22) !important;
-            --text-primary: #f1f5f9 !important;
-            --text-secondary: #94a3b8 !important;
+            --bg-secondary: #111827;
+            --bg-hover: #1e293b;
+            --border-color: rgba(148, 163, 184, 0.22);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
         }
         body.dark-mode .post-card {
             background: #111827 !important;
@@ -27,6 +26,32 @@ if (!document.getElementById('social-dark-mode-vars')) {
         }
         body.dark-mode .explore-text-thumbnail {
             border: 1px solid rgba(148, 163, 184, 0.22) !important;
+        }
+
+        /* ── Comment Section Dark Mode ── */
+        body.dark-mode .explore-comments-wrap {
+            background: #111827 !important;
+            border-top-color: rgba(148, 163, 184, 0.18) !important;
+        }
+        body.dark-mode .explore-comment-bubble {
+            background: #1e293b !important;
+        }
+        body.dark-mode .explore-comment-bubble strong {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .explore-comment-bubble span {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .explore-comment-time {
+            color: #475569 !important;
+        }
+        body.dark-mode .explore-comment-input {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: rgba(148, 163, 184, 0.28) !important;
+        }
+        body.dark-mode .explore-comment-input::placeholder {
+            color: #475569 !important;
         }
     `;
     document.head.appendChild(style);
@@ -429,12 +454,12 @@ function createPostElement(post) {
                 <span>Share</span>
             </button>
         </div>
-        <div class="comments-section" id="comments-${postId}" style="display: none; padding: 15px; background: var(--bg-secondary, #f8fafc); border-top: 1px solid var(--border-color, #e2e8f0); border-radius: 0 0 16px 16px;">
+        <div class="comments-section explore-comments-wrap" id="comments-${postId}" style="display: none; padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 16px 16px;">
             <div class="comments-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">
                 ${renderComments(post.comments || [])}
             </div>
             <div class="comment-input" style="display: flex; gap: 10px;">
-                <input type="text" placeholder="Write a comment..." id="comment-input-${postId}" style="flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border-color, #cbd5e1); outline: none; font-family: inherit; background: var(--bg-hover, #ffffff); color: var(--text-primary, #1e293b);">
+                <input type="text" class="explore-comment-input" placeholder="Write a comment..." id="comment-input-${postId}" style="flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-family: inherit; background: #ffffff; color: #1e293b;">
                 <button onclick="addComment(${postId})" style="background: #6366f1; color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600;">Submit</button>
             </div>
         </div>
@@ -514,13 +539,13 @@ function renderComments(comments) {
                         <img src="${escapeHtml(cPic)}" alt="${escapeHtml(comment.Username)}" onerror="this.onerror=null; this.src='${cFallback}'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     </a>
                     <div class="comment-content" style="max-width: calc(100% - 45px);">
-                        <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; display: inline-block;">
+                        <div class="explore-comment-bubble" style="background: #f1f5f9; padding: 8px 14px; border-radius: 18px; font-size: 13.5px; display: inline-block;">
                             <a href="${escapeHtml(getProfileUrl(comment.UserID || 0))}" style="text-decoration:none;">
-                                <strong style="display: block; margin-bottom: 2px; color: var(--text-primary, #1e293b);">${escapeHtml(comment.Username)}</strong>
+                                <strong style="display: block; margin-bottom: 2px; color: #1e293b;">${escapeHtml(comment.Username)}</strong>
                             </a>
-                            <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${escapeHtml(comment.CommentText || comment.Comment)}</span>
+                            <span style="color: #334155; word-break: break-word; line-height: 1.4;">${escapeHtml(comment.CommentText || comment.Comment)}</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-top: 4px; margin-left: 12px;" title="${escapeHtml(exactDate)}">${escapeHtml(timeDisplay)}</div>
+                        <div class="explore-comment-time" style="font-size: 11px; color: #64748b; margin-top: 4px; margin-left: 12px;" title="${escapeHtml(exactDate)}">${escapeHtml(timeDisplay)}</div>
                     </div>
                 </div>
             </div>

@@ -93,9 +93,10 @@ if (!function_exists('lc_shell_default_nav')) {
                     <a
                         href="<?php echo htmlspecialchars((string)$item['href']); ?>"
                         class="item<?php echo $key === $active ? ' active' : ''; ?>"
+                        title="<?php echo htmlspecialchars((string)$item['label']); ?>"
                     >
                         <i class="<?php echo htmlspecialchars((string)$item['icon']); ?>"></i>
-                        <?php echo htmlspecialchars((string)$item['label']); ?>
+                        <span class="nav-label"><?php echo htmlspecialchars((string)$item['label']); ?></span>
                     </a>
                 <?php endforeach; ?>
             </nav>

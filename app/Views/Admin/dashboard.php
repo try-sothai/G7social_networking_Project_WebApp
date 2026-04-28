@@ -312,9 +312,30 @@ function admin_short_text(?string $value, int $length = 110): string
         
         body.dark-mode .admin-table td,
         body.dark-mode .admin-report-top,
-        body.dark-mode .admin-report-actions,
-        body.dark-mode .export-date-filter {
+        body.dark-mode .admin-report-actions {
             border-color: rgba(148, 163, 184, 0.22) !important;
+        }
+
+        /* Export dropdown — full dark mode */
+        body.dark-mode .export-date-filter {
+            background: #0f172a !important;
+            border-color: rgba(148, 163, 184, 0.22) !important;
+        }
+        body.dark-mode .export-date-filter label {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .export-date-filter input {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+            border-color: rgba(148, 163, 184, 0.3) !important;
+            color-scheme: dark;
+        }
+        body.dark-mode .export-menu a {
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode .export-menu a:hover {
+            background-color: #0f172a !important;
+            color: #f1f5f9 !important;
         }
 
         body.dark-mode .admin-export-btn {

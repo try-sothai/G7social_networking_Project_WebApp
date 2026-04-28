@@ -40,6 +40,8 @@ body {
     display: flex;
     flex-direction: column;
     z-index: 1000;
+    transition: width 0.25s ease;
+    overflow: hidden;
 }
 
 .logo-section {
@@ -2090,5 +2092,60 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     }
     .notifications-dropdown {
         right: -6px;
+    }
+}
+
+/* ── Desktop Sidebar Collapse ───────────────────────────────── */
+@media (min-width: 993px) {
+    .sidebar.collapsed {
+        width: 72px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* Hide text labels */
+    .sidebar.collapsed .logo-section span,
+    .sidebar.collapsed .nav-label,
+    .sidebar.collapsed .btn-create span {
+        display: none;
+    }
+
+    /* Centre logo icon */
+    .sidebar.collapsed .logo-section {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Centre nav items, remove margin on icon */
+    .sidebar.collapsed .item {
+        justify-content: center;
+        padding: 13px 0;
+    }
+
+    .sidebar.collapsed .item i {
+        margin-right: 0;
+        width: auto;
+    }
+
+    /* Don't slide on hover when collapsed */
+    .sidebar.collapsed .item:hover {
+        transform: none;
+    }
+
+    /* Round Create Post button to icon-only circle */
+    .sidebar.collapsed .btn-create {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0;
+        justify-content: center;
+    }
+
+    /* Shift main-content left when sidebar collapses */
+    .sidebar.collapsed ~ .main-content {
+        margin-left: 72px;
     }
 }

@@ -362,7 +362,7 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
-                        <i class="fa-regular fa-newspaper"></i>
+                        <i class="fa-solid fa-newspaper"></i>
                     </div>
                     <div class="stat-info">
                         <h3><?= number_format($myTotalPosts) ?></h3>
@@ -375,7 +375,7 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(230,57,70,.1);color:#e63946;">
+                    <div class="stat-icon red">
                         <i class="fa-solid fa-heart"></i>
                     </div>
                     <div class="stat-info">
@@ -385,7 +385,7 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(42,157,143,.1);color:#2a9d8f;">
+                    <div class="stat-icon teal">
                         <i class="fa-solid fa-comment"></i>
                     </div>
                     <div class="stat-info">
@@ -395,7 +395,7 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(37,99,235,.1);color:#2563eb;">
+                    <div class="stat-icon indigo">
                         <i class="fa-solid fa-user-group"></i>
                     </div>
                     <div class="stat-info">

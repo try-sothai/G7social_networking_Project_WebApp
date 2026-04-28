@@ -7,18 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.querySelector('[data-shell-overlay], .overlay');
     const sidebarBreakpoint = 992;
     const searchBreakpoint = 768;
+    const COLLAPSE_KEY = 'lc_sidebar_collapsed';
 
     const isCompactSidebar = () => window.innerWidth <= sidebarBreakpoint;
-    const isCompactSearch = () => window.innerWidth <= searchBreakpoint;
+    const isCompactSearch  = () => window.innerWidth <= searchBreakpoint;
 
+    // ── Mobile: slide-in / slide-out ─────────────────────────
     function closeSidebar() {
         if (!sidebar || !overlay) return;
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
         body.classList.remove('sidebar-open');
-        if (menuToggle) {
-            menuToggle.setAttribute('aria-expanded', 'false');
-        }
+        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
     }
 
     function openSidebar() {
@@ -26,36 +26,60 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.add('active');
         overlay.classList.add('active');
         body.classList.add('sidebar-open');
-        if (menuToggle) {
-            menuToggle.setAttribute('aria-expanded', 'true');
-        }
+        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
     }
 
-    function toggleSidebar() {
-        if (!sidebar || !overlay || !isCompactSidebar()) return;
-        if (sidebar.classList.contains('active')) {
-            closeSidebar();
-            return;
-        }
-        openSidebar();
+    function toggleMobileSidebar() {
+        sidebar.classList.contains('active') ? closeSidebar() : openSidebar();
     }
 
+    // ── Desktop: collapse to icon-only ───────────────────────
+    function collapseDesktop() {
+        if (!sidebar) return;
+        sidebar.classList.add('collapsed');
+        localStorage.setItem(COLLAPSE_KEY, '1');
+    }
+
+    function expandDesktop() {
+        if (!sidebar) return;
+        sidebar.classList.remove('collapsed');
+        localStorage.removeItem(COLLAPSE_KEY);
+    }
+
+    function toggleDesktopCollapse() {
+        sidebar.classList.contains('collapsed') ? expandDesktop() : collapseDesktop();
+    }
+
+    // Restore saved collapse state on page load (desktop only)
+    if (sidebar && !isCompactSidebar() && localStorage.getItem(COLLAPSE_KEY) === '1') {
+        sidebar.classList.add('collapsed');
+    }
+
+    // ── Hamburger click ──────────────────────────────────────
+    if (menuToggle) {
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.addEventListener('click', () => {
+            if (isCompactSidebar()) {
+                toggleMobileSidebar();
+            } else {
+                toggleDesktopCollapse();
+            }
+        });
+    }
+
+    // ── Search ───────────────────────────────────────────────
     function closeSearch() {
         if (!searchBar) return;
         searchBar.classList.remove('active');
         body.classList.remove('search-open');
-        if (searchToggle) {
-            searchToggle.setAttribute('aria-expanded', 'false');
-        }
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
     }
 
     function openSearch() {
         if (!searchBar || !isCompactSearch()) return;
         searchBar.classList.add('active');
         body.classList.add('search-open');
-        if (searchToggle) {
-            searchToggle.setAttribute('aria-expanded', 'true');
-        }
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'true');
     }
 
     function toggleSearch() {
@@ -66,21 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         openSearch();
         const searchInput = searchBar.querySelector('input, textarea');
-        if (searchInput) {
-            requestAnimationFrame(() => searchInput.focus());
-        }
-    }
-
-    if (menuToggle) {
-        menuToggle.setAttribute('aria-expanded', 'false');
-        menuToggle.addEventListener('click', toggleSidebar);
+        if (searchInput) requestAnimationFrame(() => searchInput.focus());
     }
 
     if (overlay) {
-        overlay.addEventListener('click', () => {
-            closeSidebar();
-            closeSearch();
-        });
+        overlay.addEventListener('click', () => { closeSidebar(); closeSearch(); });
     }
 
     if (searchToggle) {
@@ -105,11 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('resize', () => {
-        if (!isCompactSidebar()) {
-            closeSidebar();
-        }
-        if (!isCompactSearch()) {
-            closeSearch();
-        }
+        if (!isCompactSidebar()) closeSidebar();
+        if (!isCompactSearch())  closeSearch();
     });
 });
