@@ -55,7 +55,9 @@ if (!function_exists('lc_shell_default_nav')) {
                 'label' => 'Messages',
             ],
             'report' => [
-                'href' => BASE_URL . 'app/Views/Report/userReport.php',
+                'href' => lc_current_user_is_admin()
+                    ? BASE_URL . 'app/Views/Report/userReport.php'
+                    : BASE_URL . 'app/Views/Report/userDashboard.php',
                 'icon' => 'fa-solid fa-chart-simple',
                 'label' => 'Dashboard',
             ],

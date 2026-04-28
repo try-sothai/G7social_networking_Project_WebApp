@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $postModel = new PostModel($conn);
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-$uploadDirAbs = __DIR__ . '/../../../public/uploads/posts/';
+$uploadDirAbs = (realpath(__DIR__ . '/../../../public/uploads/posts') ?: __DIR__ . '/../../../public/uploads/posts') . DIRECTORY_SEPARATOR;
 $uploadDirDb = rtrim(BASE_URL, '/') . '/public/uploads/posts/';
 
 function ensureDirExists(string $path): void {
@@ -177,12 +177,19 @@ function safeMediaPath(string $uploadDirDb, string $mediaPath): string {
 }
 
 function deleteMediaFiles(string $uploadDirAbs, array $mediaPaths): void {
+    $dir = rtrim($uploadDirAbs, '/\\');
     foreach ($mediaPaths as $path) {
-        $base = basename(str_replace('\\', '/', (string)$path));
-        if ($base === '') {
-            continue;
+        $path = (string)$path;
+        if ($path === '') continue;
+        // Use parse_url for full URLs; plain basename otherwise
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            $urlPath = parse_url($path, PHP_URL_PATH) ?? '';
+            $base = basename($urlPath);
+        } else {
+            $base = basename(str_replace('\\', '/', $path));
         }
-        $abs = rtrim($uploadDirAbs, '/\\') . DIRECTORY_SEPARATOR . $base;
+        if ($base === '' || !str_contains($base, '.')) continue;
+        $abs = $dir . DIRECTORY_SEPARATOR . $base;
         if (is_file($abs)) {
             @unlink($abs);
         }
@@ -470,9 +477,22 @@ if ($action === 'report' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                 }
                 
+                // Store original image filename in the JSON so explore.js can display it.
+                // Shared posts have no files of their own; extract just the filename.
+                $origImgRaw = trim((string)($postToShare['ImagePath'] ?? ''));
+                if ($origImgRaw !== '') {
+                    if (str_starts_with($origImgRaw, 'http://') || str_starts_with($origImgRaw, 'https://')) {
+                        $origImgRaw = basename(parse_url($origImgRaw, PHP_URL_PATH) ?? '') ?: '';
+                    } else {
+                        $origImgRaw = basename(str_replace('\\', '/', $origImgRaw));
+                    }
+                    if ($origImgRaw !== '') {
+                        $shareData['original_image'] = $origImgRaw;
+                    }
+                }
+
                 $newContent = "[SHARED_POST]" . json_encode($shareData, JSON_UNESCAPED_UNICODE);
-                $imagePath = $postToShare['ImagePath'];
-                $postModel->createPost($current_user_id, $newContent, $imagePath, 'Public', null, null);
+                $postModel->createPost($current_user_id, $newContent, '', 'Public', null, null);
                 $sharedPostId = (int)$conn->lastInsertId();
                 if ($sharedPostId > 0) {
                     $conn->prepare("INSERT INTO shares (OriginalPostID, SharedPostID, UserID) VALUES (?, ?, ?)")->execute([$postId, $sharedPostId, $current_user_id]);
@@ -614,8 +634,12 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $deleted = $postModel->deletePostForUser($postId, $current_user_id);
         if ($deleted) {
-            $mediaList = parseMediaList($post['ImagePath'] ?? '');
-            deleteMediaFiles($uploadDirAbs, $mediaList);
+            // Skip file deletion for shared posts — their ImagePath belonged to the original post
+            $isSharedPost = str_starts_with(trim((string)($post['Content'] ?? '')), '[SHARED_POST]');
+            if (!$isSharedPost) {
+                $mediaList = parseMediaList($post['ImagePath'] ?? '');
+                deleteMediaFiles($uploadDirAbs, $mediaList);
+            }
         }
         echo json_encode(['status' => 'success', 'deleted' => $deleted]);
     } catch (PDOException $e) {

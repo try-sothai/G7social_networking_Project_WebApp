@@ -13,9 +13,15 @@ require_once '../../Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 
-// Security: Check if user is logged in
+// Security: Must be logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
+    exit();
+}
+
+// Security: Admin / SuperAdmin only — redirect regular users to their personal dashboard
+if (!lc_current_user_is_admin()) {
+    header("Location: " . BASE_URL . "app/Views/Report/userDashboard.php");
     exit();
 }
 

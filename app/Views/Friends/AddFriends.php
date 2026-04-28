@@ -16,7 +16,7 @@ $friendModel = new FriendModel($conn);
 
 $user_data = $profileModel->getUserData($user_id);
 $u_d = $user_data;
-$suggested_friends = $friendModel->getSuggestedFriends($user_id, 20);
+$suggested_friends = $friendModel->getSuggestedFriends($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
 $profilePicPath = '';

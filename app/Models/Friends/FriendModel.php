@@ -61,30 +61,24 @@ class FriendModel {
     /**
      * Get users not friends and not pending (for suggestions)
      */
-    public function getSuggestedFriends($user_id, $limit = 10) {
-        // ORDER BY RAND() is very slow on large tables. This is a more performant way.
-        // 1. Get the max UserID to create a random starting point.
-        $maxIdStmt = $this->conn->query("SELECT MAX(UserID) FROM users");
-        $maxId = ($maxIdStmt) ? $maxIdStmt->fetchColumn() : 0;
-        if (!$maxId) return []; // No users in DB
-        $randOffset = rand(0, (int)$maxId);
-
+    public function getSuggestedFriends($user_id, $limit = 100) {
         $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, u.Locations
                 FROM users u
-                WHERE u.AccountStatus = 'Active' AND u.UserID >= :rand_offset AND u.UserID != :user_id
-                AND NOT EXISTS (
-                    SELECT 1 FROM friends f 
-                    WHERE ((f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID) 
-                        OR (f.ReceiverID = :user_id2 AND f.RequesterID = u.UserID))
-                )
+                WHERE u.AccountStatus = 'Active'
+                  AND u.UserID != :user_id
+                  AND NOT EXISTS (
+                      SELECT 1 FROM friends f
+                      WHERE (f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID)
+                         OR (f.ReceiverID  = :user_id2 AND f.RequesterID = u.UserID)
+                  )
+                ORDER BY u.Username ASC
                 LIMIT :limit";
-        
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':rand_offset', $randOffset, PDO::PARAM_INT);
-        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id',  $user_id, PDO::PARAM_INT);
         $stmt->bindValue(':user_id1', $user_id, PDO::PARAM_INT);
         $stmt->bindValue(':user_id2', $user_id, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':limit',    $limit,   PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

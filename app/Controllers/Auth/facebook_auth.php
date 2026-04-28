@@ -14,8 +14,8 @@ $appSecret = env('FACEBOOK_APP_SECRET');
 $redirectUri = BASE_URL . 'app/Controllers/Auth/facebook_auth.php';
 
 if (isset($_GET['code'])) {
-    $tokenUrl = "https://graph.facebook.com/v12.0/oauth/access_token?" . http_build_query([
-        '​client_id' => $appID,
+    $tokenUrl = "https://graph.facebook.com/v19.0/oauth/access_token?" . http_build_query([
+        'client_id' => $appID,
         'client_secret' => $appSecret,
         'redirect_uri' => $redirectUri,
         'code' => $_GET['code']
@@ -88,7 +88,7 @@ if (isset($_GET['code'])) {
     exit();
 }
 
-$authUrl = "https://www.facebook.com/v12.0/dialog/oauth?" . http_build_query([
+$authUrl = "https://www.facebook.com/v19.0/dialog/oauth?" . http_build_query([
     'client_id' => $appID,
     'redirect_uri' => $redirectUri,
     'scope' => 'email,public_profile',

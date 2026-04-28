@@ -1,19 +1,24 @@
 -- =================================================================
--- g7social_networking.sql  |  Version 2.0  (Fixed & Complete)
+-- g7social_networking.sql  |  Version 3.0  (Indexes Integrated)
 -- G7 Social Networking WebApp - Full Database Schema
--- Updated: 2026-04-17
+-- Updated: 2026-04-29
 --
 -- FIXES APPLIED:
---   [1] លុប ALTER TABLE PeerID ដែល Duplicate
---   [2] admin_reports Schema ថ្មី ត្រូវជាមួយ AdminModel.php
---   [3] CreatePostWithHashtags - 9 params + GroupID + Hashtag Loop
---   [4] after_user_register Trigger - Insert user_settings AND user_presence
---   [5] posts.GroupID - FK Constraint ពិតប្រាកដ
---   [6] DROP + CREATE Procedure (លុប CREATE OR REPLACE ដែល Invalid)
---   [7] CreatePostWithHashtags - 1 Version តែប៉ុណ្ណោះ (លុបស្ទួន)
---   [8] after_interaction_insert - DECLARE ត្រូវ Position
---   [9] Trigger after_mention_insert - Notification 'Mention' Type
+--   [1]  លុប ALTER TABLE PeerID ដែល Duplicate
+--   [2]  admin_reports Schema ថ្មី ត្រូវជាមួយ AdminModel.php
+--   [3]  CreatePostWithHashtags - 9 params + GroupID + Hashtag Loop
+--   [4]  after_user_register Trigger - Insert user_settings AND user_presence
+--   [5]  posts.GroupID - FK Constraint ពិតប្រាកដ
+--   [6]  DROP + CREATE Procedure (លុប CREATE OR REPLACE ដែល Invalid)
+--   [7]  CreatePostWithHashtags - 1 Version តែប៉ុណ្ណោះ (លុបស្ទួន)
+--   [8]  after_interaction_insert - DECLARE ត្រូវ Position
+--   [9]  Trigger after_mention_insert - Notification 'Mention' Type
 --   [10] GetMutualFriendsCount - Fixed Logic
+--   [11] Performance Indexes — COMPOSITE + FULLTEXT ​ក្នុង CREATE TABLE ដោយផ្ទាល់
+--        users, posts, friends, notifications, messages, interactions,
+--        stories, events, event_participants, group_members, shares,
+--        saved_posts, post_hashtags, admin_reports, user_presence
+--   [12] VerificationToken column — ​បន្ថែមទៅ users table
 -- =================================================================
 
 CREATE DATABASE IF NOT EXISTS g7social_networking
@@ -43,25 +48,29 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =================================================================
 
 CREATE TABLE users (
-    UserID        INT           AUTO_INCREMENT PRIMARY KEY,
-    Username      VARCHAR(255)  NOT NULL,
-    Password      VARCHAR(255)  NOT NULL,
-    Email         VARCHAR(255)  NOT NULL UNIQUE,
-    Phone         VARCHAR(20)   UNIQUE,
-    Locations     VARCHAR(255),
-    ProfilePic    VARCHAR(255)  DEFAULT 'default.png',
-    CoverPic      VARCHAR(255)  DEFAULT 'default_cover.jpg',
-    Bio           VARCHAR(255),
-    IsVerified    TINYINT(1)    DEFAULT 0,
-    Website       VARCHAR(255)  NULL,
-    Role          ENUM('User', 'Admin', 'SuperAdmin') DEFAULT 'User',
-    AccountStatus ENUM('Active', 'Suspended', 'Banned') DEFAULT 'Active',
-    PeerID        VARCHAR(255)  NULL,     -- WebRTC Video Call ID
-    LastActive    TIMESTAMP     NULL,
-    CreatedAt     DATETIME      DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_username    (Username),
-    INDEX idx_email       (Email),
-    INDEX idx_last_active (LastActive)
+    UserID             INT           AUTO_INCREMENT PRIMARY KEY,
+    Username           VARCHAR(255)  NOT NULL,
+    Password           VARCHAR(255)  NOT NULL,
+    Email              VARCHAR(255)  NOT NULL UNIQUE,
+    Phone              VARCHAR(20)   UNIQUE,
+    Locations          VARCHAR(255),
+    ProfilePic         VARCHAR(255)  DEFAULT 'default.png',
+    CoverPic           VARCHAR(255)  DEFAULT 'default_cover.jpg',
+    Bio                VARCHAR(255),
+    IsVerified         TINYINT(1)    DEFAULT 0,
+    Website            VARCHAR(255)  NULL,
+    Role               ENUM('User', 'Admin', 'SuperAdmin') DEFAULT 'User',
+    AccountStatus      ENUM('Active', 'Suspended', 'Banned') DEFAULT 'Active',
+    PeerID             VARCHAR(255)  NULL,
+    LastActive         TIMESTAMP     NULL,
+    VerificationToken  VARCHAR(100)  NULL DEFAULT NULL,
+    CreatedAt          DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_username            (Username),
+    INDEX idx_email               (Email),
+    INDEX idx_last_active         (LastActive),
+    INDEX idx_account_status      (AccountStatus),
+    INDEX idx_role_status         (Role, AccountStatus),
+    INDEX idx_verification_token  (VerificationToken)
 ) ENGINE=InnoDB;
 
 -- [FIX #1] PeerID មានក្នុង CREATE TABLE ហើយ — លុប ALTER TABLE ចោល
@@ -83,7 +92,8 @@ CREATE TABLE user_presence (
     UserID     INT        NOT NULL UNIQUE,
     IsOnline   TINYINT(1) DEFAULT 0,
     LastSeen   TIMESTAMP  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_presence_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+    CONSTRAINT fk_presence_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE,
+    INDEX idx_presence_online (IsOnline, LastSeen)
 ) ENGINE=InnoDB;
 
 
@@ -150,11 +160,13 @@ CREATE TABLE posts (
     CONSTRAINT fk_post_original FOREIGN KEY (OriginalPostID) REFERENCES posts(PostID)      ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT fk_post_group    FOREIGN KEY (GroupID)        REFERENCES `groups`(GroupID)  ON DELETE SET NULL ON UPDATE CASCADE,
 
-    INDEX idx_privacy_created (Privacy, CreatedAt),
-    INDEX idx_user_created    (UserID, CreatedAt),
-    INDEX idx_original_post   (OriginalPostID),
-    INDEX idx_category        (Category),
-    INDEX idx_group_posts     (GroupID)
+    INDEX idx_privacy_created          (Privacy, CreatedAt),
+    INDEX idx_user_created             (UserID, CreatedAt),
+    INDEX idx_original_post            (OriginalPostID),
+    INDEX idx_category                 (Category),
+    INDEX idx_group_posts              (GroupID),
+    INDEX idx_category_privacy_created (Category, Privacy, CreatedAt),
+    FULLTEXT KEY ft_content            (Content)
 ) ENGINE=InnoDB;
 
 
@@ -171,7 +183,9 @@ CREATE TABLE group_members (
     JoinedAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_gm_group FOREIGN KEY (GroupID) REFERENCES `groups`(GroupID) ON DELETE CASCADE,
     CONSTRAINT fk_gm_user  FOREIGN KEY (UserID)  REFERENCES users(UserID)     ON DELETE CASCADE,
-    UNIQUE KEY unique_membership (GroupID, UserID)
+    UNIQUE KEY unique_membership    (GroupID, UserID),
+    INDEX idx_gm_user_status        (UserID, Status),
+    INDEX idx_gm_group_status       (GroupID, Status)
 ) ENGINE=InnoDB;
 
 
@@ -187,7 +201,8 @@ CREATE TABLE stories (
     CreatedAt  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     ExpiresAt  TIMESTAMP     DEFAULT (CURRENT_TIMESTAMP + INTERVAL 1 DAY),
     CONSTRAINT fk_story_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE,
-    INDEX idx_stories_expires (ExpiresAt)
+    INDEX idx_stories_expires    (ExpiresAt),
+    INDEX idx_story_user_expires (UserID, ExpiresAt)
 ) ENGINE=InnoDB;
 
 
@@ -210,9 +225,11 @@ CREATE TABLE interactions (
     CONSTRAINT fk_int_story  FOREIGN KEY (StoryID)             REFERENCES stories(StoryID)           ON DELETE CASCADE,
     CONSTRAINT fk_int_parent FOREIGN KEY (ParentInteractionID) REFERENCES interactions(InteractionID) ON DELETE CASCADE,
 
-    INDEX idx_post_user  (PostID, UserID),
-    INDEX idx_type       (Type),
-    INDEX idx_created_at (CreatedAt)
+    INDEX idx_post_user       (PostID, UserID),
+    INDEX idx_type            (Type),
+    INDEX idx_created_at      (CreatedAt),
+    INDEX idx_post_type       (PostID, Type),
+    INDEX idx_user_post_type  (UserID, PostID, Type)
 ) ENGINE=InnoDB;
 
 
@@ -261,8 +278,11 @@ CREATE TABLE messages (
     CONSTRAINT fk_msg_receiver FOREIGN KEY (ReceiverID) REFERENCES users(UserID)     ON DELETE CASCADE,
     CONSTRAINT fk_msg_group    FOREIGN KEY (GroupID)    REFERENCES `groups`(GroupID) ON DELETE CASCADE,
 
-    INDEX idx_conversation (SenderID, ReceiverID),
-    INDEX idx_messages_isread (IsRead)
+    INDEX idx_conversation         (SenderID, ReceiverID),
+    INDEX idx_messages_isread      (IsRead),
+    INDEX idx_receiver_read        (ReceiverID, IsRead),
+    INDEX idx_conversation_time    (SenderID, ReceiverID, SentAt),
+    INDEX idx_rev_conversation_time (ReceiverID, SenderID, SentAt)
 ) ENGINE=InnoDB;
 
 
@@ -278,7 +298,10 @@ CREATE TABLE friends (
     CreatedAt    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_friend_req FOREIGN KEY (RequesterID) REFERENCES users(UserID) ON DELETE CASCADE,
     CONSTRAINT fk_friend_rec FOREIGN KEY (ReceiverID)  REFERENCES users(UserID) ON DELETE CASCADE,
-    INDEX idx_friends_status (Status)
+    INDEX idx_friends_status (Status),
+    INDEX idx_req_status     (RequesterID, Status),
+    INDEX idx_rec_status     (ReceiverID,  Status),
+    INDEX idx_req_rec        (RequesterID, ReceiverID)
 ) ENGINE=InnoDB;
 
 
@@ -308,7 +331,9 @@ CREATE TABLE notifications (
     CreatedAt      TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_notif_user    FOREIGN KEY (UserID)    REFERENCES users(UserID) ON DELETE CASCADE,
     CONSTRAINT fk_notif_trigger FOREIGN KEY (TriggerID) REFERENCES users(UserID) ON DELETE CASCADE,
-    INDEX idx_notifications_isread (IsRead)
+    INDEX idx_notifications_isread (IsRead),
+    INDEX idx_notif_user_read      (UserID, IsRead),
+    INDEX idx_notif_user_created   (UserID, CreatedAt)
 ) ENGINE=InnoDB;
 
 
@@ -325,7 +350,9 @@ CREATE TABLE events (
     EventDateTime DATETIME      NOT NULL,
     ImagePath     VARCHAR(255)  NULL,
     CreatedAt     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_event_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+    CONSTRAINT fk_event_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE,
+    INDEX idx_event_datetime  (EventDateTime),
+    INDEX idx_user_event_time (UserID, EventDateTime)
 ) ENGINE=InnoDB;
 
 CREATE TABLE event_participants (
@@ -336,7 +363,9 @@ CREATE TABLE event_participants (
     CreatedAt     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ep_event FOREIGN KEY (EventID) REFERENCES events(EventID) ON DELETE CASCADE,
     CONSTRAINT fk_ep_user  FOREIGN KEY (UserID)  REFERENCES users(UserID)   ON DELETE CASCADE,
-    UNIQUE KEY unique_event_participant (EventID, UserID)
+    UNIQUE KEY unique_event_participant (EventID, UserID),
+    INDEX idx_ep_user_status            (UserID, Status),
+    INDEX idx_ep_event_status           (EventID, Status)
 ) ENGINE=InnoDB;
 
 
@@ -352,7 +381,9 @@ CREATE TABLE shares (
     SharedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_share_original FOREIGN KEY (OriginalPostID) REFERENCES posts(PostID)  ON DELETE CASCADE,
     CONSTRAINT fk_share_shared   FOREIGN KEY (SharedPostID)   REFERENCES posts(PostID)  ON DELETE CASCADE,
-    CONSTRAINT fk_share_user     FOREIGN KEY (UserID)         REFERENCES users(UserID)  ON DELETE CASCADE
+    CONSTRAINT fk_share_user     FOREIGN KEY (UserID)         REFERENCES users(UserID)  ON DELETE CASCADE,
+    INDEX idx_share_original (OriginalPostID, SharedAt),
+    INDEX idx_share_user     (UserID, SharedAt)
 ) ENGINE=InnoDB;
 
 CREATE TABLE mentions (
@@ -373,7 +404,8 @@ CREATE TABLE saved_posts (
     SavedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_save_post FOREIGN KEY (PostID) REFERENCES posts(PostID)  ON DELETE CASCADE,
     CONSTRAINT fk_save_user FOREIGN KEY (UserID) REFERENCES users(UserID)  ON DELETE CASCADE,
-    UNIQUE KEY unique_save (PostID, UserID)
+    UNIQUE KEY unique_save      (PostID, UserID),
+    INDEX idx_saved_user_time   (UserID, SavedAt)
 ) ENGINE=InnoDB;
 
 
@@ -400,9 +432,11 @@ CREATE TABLE admin_reports (
     CONSTRAINT fk_report_reviewer FOREIGN KEY (ReviewedBy) REFERENCES users(UserID) ON DELETE SET NULL,
 
     -- UNIQUE ត្រូវការសម្រាប់ ON DUPLICATE KEY UPDATE ក្នុង AdminModel.php
-    UNIQUE KEY unique_report (ReporterID, EntityType, EntityID),
+    UNIQUE KEY unique_report    (ReporterID, EntityType, EntityID),
     INDEX idx_report_status     (Status),
-    INDEX idx_report_created_at (CreatedAt)
+    INDEX idx_report_created_at (CreatedAt),
+    INDEX idx_entity            (EntityType, EntityID),
+    INDEX idx_status_created    (Status, CreatedAt)
 ) ENGINE=InnoDB;
 
 
@@ -422,7 +456,8 @@ CREATE TABLE post_hashtags (
     HashtagID     INT NOT NULL,
     CONSTRAINT fk_ph_post    FOREIGN KEY (PostID)    REFERENCES posts(PostID)       ON DELETE CASCADE,
     CONSTRAINT fk_ph_hashtag FOREIGN KEY (HashtagID) REFERENCES hashtags(HashtagID) ON DELETE CASCADE,
-    UNIQUE KEY unique_post_hashtag (PostID, HashtagID)
+    UNIQUE KEY unique_post_hashtag (PostID, HashtagID),
+    INDEX idx_hashtag_post         (HashtagID, PostID)
 ) ENGINE=InnoDB;
 
 
