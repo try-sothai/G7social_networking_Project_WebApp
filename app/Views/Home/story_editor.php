@@ -96,8 +96,14 @@ if ($tempMediaDb === '' && $error === '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Story</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../../public/css/Home/story_editor.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
+    <link rel="stylesheet" href="../../../public/css/Home/story_editor.css">
+    <style>
+        /* Hide any sidebar/overlay injected by dashboard.css on this standalone page */
+        .sidebar, .overlay, .mobile-fab { display: none !important; }
+        .main-content { margin-left: 0 !important; }
+    </style>
 </head>
 <body>
     <div class="editor-shell">
@@ -182,5 +188,13 @@ if ($tempMediaDb === '' && $error === '') {
     </script>
     <script src="../../../public/js/Home/story_editor.js"></script>
     <script src="../../../public/js/common/notifications.js"></script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
+    <script>
+        // Force dark mode on story editor (standalone page — no sidebar)
+        document.body.classList.add('dark-mode');
+        if (!localStorage.getItem('localconnect_theme')) {
+            localStorage.setItem('localconnect_theme', 'dark');
+        }
+    </script>
 </body>
 </html>
