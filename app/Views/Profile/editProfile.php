@@ -26,13 +26,13 @@ $following = $stats['following'];
 $interests = $model->getInterests($user_id);
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = BASE_URL . 'public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = BASE_URL . 'public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = BASE_URL . 'public/img/default.png';
+    $profilePicPath = BASE_URL . 'public/uploads/avatars/default.png';
 }
 ?>
 
@@ -73,7 +73,7 @@ if ($profilePicPath === '') {
         ?>
         <div class="profile-container">
             <!-- Cover Photo Area -->
-            <div id="cover-preview" style="height: 250px; border-radius: 15px; background-color: #cbd5e1; background-image: url('<?php echo !empty($u_d['CoverPic']) && file_exists('../../../public/img/' . $u_d['CoverPic']) ? BASE_URL . 'public/img/' . $u_d['CoverPic'] : BASE_URL . 'public/img/default_cover.jpg'; ?>'); background-size: cover; background-position: center; position: relative; margin-bottom: 70px;">
+            <div id="cover-preview" style="height: 250px; border-radius: 15px; background-color: #cbd5e1; background-image: url('<?php echo !empty($u_d['CoverPic']) && file_exists('../../../public/uploads/avatars/' . $u_d['CoverPic']) ? BASE_URL . 'public/uploads/avatars/' . $u_d['CoverPic'] : BASE_URL . 'public/uploads/avatars/default_cover.jpg'; ?>'); background-size: cover; background-position: center; position: relative; margin-bottom: 70px;">
                 <label for="upload-cover" class="change-photo-btn" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); font-size: 13px; border: 1px solid rgba(255,255,255,0.3);">
                     <i class="fa-solid fa-camera"></i> Change Cover
                 </label>
@@ -82,10 +82,10 @@ if ($profilePicPath === '') {
                 <!-- Profile Photo Overlapping -->
                 <div class="profile-avatar" style="position: absolute; bottom: -50px; left: 30px; display: flex; flex-direction: row; align-items: flex-end; gap: 15px;">
                     <img id="profile-preview" src="<?php 
-                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
-                                echo BASE_URL . 'public/img/' . $u_d['ProfilePic'];
+                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic'])) {
+                                echo BASE_URL . 'public/uploads/avatars/' . $u_d['ProfilePic'];
                             } else {
-                                echo BASE_URL . 'public/img/default.png';
+                                echo BASE_URL . 'public/uploads/avatars/default.png';
                             }
                         ?>" alt="Profile" style="border: 4px solid var(--bg-card, #fff); background: var(--bg-card, #fff); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                     <label for="upload-photo" class="change-photo-btn" style="margin-bottom: 15px; font-size: 13px;">

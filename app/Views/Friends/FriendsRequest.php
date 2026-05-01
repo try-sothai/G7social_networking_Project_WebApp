@@ -22,9 +22,9 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
@@ -128,7 +128,7 @@ function time_ago($datetime) {
                             <div class="request-card" data-request-id="<?php echo $request['UserID']; ?>" data-name="<?php echo strtolower(htmlspecialchars($request['Username'])); ?>">
                                 <div class="req-avatar">
                                     <img src="<?php
-                                        $path = '../../../public/img/' . $request['ProfilePic'];
+                                        $path = '../../../public/uploads/avatars/' . $request['ProfilePic'];
                                         echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://ui-avatars.com/api/?name=' . urlencode($request['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
                                     ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($request['Username']); ?>&background=dbeafe&color=1d4ed8&bold=true';">
                                 </div>
@@ -175,7 +175,7 @@ function time_ago($datetime) {
                             <div class="request-card" data-name="<?php echo strtolower(htmlspecialchars($request['Username'])); ?>">
                                 <div class="req-avatar">
                                     <img src="<?php
-                                        $path = '../../../public/img/' . $request['ProfilePic'];
+                                        $path = '../../../public/uploads/avatars/' . $request['ProfilePic'];
                                         echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://ui-avatars.com/api/?name=' . urlencode($request['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
                                     ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($request['Username']); ?>&background=dbeafe&color=1d4ed8&bold=true';">
                                 </div>

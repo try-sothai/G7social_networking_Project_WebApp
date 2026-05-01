@@ -25,9 +25,9 @@
     $profilePicPath = '';
     $trendingGroups = $groupModel->getPopularGroups($user_id, 3);
     if (!empty($u_d['ProfilePic'])) {
-        $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+        $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
         if (is_file($candidate)) {
-            $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+            $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
         }
     }
     if ($profilePicPath === '') {
@@ -269,8 +269,8 @@
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <?php if (!empty($trendingGroups)): ?>
                             <?php foreach ($trendingGroups as $tGroup): 
-                                $groupAvatar = !empty($tGroup['GroupAvatar']) && file_exists('../../../public/img/groups/' . $tGroup['GroupAvatar']) 
-                                    ? '../../../public/img/groups/' . $tGroup['GroupAvatar'] 
+                                $groupAvatar = !empty($tGroup['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $tGroup['GroupAvatar']) 
+                                    ? '../../../public/uploads/groups/' . $tGroup['GroupAvatar'] 
                                     : 'https://ui-avatars.com/api/?background=random&color=fff&bold=true&name=' . urlencode(substr($tGroup['GroupName'], 0, 2));
                             ?>
                             <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="window.location.href='../Groups/group_details.php?id=<?php echo $tGroup['GroupID']; ?>'">

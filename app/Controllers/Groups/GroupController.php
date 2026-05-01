@@ -375,10 +375,10 @@ class GroupController {
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = time() . '_' . uniqid() . '.' . $extension;
         
-        $upload_dir = dirname(__DIR__, 2) . '/../public/img/' . $subdirectory;
+        $upload_dir = dirname(__DIR__, 2) . '/../public/uploads/' . $subdirectory;
         
         if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
+            mkdir($upload_dir, 0755, true);
         }
         
         $target_path = $upload_dir . '/' . $filename;

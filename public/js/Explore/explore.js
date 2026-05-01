@@ -316,9 +316,9 @@ function createPostElement(post) {
             if (rawImgPath.includes('/uploads/posts/')) {
                 const fileName = rawImgPath.split('/uploads/posts/').pop().split('?')[0];
                 MediaPath = `../../../public/uploads/posts/${fileName}`;
-            } else if (rawImgPath.includes('/public/img/')) {
-                const fileName = rawImgPath.split('/public/img/').pop().split('?')[0];
-                MediaPath = `../../../public/img/${fileName}`;
+            } else if (rawImgPath.includes('/public/uploads/avatars/')) {
+                const fileName = rawImgPath.split('/public/uploads/avatars/').pop().split('?')[0];
+                MediaPath = `../../../public/uploads/avatars/${fileName}`;
             } else {
                 MediaPath = rawImgPath;
             }
@@ -343,8 +343,8 @@ function createPostElement(post) {
                 if (origImg.startsWith('http')) {
                     if (origImg.includes('/uploads/posts/')) {
                         MediaPath = `../../../public/uploads/posts/${origImg.split('/uploads/posts/').pop().split('?')[0]}`;
-                    } else if (origImg.includes('/public/img/')) {
-                        MediaPath = `../../../public/img/${origImg.split('/public/img/').pop().split('?')[0]}`;
+                    } else if (origImg.includes('/public/uploads/avatars/')) {
+                        MediaPath = `../../../public/uploads/avatars/${origImg.split('/public/uploads/avatars/').pop().split('?')[0]}`;
                     }
                 } else if (origImg) {
                     MediaPath = `../../../public/uploads/posts/${origImg.split('/').pop()}`;
@@ -406,7 +406,7 @@ function createPostElement(post) {
         const sharedAvatar = sharedData.original_avatar
             ? (String(sharedData.original_avatar).startsWith('http')
                 ? sharedData.original_avatar
-                : `../../../public/img/${sharedData.original_avatar}`)
+                : `../../../public/uploads/avatars/${sharedData.original_avatar}`)
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(sharedData.original_user || 'U')}&background=dbeafe&color=1d4ed8`;
         const origContent = sharedData.original_content ? String(sharedData.original_content) : '';
         contentBodyHtml = `

@@ -51,17 +51,17 @@ $isOwner = ((int)($group['CreatedBy'] ?? 0) === $user_id);
 require_once dirname(__DIR__, 2) . '/Models/Profile/ProfileModel.php';
 $profileModel = new ProfileModel($conn);
 $u_d = $profileModel->getUserData($user_id);
-$profilePicPath = !empty($u_d['ProfilePic']) && file_exists(__DIR__ . '/../../../public/img/' . $u_d['ProfilePic']) 
-    ? '../../../public/img/' . $u_d['ProfilePic'] 
+$profilePicPath = !empty($u_d['ProfilePic']) && file_exists(__DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic']) 
+    ? '../../../public/uploads/avatars/' . $u_d['ProfilePic'] 
     : 'https://via.placeholder.com/150';
 
 // Set group avatar and banner images
-$groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/img/groups/' . $group['GroupAvatar']) 
-    ? '../../../public/img/groups/' . $group['GroupAvatar'] 
+$groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $group['GroupAvatar']) 
+    ? '../../../public/uploads/groups/' . $group['GroupAvatar'] 
     : 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&name=' . urlencode(substr($group['GroupName'], 0, 2));
-$groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img/groups/banners/' . $group['GroupBanner'])
-    ? '../../../public/img/groups/banners/' . $group['GroupBanner']
-    : '../../../public/img/groups/banners/default_banner.jpg';
+$groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/uploads/groups/banners/' . $group['GroupBanner'])
+    ? '../../../public/uploads/groups/banners/' . $group['GroupBanner']
+    : '../../../public/uploads/groups/banners/default_banner.jpg';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -218,8 +218,8 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img
                     <h3 style="margin-bottom: 15px;">Members (<?php echo count($members); ?>)</h3>
                     <div class="members-grid">
                         <?php foreach($members as $member): 
-                            $memPic = !empty($member['ProfilePic']) && file_exists('../../../public/img/' . $member['ProfilePic']) 
-                                ? '../../../public/img/' . $member['ProfilePic'] 
+                            $memPic = !empty($member['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $member['ProfilePic']) 
+                                ? '../../../public/uploads/avatars/' . $member['ProfilePic'] 
                                 : 'https://ui-avatars.com/api/?name=' . urlencode($member['Username']) . '&background=random';
                         ?>
                         <div class="member-card" id="member-<?php echo $member['UserID']; ?>">

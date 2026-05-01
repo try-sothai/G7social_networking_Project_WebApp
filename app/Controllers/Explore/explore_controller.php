@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
                         $upload_dir = '../../../public/uploads/';
                         if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0777, true);
+                            mkdir($upload_dir, 0755, true);
                         }
                         
                         $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];

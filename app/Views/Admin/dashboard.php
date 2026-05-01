@@ -34,9 +34,9 @@ unset($_SESSION['admin_flash']);
 
 $profilePicPath = 'https://via.placeholder.com/150';
 if (!empty($currentUser['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $currentUser['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $currentUser['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $currentUser['ProfilePic'];
+        $profilePicPath = '../../../public/uploads/avatars/' . $currentUser['ProfilePic'];
     }
 }
 

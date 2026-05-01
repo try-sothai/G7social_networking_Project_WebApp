@@ -67,13 +67,13 @@ if (isset($_GET['success']) && $_GET['success'] === 'created') {
 $errorMessage = isset($_GET['error']) ? (string)$_GET['error'] : '';
 
 $defaultAvatar = 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&length=2';
-$defaultBanner = '../../../public/img/groups/banners/default_banner.jpg';
+$defaultBanner = '../../../public/uploads/groups/banners/default_banner.jpg';
 $u_d = $userData;
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
@@ -213,7 +213,7 @@ if ($profilePicPath === '') {
                     <div class="create-post-card js-open-create-post" data-open-create-post>
                         <div class="create-post-header">
                             <img src="<?php 
-                                $path = '../../../public/img/' . ($userData['ProfilePic'] ?? '');
+                                $path = '../../../public/uploads/avatars/' . ($userData['ProfilePic'] ?? '');
                                 if (!empty($userData['ProfilePic']) && file_exists($path)) {
                                     echo $path;
                                 } else {
@@ -241,11 +241,11 @@ if ($profilePicPath === '') {
                                 $memberCount = $group['member_count'];
                                 $isMember = $group['is_member'] > 0;
                                 $isOwner = ((int)($group['CreatedBy'] ?? 0) === (int)($_SESSION['user_id'] ?? 0));
-                                $groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/img/groups/' . $group['GroupAvatar']) 
-                                    ? '../../../public/img/groups/' . $group['GroupAvatar'] 
+                                $groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $group['GroupAvatar']) 
+                                    ? '../../../public/uploads/groups/' . $group['GroupAvatar'] 
                                     : $defaultAvatar . '&name=' . urlencode(substr($group['GroupName'], 0, 2));
-                                $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/img/groups/banners/' . $group['GroupBanner'])
-                                    ? '../../../public/img/groups/banners/' . $group['GroupBanner']
+                                $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/uploads/groups/banners/' . $group['GroupBanner'])
+                                    ? '../../../public/uploads/groups/banners/' . $group['GroupBanner']
                                     : $defaultBanner;
                             ?>
                                 <div class="group-card" data-group-id="<?php echo $group['GroupID']; ?>" data-is-member="<?php echo $isMember ? '1' : '0'; ?>" onclick="window.location.href='group_details.php?id=<?php echo $group['GroupID']; ?>'" style="cursor: pointer;">

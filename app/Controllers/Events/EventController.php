@@ -34,7 +34,7 @@ function uploadEventImage(array $file, int $userId): ?string {
 
     $uploadDir = __DIR__ . '/../../../public/uploads/events/';
     if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+        mkdir($uploadDir, 0755, true);
     }
 
     $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];

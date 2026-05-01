@@ -30,9 +30,9 @@ $upcoming_events = array_slice($eventModel->getUpcomingEvents($user_id), 0, 3);
 
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
@@ -109,7 +109,7 @@ if ($profilePicPath === '') {
                             <div class="friends-grid" id="friendsGrid">
                                 <?php foreach ($friends as $friend): ?>
                                     <?php
-                                        $fPath = '../../../public/img/' . $friend['ProfilePic'];
+                                        $fPath = '../../../public/uploads/avatars/' . $friend['ProfilePic'];
                                         $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : 'https://ui-avatars.com/api/?name=' . urlencode($friend['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
                                     ?>
                                     <div class="friend-card-item" data-name="<?php echo strtolower(htmlspecialchars($friend['Username'])); ?>">
@@ -148,7 +148,7 @@ if ($profilePicPath === '') {
                         <?php else: ?>
                             <?php foreach ($suggested_friends as $suggest): ?>
                                 <?php
-                                    $sPath = '../../../public/img/' . $suggest['ProfilePic'];
+                                    $sPath = '../../../public/uploads/avatars/' . $suggest['ProfilePic'];
                                     $sImg  = (!empty($suggest['ProfilePic']) && file_exists($sPath)) ? $sPath : 'https://ui-avatars.com/api/?name=' . urlencode($suggest['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
                                 ?>
                                 <div class="inline-suggestion">

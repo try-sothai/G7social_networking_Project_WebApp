@@ -117,12 +117,12 @@ function normalizeProfileImagePath($path) {
         return $raw;
     }
 
-    if (str_contains($raw, '/public/img/')) {
-        $parts = explode('/public/img/', $raw, 2);
+    if (str_contains($raw, '/public/uploads/avatars/')) {
+        $parts = explode('/public/uploads/avatars/', $raw, 2);
         $raw = $parts[1] ?? $raw;
     }
 
-    return buildAppUrl('/public/img/' . ltrim($raw, '/'));
+    return buildAppUrl('/public/uploads/avatars/' . ltrim($raw, '/'));
 }
 
 function isVideoMedia($path) {
@@ -150,7 +150,7 @@ function formatTimeAgo($dateTime) {
 
 $profileAvatarPath = 'https://i.pravatar.cc/150?u=' . ((int)($u_d['UserID'] ?? $profile_user_id));
 if (!empty($u_d['ProfilePic'])) {
-    $profileAvatarCandidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $profileAvatarCandidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($profileAvatarCandidate)) {
         $profileAvatarPath = normalizeProfileImagePath((string)$u_d['ProfilePic']);
     }
@@ -182,13 +182,13 @@ foreach ($userPosts as $postRow) {
 }
 $headerPicPath = '';
 if (!empty($current_u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $current_u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $current_u_d['ProfilePic'];
     if (is_file($candidate)) {
         $headerPicPath = normalizeProfileImagePath((string)$current_u_d['ProfilePic']);
     }
 }
 if ($headerPicPath === '') {
-    $headerPicPath = BASE_URL . 'public/img/default.png';
+    $headerPicPath = BASE_URL . 'public/uploads/avatars/default.png';
 }
 ?>
 
@@ -377,14 +377,14 @@ if ($headerPicPath === '') {
         <div class="profile-dashboard-wrapper">
             <div class="profile-card" style="padding: 0; overflow: hidden;">
                 <!-- Cover Photo Area -->
-                <?php $coverPhotoUrl = !empty($u_d['CoverPic']) && file_exists('../../../public/img/' . $u_d['CoverPic']) ? BASE_URL . 'public/img/' . $u_d['CoverPic'] : BASE_URL . 'public/img/default_cover.jpg'; ?>
+                <?php $coverPhotoUrl = !empty($u_d['CoverPic']) && file_exists('../../../public/uploads/avatars/' . $u_d['CoverPic']) ? BASE_URL . 'public/uploads/avatars/' . $u_d['CoverPic'] : BASE_URL . 'public/uploads/avatars/default_cover.jpg'; ?>
                 <div onclick="openLightbox('<?php echo $coverPhotoUrl; ?>')" style="cursor: pointer; height: 250px; background-color: #cbd5e1; background-image: url('<?php echo $coverPhotoUrl; ?>'); background-size: cover; background-position: center; position: relative;">
                 </div>
                 
                 <div style="padding: 20px 30px 30px; position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: -80px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                         <div class="avatar-container" style="position: relative; z-index: 2;">
-                            <?php $avatarPhotoUrl = !empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic']) ? '../../../public/img/' . $u_d['ProfilePic'] : BASE_URL . 'public/img/default.png'; ?>
+                            <?php $avatarPhotoUrl = !empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic']) ? '../../../public/uploads/avatars/' . $u_d['ProfilePic'] : BASE_URL . 'public/uploads/avatars/default.png'; ?>
                             <img onclick="openLightbox('<?php echo $avatarPhotoUrl; ?>')" class="profile-img-large" src="<?php echo $avatarPhotoUrl; ?>" alt="Profile" style="cursor: pointer; width: 140px; height: 140px; border: 4px solid var(--bg-card, #ffffff); box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: var(--bg-card, #ffffff);">
                         </div>
                         <div style="position: relative; z-index: 2; margin-bottom: 10px;">
@@ -613,8 +613,8 @@ if ($headerPicPath === '') {
                         <div style="display: flex; flex-direction: column; gap: 15px;">
                             <?php if (!empty($trendingGroups)): ?>
                                 <?php foreach ($trendingGroups as $tGroup): 
-                                    $groupAvatar = !empty($tGroup['GroupAvatar']) && file_exists('../../../public/img/groups/' . $tGroup['GroupAvatar']) 
-                                        ? '../../../public/img/groups/' . $tGroup['GroupAvatar'] 
+                                    $groupAvatar = !empty($tGroup['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $tGroup['GroupAvatar']) 
+                                        ? '../../../public/uploads/groups/' . $tGroup['GroupAvatar'] 
                                         : 'https://ui-avatars.com/api/?background=random&color=fff&bold=true&name=' . urlencode(substr($tGroup['GroupName'], 0, 2));
                                 ?>
                         <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="window.location.href='<?php echo BASE_URL; ?>app/Views/Groups/group_details.php?id=<?php echo $tGroup['GroupID']; ?>'">

@@ -21,9 +21,9 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
@@ -101,7 +101,7 @@ if ($profilePicPath === '') {
                         <?php else: ?>
                             <?php foreach ($suggested_friends as $friend): ?>
                                 <?php
-                                    $fPath = '../../../public/img/' . $friend['ProfilePic'];
+                                    $fPath = '../../../public/uploads/avatars/' . $friend['ProfilePic'];
                                     $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : 'https://ui-avatars.com/api/?name=' . urlencode($friend['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
                                 ?>
                                 <div class="suggest-card" data-user-id="<?php echo $friend['UserID']; ?>">
@@ -166,7 +166,7 @@ if ($profilePicPath === '') {
             } else {
                 resultsGrid.innerHTML = users.map(user => {
                     const img = user.ProfilePic && user.ProfilePic !== 'default.png'
-                        ? '../../../public/img/' + user.ProfilePic
+                        ? '../../../public/uploads/avatars/' + user.ProfilePic
                         : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.Username)}&background=dbeafe&color=1d4ed8&bold=true`;
                     return `<div class="suggest-card" data-user-id="${user.UserID}">
                         <img src="${img}" alt="${escapeHtml(user.Username)}">

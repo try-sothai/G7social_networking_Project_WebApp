@@ -15,13 +15,13 @@ $u_d = $profileModel->getUserData($user_id);
 
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = BASE_URL . 'public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = BASE_URL . 'public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = BASE_URL . 'public/img/default.png';
+    $profilePicPath = BASE_URL . 'public/uploads/avatars/default.png';
 }
 ?>
 <!DOCTYPE html>

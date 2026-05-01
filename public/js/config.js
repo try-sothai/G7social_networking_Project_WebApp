@@ -7,8 +7,8 @@
 if (typeof window.APP_CONFIG === 'undefined') {
     window.APP_CONFIG = {
         baseUrl: '/ss/G7social_networking',
-        imagePath: '/ss/G7social_networking/public/img/',
-        postsImagePath: '/ss/G7social_networking/public/img/posts/',
+        imagePath: '/ss/G7social_networking/public/uploads/avatars/',
+        postsImagePath: '/ss/G7social_networking/public/uploads/avatars/posts/',
         uploadsPath: '/ss/G7social_networking/public/uploads/',
         chatPath: '/ss/G7social_networking/public/uploads/chat/'
     };

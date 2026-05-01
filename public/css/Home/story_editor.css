@@ -15,14 +15,12 @@
     --se-radius:  16px;
 }
 
-/* ── Reset body (override dashboard.css) ───────────────────── */
 body {
-    background: var(--se-bg) !important;
+    background: var(--se-bg);
     background-image:
         radial-gradient(ellipse at 20% 10%, rgba(99,102,241,0.18) 0, transparent 55%),
-        radial-gradient(ellipse at 80% 90%, rgba(59,130,246,0.12) 0, transparent 50%) !important;
-    color: var(--se-text) !important;
-    display: block !important;
+        radial-gradient(ellipse at 80% 90%, rgba(59,130,246,0.12) 0, transparent 50%);
+    color: var(--se-text);
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -343,16 +341,78 @@ body {
     font-size: 0.88rem;
 }
 
-/* ── Notification dropdown (inherit dark theme) ──────────────── */
-.notifications-dropdown {
-    background: #111827 !important;
-    border-color: var(--se-border) !important;
+/* ── Notification badge & dropdown ──────────────────────────── */
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 20px;
+    border: 2px solid var(--se-panel);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.notification-header {
-    color: var(--se-text) !important;
-    border-bottom-color: var(--se-border) !important;
+.notifications-dropdown {
+    position: absolute;
+    top: 46px;
+    right: 0;
+    width: 320px;
+    max-width: calc(100vw - 24px);
+    background: #1e293b;
+    border: 1px solid var(--se-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1000;
+    cursor: default;
+    text-align: left;
 }
+
+.notifications-dropdown.show { display: block; }
+
+.notification-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--se-text);
+    border-bottom: 1px solid var(--se-border);
+}
+
+.notification-list {
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-decoration: none;
+    color: #cbd5e1;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.notification-item:hover  { background: rgba(255,255,255,0.04); }
+.notification-item.unread { background: rgba(59,130,246,0.1); }
+
+.notification-item img {
+    width: 36px; height: 36px;
+    border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
+
+.notification-item .notif-text { flex: 1; font-size: 0.83rem; color: #cbd5e1; }
+.notification-item .notif-time { font-size: 0.72rem; color: #64748b; margin-top: 3px; }
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 960px) {

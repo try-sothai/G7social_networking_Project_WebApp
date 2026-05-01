@@ -158,11 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!raw) return FALLBACK_AVATAR;
         if (/^(https?:)?\/\//i.test(raw) || raw.startsWith('data:')) return raw;
 
-        if (raw.startsWith('../../../public/img/') || raw.startsWith('/')) {
+        if (raw.startsWith('../../../public/uploads/avatars/') || raw.startsWith('/')) {
             return resolveMediaUrl(raw);
         }
 
-        return resolveMediaUrl(`../../../public/img/${raw}`);
+        return resolveMediaUrl(`../../../public/uploads/avatars/${raw}`);
     }
 
     function getPostMediaList(imagePathValue) {

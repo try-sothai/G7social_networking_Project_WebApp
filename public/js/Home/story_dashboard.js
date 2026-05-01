@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return raw;
         }
 
-        return `../../../public/img/${raw}`;
+        return `../../../public/uploads/avatars/${raw}`;
     }
 
     function timeAgo(dateString) {

@@ -147,7 +147,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Create directory if not exists
         if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+            mkdir($uploadDir, 0755, true);
         }
 
         $file = $_FILES['chat_file'];
@@ -236,7 +236,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($type === 'call' && isset($_FILES['call_recording'])) {
         $uploadDir = "../../../public/uploads/calls/";
         if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+            mkdir($uploadDir, 0755, true);
         }
         $fileName = time() . '_call_' . uniqid() . '.webm';
         $uploadPath = $uploadDir . $fileName;

@@ -37,7 +37,7 @@ $uploadDirDb = rtrim(BASE_URL, '/') . '/public/uploads/posts/';
 
 function ensureDirExists(string $path): void {
     if (!is_dir($path)) {
-        mkdir($path, 0777, true);
+        mkdir($path, 0755, true);
     }
 }
 

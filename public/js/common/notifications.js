@@ -59,7 +59,7 @@
         function resolveAvatar(pic) {
             if (!pic) return 'https://via.placeholder.com/40';
             if (pic.startsWith('http')) return pic;
-            return '../../../public/img/' + pic;
+            return '../../../public/uploads/avatars/' + pic;
         }
 
         function fetchNotifications() {

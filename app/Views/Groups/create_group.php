@@ -53,9 +53,9 @@ $user_id = $_SESSION['user_id'];
 $u_d = $profileModel->getUserData($user_id);
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     if (is_file($candidate)) {
-        $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
     }
 }
 if ($profilePicPath === '') {
@@ -68,11 +68,11 @@ $currentBannerUrl = '';
 if ($isEditMode && $groupId > 0) {
     $groupForImages = $controller->getGroupById($groupId);
     if ($groupForImages) {
-        if (!empty($groupForImages['GroupAvatar']) && file_exists(__DIR__ . '/../../../public/img/groups/' . $groupForImages['GroupAvatar'])) {
-            $currentAvatarUrl = '../../../public/img/groups/' . $groupForImages['GroupAvatar'];
+        if (!empty($groupForImages['GroupAvatar']) && file_exists(__DIR__ . '/../../../public/uploads/groups/' . $groupForImages['GroupAvatar'])) {
+            $currentAvatarUrl = '../../../public/uploads/groups/' . $groupForImages['GroupAvatar'];
         }
-        if (!empty($groupForImages['GroupBanner']) && file_exists(__DIR__ . '/../../../public/img/groups/banners/' . $groupForImages['GroupBanner'])) {
-            $currentBannerUrl = '../../../public/img/groups/banners/' . $groupForImages['GroupBanner'];
+        if (!empty($groupForImages['GroupBanner']) && file_exists(__DIR__ . '/../../../public/uploads/groups/banners/' . $groupForImages['GroupBanner'])) {
+            $currentBannerUrl = '../../../public/uploads/groups/banners/' . $groupForImages['GroupBanner'];
         }
     }
 }

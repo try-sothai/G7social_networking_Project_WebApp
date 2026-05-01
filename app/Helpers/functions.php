@@ -7,7 +7,7 @@ function getImageUrl($imagePath = '') {
     if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
         return $imagePath;
     }
-    return BASE_URL . 'public/img/' . ltrim($imagePath, '/');
+    return BASE_URL . 'public/uploads/avatars/' . ltrim($imagePath, '/');
 }
 
 function getProfileUrl($userId = 0) {
@@ -23,7 +23,7 @@ function getProfileUrl($userId = 0) {
 function getJsConfig() {
     return json_encode([
         'baseUrl' => BASE_URL,
-        'imagePath' => BASE_URL . 'public/img/',
+        'imagePath' => BASE_URL . 'public/uploads/avatars/',
         'postsImagePath' => BASE_URL . 'public/uploads/posts/',
         'uploadsPath' => BASE_URL . 'public/uploads/',
         'chatPath' => BASE_URL . 'public/uploads/chat/',

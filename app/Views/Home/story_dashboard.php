@@ -24,8 +24,8 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Story View</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../public/css/Home/story_dashboard.css">
-    <link rel="stylesheet" href="../../../public/css/Home/dashboard.css">
 </head>
 <body>
     <div class="story-layout">
@@ -43,10 +43,10 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
             </div>
             <div class="profile-chip">
                 <img src="<?php 
-                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/img/' . $u_d['ProfilePic'])) {
-                                echo '../../../public/img/' . $u_d['ProfilePic'];
+                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic'])) {
+                                echo '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
                             } else {
-                                echo 'https://via.placeholder.com/150';
+                                echo 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'U') . '&background=1e293b&color=94a3b8&bold=true';
                             }
                         ?>" alt="Profile">
                 <span><?php echo htmlspecialchars($u_d['Username'] ?? 'User'); ?></span>
@@ -103,5 +103,12 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
     </script>
     <script src="../../../public/js/Home/story_dashboard.js"></script>
     <script src="../../../public/js/common/notifications.js"></script>
+    <script>
+        // Force dark mode — standalone page without the main sidebar
+        document.body.classList.add('dark-mode');
+        if (!localStorage.getItem('localconnect_theme')) {
+            localStorage.setItem('localconnect_theme', 'dark');
+        }
+    </script>
 </body>
 </html>

@@ -21,9 +21,9 @@
     $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
     $profilePicPath = '';
     if (!empty($u_d['ProfilePic'])) {
-        $candidate = __DIR__ . '/../../../public/img/' . $u_d['ProfilePic'];
+        $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
         if (is_file($candidate)) {
-            $profilePicPath = '../../../public/img/' . $u_d['ProfilePic'];
+            $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
         }
     }
     if ($profilePicPath === '') {
