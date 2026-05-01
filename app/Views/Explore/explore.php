@@ -261,6 +261,34 @@ if ($profilePicPath === '') {
 
 <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
 
+<!-- Edit Post Modal (reused by explore page) -->
+<div class="story-modal-overlay" id="edit-post-modal">
+    <div class="story-modal-card post-modal-card">
+        <div class="story-modal-header">
+            <h3>Edit Post</h3>
+            <button class="story-modal-close" id="close-edit-post" type="button">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form id="edit-post-form" class="story-upload-form" enctype="multipart/form-data">
+            <input type="hidden" id="edit-post-id" name="post_id">
+            <label for="edit-post-media-input" class="story-file-label">
+                <i class="fa-solid fa-photo-film"></i>
+                <span>Change / Add Media</span>
+            </label>
+            <input type="file" id="edit-post-media-input" name="new_media[]" accept="image/*,video/*" multiple>
+            <div class="story-file-name" id="edit-post-selected-file-name">No new media selected</div>
+            <div class="post-editor-area active">
+                <div class="post-editor-preview" id="edit-post-preview"></div>
+                <label for="edit-post-content-input">Caption</label>
+                <textarea id="edit-post-content-input" name="content" maxlength="800" placeholder="Edit your caption..."></textarea>
+            </div>
+            <button type="submit" class="story-upload-btn">Save Changes</button>
+            <p class="story-modal-message" id="edit-post-modal-message"></p>
+        </form>
+    </div>
+</div>
+
 <!-- Lightbox Modal -->
 <div id="exploreLightbox" class="explore-lightbox">
     <span class="explore-lightbox-close">&times;</span>

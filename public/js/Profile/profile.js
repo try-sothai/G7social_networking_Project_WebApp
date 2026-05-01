@@ -234,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = editPostForm.querySelector('button[type="submit"]');
             if (submitBtn) submitBtn.disabled = true;
             editPostModalMessage.textContent = 'Saving changes...';
+            editPostModalMessage.style.color = '#6366f1';
 
             const payload = new FormData();
             payload.append('action', 'update');

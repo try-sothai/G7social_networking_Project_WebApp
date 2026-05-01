@@ -1852,6 +1852,10 @@ body.dark-mode .story-modal-close {
     color: #e2e8f0;
 }
 
+body.dark-mode .post-menu-btn {
+    color: #ffffff;
+}
+
 body.dark-mode .post-menu-dropdown {
     background: #0f172a;
     border-color: rgba(148, 163, 184, 0.3);

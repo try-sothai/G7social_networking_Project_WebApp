@@ -9,7 +9,8 @@
       "Bash(cp 'c:/wamp64/www/G7social_networking_Project_WebApp/public/img/*.jpeg' c:/wamp64/www/G7social_networking_Project_WebApp/public/uploads/avatars/)",
       "Bash(cp 'c:/wamp64/www/G7social_networking_Project_WebApp/public/img/*.png' c:/wamp64/www/G7social_networking_Project_WebApp/public/uploads/avatars/)",
       "Bash(cp 'c:/wamp64/www/G7social_networking_Project_WebApp/public/img/*.webp' c:/wamp64/www/G7social_networking_Project_WebApp/public/uploads/avatars/)",
-      "Bash(cp 'c:/wamp64/www/G7social_networking_Project_WebApp/public/img/*.gif' c:/wamp64/www/G7social_networking_Project_WebApp/public/uploads/avatars/)"
+      "Bash(cp 'c:/wamp64/www/G7social_networking_Project_WebApp/public/img/*.gif' c:/wamp64/www/G7social_networking_Project_WebApp/public/uploads/avatars/)",
+      "Bash(php -r ' *)"
     ]
   }
 }

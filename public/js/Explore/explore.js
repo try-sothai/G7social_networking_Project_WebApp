@@ -3,6 +3,13 @@ let currentCategory = 'All';
 let isLoading = false;
 let exploreVideoObserver = null;
 
+const EXPLORE_POST_API = '../../../app/Controllers/Home/PostController.php';
+
+function closeAllExploreMenus() {
+    document.querySelectorAll('.explore-post-menu-wrap.active').forEach(w => w.classList.remove('active'));
+}
+
+
 if (!document.getElementById('social-dark-mode-vars')) {
     const style = document.createElement('style');
     style.id = 'social-dark-mode-vars';
@@ -53,6 +60,19 @@ if (!document.getElementById('social-dark-mode-vars')) {
         body.dark-mode .explore-comment-input::placeholder {
             color: #475569 !important;
         }
+        body.dark-mode .explore-post-menu-wrap .post-menu-dropdown {
+            background: #0f172a !important;
+            border-color: rgba(148, 163, 184, 0.3) !important;
+        }
+        body.dark-mode .explore-post-menu-wrap .post-menu-item {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .explore-post-menu-wrap .post-menu-item:hover {
+            background: rgba(148, 163, 184, 0.15) !important;
+        }
+        body.dark-mode .post-menu-btn {
+            color: #ffffff;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -67,6 +87,11 @@ function getProfileUrl(userId) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - initializing explore page');
     setupEventListeners();
+    window.onPostEditSuccess = loadPosts;
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.explore-post-menu-wrap')) closeAllExploreMenus();
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
     const searchQuery = urlParams.get('q');
@@ -282,7 +307,9 @@ function setupVideoAutoplay() {
 }
 
 function createPostElement(post) {
-    const postId = post.PostID || post.id; // ចាប់យក ID ឱ្យត្រូវនឹងទិន្នន័យពី Database
+    const postId = post.PostID || post.id;
+    const currentUserId = Number(window.currentUser?.id || 0);
+    const isOwner = currentUserId && Number(post.UserID || 0) === currentUserId;
 
     const postDiv = document.createElement('div');
     postDiv.className = 'post-card';
@@ -428,7 +455,7 @@ function createPostElement(post) {
         <div class="explore-thumbnail-wrapper">
             ${mediaHtml}
         </div>
-        <div class="post-header explore-post-header">
+        <div class="post-header explore-post-header" style="display:flex; align-items:center; justify-content:space-between;">
             <a href="${escapeHtml(profileUrl)}" class="post-user-link" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
                 <img src="${escapeHtml(profilePic)}" alt="${escapeHtml(post.Username)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodedUsername}&background=dbeafe&color=1d4ed8'">
                 <div class="post-user-info" style="line-height: 1.2;">
@@ -436,6 +463,16 @@ function createPostElement(post) {
                     <p style="margin: 4px 0 0 0; font-size: 11px; color: #64748b;">${postDate}</p>
                 </div>
             </a>
+            <div class="post-menu-wrap explore-post-menu-wrap" style="position:relative;">
+                <button class="post-menu-btn" type="button" data-role="explore-toggle-menu" aria-label="Post options">
+                    <i class="fa-solid fa-ellipsis-h"></i>
+                </button>
+                <div class="post-menu-dropdown">
+                    ${isOwner ? `<button type="button" class="post-menu-item" data-role="explore-edit-post" data-post-id="${postId}" data-content="${escapeHtml(post.Content || '')}" data-media='${escapeHtml(JSON.stringify(Array.isArray(post.media) ? post.media : []))}'>Edit Post</button>` : ''}
+                    ${isOwner ? `<button type="button" class="post-menu-item danger" data-role="explore-delete-post" data-post-id="${postId}">Delete Post</button>` : ''}
+                    ${!isOwner ? `<button type="button" class="post-menu-item" data-role="explore-report-post" data-post-id="${postId}">Report Post</button>` : ''}
+                </div>
+            </div>
         </div>
         <div class="post-content explore-post-content">
             ${contentBodyHtml}
@@ -465,6 +502,66 @@ function createPostElement(post) {
         </div>
     `;
     
+    // Three-dot menu events
+    const menuWrap = postDiv.querySelector('.explore-post-menu-wrap');
+    if (menuWrap) {
+        const menuBtn = menuWrap.querySelector('[data-role="explore-toggle-menu"]');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = menuWrap.classList.contains('active');
+                closeAllExploreMenus();
+                if (!isOpen) menuWrap.classList.add('active');
+            });
+        }
+
+        menuWrap.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-role]');
+            if (!btn || btn.getAttribute('data-role') === 'explore-toggle-menu') return;
+            const role = btn.getAttribute('data-role');
+            const pid = Number(btn.getAttribute('data-post-id') || 0);
+            closeAllExploreMenus();
+
+            if (role === 'explore-delete-post') {
+                if (!pid || !window.confirm('Delete this post?')) return;
+                const fd = new FormData();
+                fd.append('action', 'delete');
+                fd.append('post_id', String(pid));
+                fd.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
+                fetch(EXPLORE_POST_API, { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d && d.status === 'success') loadPosts();
+                        else window.alert((d && d.message) ? d.message : 'Unable to delete post.');
+                    })
+                    .catch(() => window.alert('Unable to delete post.'));
+
+            } else if (role === 'explore-edit-post') {
+                if (!pid) return;
+                const content = btn.getAttribute('data-content') || '';
+                let mediaList = [];
+                try { mediaList = JSON.parse(btn.getAttribute('data-media') || '[]'); } catch (_) {}
+                if (typeof window.openEditPostModal === 'function') {
+                    window.openEditPostModal(pid, content, mediaList);
+                }
+
+            } else if (role === 'explore-report-post') {
+                if (!pid) return;
+                const reason = window.prompt('Why are you reporting this post?', 'Spam or inappropriate content');
+                if (!reason || !reason.trim()) { if (reason !== null) window.alert('Please enter a report reason.'); return; }
+                const fd = new FormData();
+                fd.append('action', 'report');
+                fd.append('post_id', String(pid));
+                fd.append('reason', reason.trim());
+                fd.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
+                fetch(EXPLORE_POST_API, { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(d => window.alert((d && d.message) ? d.message : 'Report sent.'))
+                    .catch(() => window.alert('Report sent.'));
+            }
+        });
+    }
+
     // Add event listeners
     const likeBtn = postDiv.querySelector('.like-btn');
     if (likeBtn) {

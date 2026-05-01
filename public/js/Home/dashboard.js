@@ -1014,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.style.opacity = '0.5';
                 submitBtn.style.cursor = 'not-allowed';
             }
-            showAnimatedMessage(postModalMessage, 'Posting...', '', 0);
+            showAnimatedMessage(postModalMessage, 'Posting...', '#6366f1', 0);
 
             const payload = new FormData();
             payload.append('action', 'create');
@@ -1095,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.style.cursor = 'not-allowed';
             }
             if (quickStatusMessage) {
-                showAnimatedMessage(quickStatusMessage, 'Posting...', '', 0);
+                showAnimatedMessage(quickStatusMessage, 'Posting...', '#6366f1', 0);
             }
 
             const payload = new FormData();
@@ -1250,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.style.opacity = '0.5';
                 submitBtn.style.cursor = 'not-allowed';
             }
-            showAnimatedMessage(editPostModalMessage, 'Saving changes...', '', 0);
+            showAnimatedMessage(editPostModalMessage, 'Saving changes...', '#6366f1', 0);
 
             const payload = new FormData();
             payload.append('action', 'update');
@@ -1274,7 +1274,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     return new Promise(resolve => {
                         setTimeout(() => {
                             closeEditPostModal();
-                            loadPosts();
+                            if (typeof window.onPostEditSuccess === 'function') {
+                                window.onPostEditSuccess();
+                            } else {
+                                loadPosts();
+                            }
                             resolve();
                         }, 2000);
                     });
@@ -1436,4 +1440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bindPostViewTracking();
         bindVideoAutoplay();
     }
+
+    window.openEditPostModal = openEditPostModal;
+    window.onPostEditSuccess = window.onPostEditSuccess || null;
 });
