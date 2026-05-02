@@ -76,6 +76,34 @@ public function getCommentCount($post_id) {
     return $result ? (int)$result['count'] : 0;
 }
 
+public function getViewCount($post_id) {
+    try {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM post_views WHERE PostID = ?");
+        $stmt->execute([$post_id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['count'] : 0;
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+public function trackView($post_id, $user_id) {
+    try {
+        $this->conn->exec("CREATE TABLE IF NOT EXISTS post_views (
+            ViewID INT AUTO_INCREMENT PRIMARY KEY,
+            PostID INT NOT NULL,
+            UserID INT NOT NULL,
+            ViewedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_post_viewer (PostID, UserID)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $stmt = $this->conn->prepare("INSERT IGNORE INTO post_views (PostID, UserID) VALUES (?, ?)");
+        $stmt->execute([$post_id, $user_id]);
+        return $this->getViewCount($post_id);
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
 public function getExplorePosts($category = null, $limit = 20) {
     try {
         if ($category && $category != 'All') {

@@ -36,20 +36,30 @@ if (!$u_d) {
 }
 
 $stats = $model->getProfileStats($profile_user_id);
-$userPosts = $model->getUserPosts($profile_user_id, 80);
+$userPosts = $model->getUserPosts($profile_user_id, 80, $current_user_id);
 $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
 $trendingGroups = $groupModel->getPopularGroups($current_user_id, 3);
 
-// --- Fetch Followers and Following ---
-$stmtFollowers = $conn->prepare("SELECT u.UserID, u.Username, u.ProfilePic FROM friends f JOIN users u ON f.RequesterID = u.UserID WHERE f.ReceiverID = ? AND f.Status = 'Accepted'");
-$stmtFollowers->execute([$profile_user_id]);
-$followersList = $stmtFollowers->fetchAll(PDO::FETCH_ASSOC);
+// --- Fetch Friends List (both sides) ---
+$stmtFriends = $conn->prepare("
+    SELECT DISTINCT u.UserID, u.Username, u.ProfilePic
+    FROM friends f
+    JOIN users u ON (
+        CASE
+            WHEN f.RequesterID = ? THEN f.ReceiverID
+            ELSE f.RequesterID
+        END = u.UserID
+    )
+    WHERE (f.RequesterID = ? OR f.ReceiverID = ?) AND f.Status = 'Accepted'
+");
+$stmtFriends->execute([$profile_user_id, $profile_user_id, $profile_user_id]);
+$friendsList = $stmtFriends->fetchAll(PDO::FETCH_ASSOC);
 
-$stmtFollowing = $conn->prepare("SELECT u.UserID, u.Username, u.ProfilePic FROM friends f JOIN users u ON f.ReceiverID = u.UserID WHERE f.RequesterID = ? AND f.Status = 'Accepted'");
-$stmtFollowing->execute([$profile_user_id]);
-$followingList = $stmtFollowing->fetchAll(PDO::FETCH_ASSOC);
+// Keep followersList/followingList aliases for modal compatibility
+$followersList = $friendsList;
+$followingList = [];
 
 
 function parsePostMediaList($imagePathValue) {
@@ -178,6 +188,9 @@ foreach ($userPosts as $postRow) {
         'created_at' => (string)($postRow['CreatedAt'] ?? ''),
         'time_ago' => formatTimeAgo($postRow['CreatedAt'] ?? ''),
         'media_items' => $mediaItems,
+        'likes_count' => (int)($postRow['likes_count'] ?? 0),
+        'is_liked' => (bool)($postRow['is_liked'] ?? false),
+        'view_count' => (int)($postRow['view_count'] ?? 0),
     ];
 }
 $headerPicPath = '';
@@ -410,8 +423,7 @@ if ($headerPicPath === '') {
 
                         <div class="profile-stats" style="margin-bottom: 25px;">
                             <div class="stat-item"><strong><?php echo $stats['posts'] ?? 0; ?></strong> <span>Posts</span></div>
-                            <div class="stat-item" style="cursor: pointer;" onclick="openFollowModal('followersModal')"><strong><?php echo $stats['followers'] ?? 0; ?></strong> <span>Followers</span></div>
-                            <div class="stat-item" style="cursor: pointer;" onclick="openFollowModal('followingModal')"><strong><?php echo $stats['following'] ?? 0; ?></strong> <span>Following</span></div>
+                            <div class="stat-item" style="cursor: pointer;" onclick="openFollowModal('followersModal')"><strong><?php echo $stats['friends'] ?? 0; ?></strong> <span>Friends</span></div>
                         </div>
 
                         <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>
@@ -581,14 +593,18 @@ if ($headerPicPath === '') {
                             <?php endif; ?>
 
                             <div class="post-actions-stats" style="display:flex; justify-content:space-between; color:var(--text-muted, #65676b); font-size:13px; margin-bottom:10px; padding: 0 5px;">
-                                <div><i class="fa-solid fa-thumbs-up" style="color: var(--primary-color);"></i> Likes</div>
+                                <div><i class="fa-solid fa-heart" style="color: #ef4444;"></i> <span class="post-like-count"><?php echo $post['likes_count']; ?></span> Likes</div>
                                 <div>Interactions</div>
                             </div>
 
                             <div class="post-actions">
-                                <div class="action-item" data-role="like-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="fa-regular fa-thumbs-up"></i> Like</div>
+                                <div class="action-item <?php echo $post['is_liked'] ? 'liked' : ''; ?>" data-role="like-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="<?php echo $post['is_liked'] ? 'fa-solid' : 'fa-regular'; ?> fa-heart"></i> Like</div>
                                 <div class="action-item" data-role="comment-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="fa-regular fa-comment"></i> Comment</div>
                                 <div class="action-item" data-role="share-post" data-post-id="<?php echo (int)$post['post_id']; ?>"><i class="fa-regular fa-share-from-square"></i> Share</div>
+                                <div style="margin-left: auto; font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 5px; pointer-events: none;">
+                                    <i class="fa-regular fa-eye"></i>
+                                    <span class="profile-view-count"><?php echo $post['view_count']; ?></span>
+                                </div>
                             </div>
 
                             <!-- Comment Input Area -->
@@ -676,18 +692,18 @@ if ($headerPicPath === '') {
         <img class="profile-lightbox-img" id="profileLightboxImg" src="" alt="View Photo">
     </div>
 
-    <!-- Followers Modal -->
+    <!-- Friends Modal -->
     <div id="followersModal" class="follow-modal" onclick="if(event.target === this) closeFollowModal('followersModal')">
         <div class="follow-modal-content">
             <div class="follow-modal-header">
-                <h3>Followers</h3>
+                <h3><i class="fa-solid fa-user-group" style="margin-right:8px;color:#6366f1;"></i>Friends</h3>
                 <i class="fa-solid fa-xmark follow-modal-close" onclick="closeFollowModal('followersModal')"></i>
             </div>
             <div class="follow-list">
-                <?php if(empty($followersList)): ?>
-                    <div style="padding: 20px; text-align: center; color: #64748b;">No followers yet.</div>
+                <?php if(empty($friendsList)): ?>
+                    <div style="padding: 20px; text-align: center; color: #64748b;">No friends yet.</div>
                 <?php else: ?>
-                    <?php foreach($followersList as $f): ?>
+                    <?php foreach($friendsList as $f): ?>
                         <a href="profile.php?user_id=<?php echo $f['UserID']; ?>" class="follow-item">
                             <img src="<?php echo normalizeProfileImagePath($f['ProfilePic']); ?>" alt="">
                             <span class="follow-item-name"><?php echo htmlspecialchars($f['Username']); ?></span>
@@ -698,7 +714,7 @@ if ($headerPicPath === '') {
         </div>
     </div>
 
-    <!-- Following Modal -->
+    <!-- Following Modal (hidden — not used) -->
     <div id="followingModal" class="follow-modal" onclick="if(event.target === this) closeFollowModal('followingModal')">
         <div class="follow-modal-content">
             <div class="follow-modal-header">

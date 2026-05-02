@@ -2,6 +2,8 @@
 let currentCategory = 'All';
 let isLoading = false;
 let exploreVideoObserver = null;
+let exploreViewObserver = null;
+const exploreViewedPostIds = new Set();
 
 const EXPLORE_POST_API = '../../../app/Controllers/Home/PostController.php';
 
@@ -264,8 +266,9 @@ function displayPosts(posts) {
         grid.appendChild(postElement);
     });
 
-    // បើកដំណើរការ Auto-play សម្រាប់វីដេអូទាំងអស់
+    // បើកដំណើរការ Auto-play + View tracking
     setupVideoAutoplay();
+    setupExploreViewTracking();
 
     if (window.activeExploreCommentPostId) {
         const commentsSection = document.getElementById(`comments-${window.activeExploreCommentPostId}`);
@@ -280,6 +283,45 @@ function displayPosts(posts) {
         }
         window.activeExploreCommentPostId = null;
     }
+}
+
+function sendExploreView(postId) {
+    const id = Number(postId || 0);
+    if (!id || exploreViewedPostIds.has(id)) return;
+    exploreViewedPostIds.add(id);
+
+    const formData = new FormData();
+    formData.append('action', 'view');
+    formData.append('post_id', String(id));
+
+    fetch('../../../app/Controllers/Explore/explore_controller.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && typeof data.views === 'number') {
+                const card = document.querySelector(`.post-card[data-post-id="${id}"]`);
+                if (card) {
+                    const viewNum = card.querySelector('.explore-view-num');
+                    if (viewNum) viewNum.textContent = data.views;
+                }
+            }
+        })
+        .catch(() => {});
+}
+
+function setupExploreViewTracking() {
+    if (exploreViewObserver) exploreViewObserver.disconnect();
+
+    exploreViewObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+            const postId = entry.target.getAttribute('data-post-id');
+            sendExploreView(postId);
+        });
+    }, { threshold: [0.5] });
+
+    document.querySelectorAll('.post-card[data-post-id]').forEach(card => {
+        exploreViewObserver.observe(card);
+    });
 }
 
 function setupVideoAutoplay() {
@@ -486,10 +528,14 @@ function createPostElement(post) {
                 <i class="fa-regular fa-comment"></i>
                 <span>${post.comment_count || 0}</span>
             </button>
-            <button class="share-btn" onclick="shareExplorePost(${postId})" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #64748b; font-weight: 600; margin-left: auto; transition: color 0.2s;">
+            <button class="share-btn" onclick="shareExplorePost(${postId})" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #64748b; font-weight: 600; transition: color 0.2s;">
                 <i class="fa-solid fa-share-nodes"></i>
                 <span>Share</span>
             </button>
+            <div class="explore-view-count" style="margin-left: auto; font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 5px; pointer-events: none;">
+                <i class="fa-regular fa-eye"></i>
+                <span class="explore-view-num">${post.view_count || 0}</span>
+            </div>
         </div>
         <div class="comments-section explore-comments-wrap" id="comments-${postId}" style="display: none; padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 16px 16px;">
             <div class="comments-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">
@@ -654,7 +700,7 @@ function toggleLike(postId, button) {
     const formData = new FormData();
     formData.append('action', 'like');
     formData.append('post_id', postId);
-    
+
     fetch('../../../app/Controllers/Explore/explore_controller.php', {
         method: 'POST',
         body: formData
@@ -664,16 +710,17 @@ function toggleLike(postId, button) {
         if (data.success) {
             const icon = button.querySelector('i');
             const countSpan = button.querySelector('span');
-            let currentCount = parseInt(countSpan.textContent);
-            
             if (data.action === 'liked') {
                 icon.className = 'fa-solid fa-heart';
                 button.classList.add('liked');
-                countSpan.textContent = currentCount + 1;
+                button.style.color = '#ef4444';
             } else {
                 icon.className = 'fa-regular fa-heart';
                 button.classList.remove('liked');
-                countSpan.textContent = currentCount - 1;
+                button.style.color = '#64748b';
+            }
+            if (countSpan && typeof data.count === 'number') {
+                countSpan.textContent = data.count;
             }
         } else {
             console.error('Error toggling like:', data.error);

@@ -80,7 +80,7 @@ function isVideoMime(string $tmpPath, string $originalName = ''): bool {
 }
 
 function getMaxPostFileSize(string $tmpPath, string $originalName = ''): int {
-    return isVideoMime($tmpPath, $originalName) ? (100 * 1024 * 1024) : (15 * 1024 * 1024);
+    return isVideoMime($tmpPath, $originalName) ? (200 * 1024 * 1024) : (50 * 1024 * 1024);
 }
 
 function ensurePostViewsTable(PDO $conn): void {
@@ -378,20 +378,30 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'like' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $postId = (int)($_POST['post_id'] ?? 0);
-    if ($postId > 0) {
-        try {
-            $stmt = $conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
-            $stmt->execute([$postId, $current_user_id]);
-            if ($stmt->fetch()) {
-                $conn->prepare("DELETE FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')")->execute([$postId, $current_user_id]);
-                echo json_encode(['status' => 'success', 'liked' => false]);
-            } else {
-                $conn->prepare("INSERT INTO interactions (PostID, UserID, Type) VALUES (?, ?, 'like')")->execute([$postId, $current_user_id]);
-                echo json_encode(['status' => 'success', 'liked' => true]);
-            }
-        } catch (PDOException $e) {
-            echo json_encode(['status' => 'error', 'message' => 'Database error']);
+    if ($postId <= 0) {
+        ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Invalid post.']);
+        exit;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT InteractionID FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')");
+        $stmt->execute([$postId, $current_user_id]);
+        $isNowLiked = false;
+        if ($stmt->fetch()) {
+            $conn->prepare("DELETE FROM interactions WHERE PostID = ? AND UserID = ? AND Type IN ('like', 'love', 'haha')")->execute([$postId, $current_user_id]);
+            $isNowLiked = false;
+        } else {
+            $conn->prepare("INSERT INTO interactions (PostID, UserID, Type) VALUES (?, ?, 'like')")->execute([$postId, $current_user_id]);
+            $isNowLiked = true;
         }
+        $countStmt = $conn->prepare("SELECT COUNT(*) FROM interactions WHERE PostID = ? AND Type IN ('like', 'love', 'haha')");
+        $countStmt->execute([$postId]);
+        $newCount = (int)$countStmt->fetchColumn();
+        ob_clean();
+        echo json_encode(['status' => 'success', 'liked' => $isNowLiked, 'count' => $newCount]);
+    } catch (PDOException $e) {
+        ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
     exit;
 }

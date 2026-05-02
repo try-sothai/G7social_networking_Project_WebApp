@@ -107,6 +107,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (editPostPreview) editPostPreview.innerHTML = '';
     }
 
+    document.querySelectorAll('[data-role="like-post"]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const postId = btn.getAttribute('data-post-id');
+            const payload = new FormData();
+            payload.append('action', 'like');
+            payload.append('post_id', postId);
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
+
+            fetch('../../../app/Controllers/Home/PostController.php', { method: 'POST', body: payload })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status !== 'success') return;
+                    const icon = btn.querySelector('i');
+                    const isLiked = data.liked;
+                    if (isLiked) {
+                        icon.className = 'fa-solid fa-heart';
+                        btn.classList.add('liked');
+                    } else {
+                        icon.className = 'fa-regular fa-heart';
+                        btn.classList.remove('liked');
+                    }
+                    const postCard = btn.closest('.post-card');
+                    if (postCard) {
+                        const countEl = postCard.querySelector('.post-like-count');
+                        if (countEl) {
+                            const current = parseInt(countEl.textContent || '0');
+                            countEl.textContent = isLiked ? current + 1 : Math.max(0, current - 1);
+                        }
+                    }
+                })
+                .catch(() => {});
+        });
+    });
+
     document.querySelectorAll('[data-role="toggle-post-menu"]').forEach((btn) => {
         btn.addEventListener('click', (event) => {
             event.stopPropagation();
@@ -266,5 +300,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!event.target.closest('.post-menu-wrap')) {
             closeAllPostMenus();
         }
+    });
+
+    // View tracking
+    const profileViewedIds = new Set();
+    const profileViewObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+            const postId = Number(entry.target.getAttribute('data-post-id') || 0);
+            if (!postId || profileViewedIds.has(postId)) return;
+            profileViewedIds.add(postId);
+
+            const payload = new FormData();
+            payload.append('action', 'view');
+            payload.append('post_id', String(postId));
+            payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
+
+            fetch(POST_API, { method: 'POST', body: payload })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && typeof data.views === 'number') {
+                        const card = entry.target;
+                        const viewEl = card.querySelector('.profile-view-count');
+                        if (viewEl) viewEl.textContent = data.views;
+                    }
+                })
+                .catch(() => {});
+        });
+    }, { threshold: [0.5] });
+
+    document.querySelectorAll('.post-card[data-post-id]').forEach(card => {
+        profileViewObserver.observe(card);
     });
 });

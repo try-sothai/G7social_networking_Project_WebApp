@@ -27,12 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     // Get posts from model
                     $posts = $model->getExplorePosts($category, $limit);
                     
-                    // Add like status and comments for each post
+                    // Add like status, comments, and view count for each post
                     foreach ($posts as &$post) {
                         $post['liked'] = $model->checkLikeStatus($post['PostID'], $user_id);
                         $post['comments'] = $model->getComments($post['PostID']);
                         $post['like_count'] = $model->getLikeCount($post['PostID']);
                         $post['comment_count'] = $model->getCommentCount($post['PostID']);
+                        $post['view_count'] = $model->getViewCount($post['PostID']);
                     }
                     
                     echo json_encode(['success' => true, 'posts' => $posts]);
@@ -77,22 +78,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : ($json_data['post_id'] ?? null);
                     if (!$post_id) {
+                        ob_clean();
                         echo json_encode(['success' => false, 'error' => 'Post ID required']);
                         break;
                     }
-                    
+
                     $result = $model->likePost($post_id, $user_id);
                     if ($result === 'liked' || $result === 'unliked') {
-                        echo json_encode(['success' => true, 'action' => $result]);
+                        $newCount = $model->getLikeCount($post_id);
+                        ob_clean();
+                        echo json_encode(['success' => true, 'action' => $result, 'count' => $newCount]);
                     } else {
+                        ob_clean();
                         echo json_encode(['success' => false, 'error' => 'Failed to process like']);
                     }
                 } catch (Exception $e) {
                     error_log("Error in like: " . $e->getMessage());
+                    ob_clean();
                     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
                 }
                 break;
                 
+            case 'view':
+                try {
+                    $post_id = isset($_POST['post_id']) ? (int)$_POST['post_id'] : (int)($json_data['post_id'] ?? 0);
+                    if ($post_id > 0) {
+                        $newCount = $model->trackView($post_id, $user_id);
+                        ob_clean();
+                        echo json_encode(['success' => true, 'views' => $newCount]);
+                    } else {
+                        ob_clean();
+                        echo json_encode(['success' => false, 'error' => 'Invalid post ID']);
+                    }
+                } catch (Exception $e) {
+                    ob_clean();
+                    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                }
+                break;
+
             case 'comment':
                 try {
                     $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : ($json_data['post_id'] ?? null);

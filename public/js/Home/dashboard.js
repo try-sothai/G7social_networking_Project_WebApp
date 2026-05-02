@@ -773,9 +773,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload.append('action', 'like');
                 payload.append('post_id', postId);
                 payload.append('csrf_token', window.APP_CONFIG?.csrfToken || '');
-                fetch(POST_API, { method: 'POST', body: payload }).then(res=>res.json()).then(data => {
-                    if(data.status === 'success') loadPosts();
-                });
+                fetch(POST_API, { method: 'POST', body: payload })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const icon = btn.querySelector('i');
+                            const countSpan = btn.querySelector('span');
+                            if (data.liked) {
+                                btn.classList.add('liked');
+                                if (icon) icon.className = 'fa-solid fa-heart';
+                            } else {
+                                btn.classList.remove('liked');
+                                if (icon) icon.className = 'fa-regular fa-heart';
+                            }
+                            if (countSpan && typeof data.count === 'number') {
+                                countSpan.textContent = data.count;
+                            }
+                        }
+                    })
+                    .catch(() => {});
             };
         });
 
