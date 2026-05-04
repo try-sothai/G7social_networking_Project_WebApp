@@ -121,6 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
+    function formatContent(text) {
+        return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
     function isVideo(mediaPath) {
         const raw = String(mediaPath || '').trim().toLowerCase();
         if (!raw) return false;
@@ -372,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="max-width: calc(100% - 45px);">
                         <div style="background: var(--bg-hover, #f1f5f9); padding: 8px 14px; border-radius: 18px; font-size: 13.5px; display: inline-block;">
                             <a href="../Profile/profile.php?user_id=${escapeHtml(c.UserID || '')}" style="text-decoration: none;"><strong style="display: block; margin-bottom: 2px; color: var(--text-primary, #1e293b);">${escapeHtml(c.Username)}</strong></a>
-                            <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${escapeHtml(c.CommentText)}</span>
+                            <span style="color: var(--text-secondary, #334155); word-break: break-word; line-height: 1.4;">${formatContent(c.CommentText)}</span>
                         </div>
                         <div style="font-size: 11px; color: #64748b; margin-top: 4px; margin-left: 12px;" title="${escapeHtml(cExactDate)}">${escapeHtml(cTimeDisplay)}</div>
                     </div>
@@ -432,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="post-time" style="font-size: 11px;">Original Post</span>
                         </div>
                     </div>
-                    ${shareData.original_content ? `<div class="post-content" style="padding: 12px 15px; margin-bottom: 0;">${escapeHtml(shareData.original_content)}</div>` : ''}
+                    ${shareData.original_content ? `<div class="post-content" style="padding: 12px 15px; margin-bottom: 0;">${formatContent(shareData.original_content)}</div>` : ''}
                     ${mediaHtml}
                 </div>
             `;
@@ -465,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 </div>
-                ${content ? `<div class="post-content">${escapeHtml(content)}</div>` : ''}
+                ${content ? `<div class="post-content">${formatContent(content)}</div>` : ''}
                 ${sharedHtml}
                 ${mediaHtml}
                 <div class="modern-post-actions">
@@ -768,7 +772,11 @@ document.addEventListener('DOMContentLoaded', () => {
         editPostState.newFiles = [];
 
         if (editPostIdInput) editPostIdInput.value = String(editPostState.postId);
-        if (editPostContentInput) editPostContentInput.value = content || '';
+        if (editPostContentInput) {
+            editPostContentInput.value = content || '';
+            editPostContentInput.scrollTop = 0;
+            editPostContentInput.setSelectionRange(0, 0);
+        }
         if (editPostSelectedFileName) editPostSelectedFileName.textContent = 'No new media selected';
         if (editPostModalMessage) showAnimatedMessage(editPostModalMessage, '', '', 0);
         if (editPostMediaInput) editPostMediaInput.value = '';
