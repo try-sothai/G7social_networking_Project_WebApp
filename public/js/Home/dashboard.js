@@ -87,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewedPostIds = new Set();
     let postViewObserver = null;
     let postVideoObserver = null;
+    let allPosts = [];
+    let currentFilter = 'all'; // 'all' or 'video'
 
     const storedCommentPostId = sessionStorage.getItem('activeCommentPostId');
     if (storedCommentPostId) {
@@ -602,7 +604,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((res) => res.json())
             .then((data) => {
                 if (data.status === 'success') {
-                    renderPosts(data.posts || []);
+                    allPosts = data.posts || [];
+                    applyFilter();
                 } else {
                 console.error("Server Error:", data.message);
                 if (postFeedList) postFeedList.innerHTML = `<div class="post-card empty-posts" style="color: red;">Error: ${data.message}</div>`;
@@ -612,6 +615,108 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Fetch Error:", err);
             if (postFeedList) postFeedList.innerHTML = `<div class="post-card empty-posts" style="color: red;">Failed to load posts. Please check console.</div>`;
         });
+    }
+
+    function applyFilter() {
+        const filtered = currentFilter === 'video'
+            ? allPosts.filter(p => {
+                const media = getPostMediaList(p.ImagePath || '');
+                return media.some(m => isVideo(m));
+            })
+            : allPosts;
+        renderPosts(filtered);
+        updateFilterIndicator();
+    }
+
+    function updateFilterIndicator() {
+        const indicator = document.getElementById('feed-filter-indicator');
+        if (!indicator) return;
+        if (currentFilter === 'video') {
+            indicator.innerHTML = '<i class="fa-solid fa-film" style="margin-right:6px;"></i>Videos Only &mdash; Swipe left to show All';
+            indicator.style.background = 'linear-gradient(135deg, #7748ff, #6366f1)';
+            indicator.style.color = '#fff';
+            indicator.style.boxShadow = '0 4px 15px rgba(119,72,255,0.35)';
+        } else {
+            indicator.innerHTML = '<i class="fa-solid fa-hand-pointer" style="margin-right:6px;"></i>Swipe right for Videos Only';
+            indicator.style.background = 'var(--bg-hover, #f1f5f9)';
+            indicator.style.color = 'var(--text-secondary, #64748b)';
+            indicator.style.boxShadow = 'none';
+        }
+    }
+
+    function showSwipeToast(mode) {
+        const existing = document.getElementById('swipe-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.id = 'swipe-toast';
+        toast.innerHTML = mode === 'video'
+            ? '<i class="fa-solid fa-film"></i> Videos Only'
+            : '<i class="fa-solid fa-list"></i> All Posts';
+        toast.style.cssText = `
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%) scale(0.8);
+            background: rgba(15,23,42,0.9); color: #fff; padding: 10px 24px;
+            border-radius: 30px; font-size: 15px; font-weight: 700; z-index: 9999;
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        `;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) scale(1)';
+        });
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) scale(0.8)';
+            setTimeout(() => toast.remove(), 300);
+        }, 1400);
+    }
+
+    function setupSwipeFilter() {
+        if (!postFeedList) return;
+        const feedParent = postFeedList.parentElement;
+        if (!feedParent) return;
+
+        const indicator = document.createElement('div');
+        indicator.id = 'feed-filter-indicator';
+        indicator.style.cssText = `
+            text-align: center; font-size: 13px; font-weight: 600;
+            padding: 9px 20px; border-radius: 25px; margin: 0 0 14px 0;
+            cursor: pointer; user-select: none;
+            transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+            border: none; display: block;
+        `;
+        feedParent.insertBefore(indicator, postFeedList);
+        updateFilterIndicator();
+
+        indicator.addEventListener('click', () => {
+            currentFilter = currentFilter === 'video' ? 'all' : 'video';
+            applyFilter();
+            showSwipeToast(currentFilter);
+        });
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+            const deltaY = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+
+            if (deltaX > 0 && currentFilter === 'all') {
+                currentFilter = 'video';
+                applyFilter();
+                showSwipeToast('video');
+            } else if (deltaX < 0 && currentFilter === 'video') {
+                currentFilter = 'all';
+                applyFilter();
+                showSwipeToast('all');
+            }
+        }, { passive: true });
     }
 
     function closeAllPostMenus() {
@@ -1447,6 +1552,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (postFeedList) {
+        setupSwipeFilter();
         loadPosts();
         setInterval(loadPosts, 30000);
     } else {
