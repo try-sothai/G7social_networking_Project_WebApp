@@ -6,5 +6,5 @@ php_value max_input_time      300
 php_value memory_limit        256M
 
 # —— URL Rewriting ————————————————————————————————————
-Options +Indexes
+Options -Indexes
 Require all granted
