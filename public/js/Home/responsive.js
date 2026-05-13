@@ -37,12 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function collapseDesktop() {
         if (!sidebar) return;
         sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-is-collapsed');
         localStorage.setItem(COLLAPSE_KEY, '1');
     }
 
     function expandDesktop() {
         if (!sidebar) return;
         sidebar.classList.remove('collapsed');
+        body.classList.remove('sidebar-is-collapsed');
         localStorage.removeItem(COLLAPSE_KEY);
     }
 
@@ -53,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Restore saved collapse state on page load (desktop only)
     if (sidebar && !isCompactSidebar() && localStorage.getItem(COLLAPSE_KEY) === '1') {
         sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-is-collapsed');
     }
 
     // ── Hamburger click ──────────────────────────────────────

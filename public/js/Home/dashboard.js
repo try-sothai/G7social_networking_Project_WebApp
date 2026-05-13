@@ -1515,6 +1515,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 vid.pause();
                 vid.remove();
             }
+            // Restart feed videos that are ≥70% visible (matching the observer threshold)
+            document.querySelectorAll('.post-card video').forEach(v => {
+                const rect = v.getBoundingClientRect();
+                const visible = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+                if (rect.height > 0 && visible / rect.height >= 0.7) {
+                    v.play().catch(() => {});
+                }
+            });
         };
         
         closeBtn.addEventListener('click', closeLightbox);
@@ -1528,13 +1536,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openLightbox = function(src, isVideo = false) {
         if (lightbox) {
+            // Pause all feed videos so they don't overlap with the lightbox audio
+            document.querySelectorAll('.post-card video').forEach(v => v.pause());
+
             const img = document.getElementById('postLightboxImg');
             const existingVid = document.getElementById('postLightboxVid');
             if (existingVid) {
                 existingVid.pause();
                 existingVid.remove();
             }
-            
+
             if (isVideo) {
                 if (img) img.style.display = 'none';
                 const vid = document.createElement('video');

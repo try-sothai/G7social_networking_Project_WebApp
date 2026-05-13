@@ -21,7 +21,6 @@
 
 body {
     background-color: #f1f5f9;
-    background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),radial-gradient(at 100% 100%, rgba(217, 70, 239, 0.1) 0px, transparent 50%);
     color: #1e293b;
     display: flex;
     min-height: 100vh;
@@ -124,7 +123,7 @@ body {
 .main-content {
     margin-left: var(--sidebar-width);
     flex: 1;
-    padding: 0 40px;
+    padding: 90px 40px 0;
     min-width: 0;
 }
 
@@ -134,11 +133,14 @@ header {
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: var(--sidebar-width);
+    right: 0;
     z-index: 900;
     background: rgba(241, 245, 249, 0.8);
     backdrop-filter: blur(8px);
+    padding: 0 40px;
 }
 
 .menu-toggle {
@@ -1954,6 +1956,10 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     }
     .main-content {
         margin-left: 250px;
+        padding: 90px 20px 0;
+    }
+    header {
+        left: 250px;
         padding: 0 20px;
     }
     .feed-grid {
@@ -1979,7 +1985,7 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     }
     .main-content {
         margin-left: 0;
-        padding: 0 20px 20px;
+        padding: 90px 20px 20px;
     }
     .feed-grid {
         grid-template-columns: 1fr;
@@ -1988,7 +1994,8 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
         display: none; /* Or handle differently */
     }
     header {
-        padding: 0;
+        left: 0;
+        padding: 0 20px;
         gap: 15px;
     }
     /* បង្ហាញប៊ូតុង Menu នៅលើ Tablet និង Mobile */
@@ -2006,7 +2013,10 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     header {
         min-height: 72px;
         height: auto;
-        padding: 14px 0;
+        padding: 14px 20px;
+    }
+    .main-content {
+        padding-top: 75px;
     }
 
     .search-bar {
@@ -2057,7 +2067,7 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
         height: 70px;
     }
     .main-content {
-        padding: 0 14px 18px;
+        padding: 70px 14px 18px;
     }
     .header-actions {
         gap: 10px;
@@ -2151,5 +2161,9 @@ body.dark-mode #edit-post-modal #edit-post-content-input {
     /* Shift main-content left when sidebar collapses */
     .sidebar.collapsed ~ .main-content {
         margin-left: 72px;
+    }
+
+    body.sidebar-is-collapsed header {
+        left: 72px;
     }
 }
