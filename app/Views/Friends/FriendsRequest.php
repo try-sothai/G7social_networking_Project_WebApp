@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
@@ -28,7 +28,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 
 function time_ago($datetime) {
@@ -59,8 +59,7 @@ function time_ago($datetime) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socail7 Friend Requests</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Friends/friends.css')); ?>">
 </head>
@@ -129,8 +128,8 @@ function time_ago($datetime) {
                                 <div class="req-avatar">
                                     <img src="<?php
                                         $path = '../../../public/uploads/avatars/' . $request['ProfilePic'];
-                                        echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://ui-avatars.com/api/?name=' . urlencode($request['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
-                                    ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($request['Username']); ?>&background=dbeafe&color=1d4ed8&bold=true';">
+                                        echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : '../../../public/img/default-avatar.svg';
+                                    ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null;this.src='../../../public/img/default-avatar.svg'">
                                 </div>
                                 <div class="req-info">
                                     <p class="req-name"><?php echo htmlspecialchars($request['Username']); ?></p>
@@ -176,8 +175,8 @@ function time_ago($datetime) {
                                 <div class="req-avatar">
                                     <img src="<?php
                                         $path = '../../../public/uploads/avatars/' . $request['ProfilePic'];
-                                        echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : 'https://ui-avatars.com/api/?name=' . urlencode($request['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
-                                    ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($request['Username']); ?>&background=dbeafe&color=1d4ed8&bold=true';">
+                                        echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : '../../../public/img/default-avatar.svg';
+                                    ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null;this.src='../../../public/img/default-avatar.svg'">
                                 </div>
                                 <div class="req-info">
                                     <p class="req-name"><?php echo htmlspecialchars($request['Username']); ?></p>
@@ -276,7 +275,7 @@ function time_ago($datetime) {
             }, 3000);
         }
     </script>
-    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($user_data['Username'] ?? 'User'), $profilePicPath ?? 'https://via.placeholder.com/150'); ?>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($user_data['Username'] ?? 'User'), $profilePicPath ?? '../../../public/img/default-avatar.svg'); ?>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>

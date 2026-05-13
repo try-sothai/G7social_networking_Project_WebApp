@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
@@ -19,17 +19,13 @@ $notifications = $model->getNotifications($user_id);
 $unread_notifications = $model->getUnreadNotificationCount($user_id);
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    if (str_starts_with($u_d['ProfilePic'], 'http://') || str_starts_with($u_d['ProfilePic'], 'https://')) {
-        $profilePicPath = $u_d['ProfilePic'];
-    } else {
-        $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        if (is_file($candidate)) {
-            $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        }
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'User') . '&background=dbeafe&color=1d4ed8&bold=true';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 ?>
 <!DOCTYPE html>
@@ -38,8 +34,8 @@ if ($profilePicPath === '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socail7 Explore Page</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>
+    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Explore/explore.css">
     <style>
@@ -300,7 +296,7 @@ if ($profilePicPath === '') {
 window.currentUser = <?php echo json_encode([
     'id' => $user_id, 
     'username' => $u_d['Username'], 
-    'profilePic' => !empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'User') . '&background=dbeafe&color=1d4ed8'
+    'profilePic' => !empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : '../../../public/img/default-avatar.svg'
 ]); ?>;
 window.APP_CONFIG = <?php echo getJsConfig(); ?>;
 </script>

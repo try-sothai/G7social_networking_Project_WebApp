@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
@@ -73,8 +73,7 @@ if (isset($_GET['error'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $isEditMode ? 'Edit Event' : 'Create New Event'; ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo $dashboardCssVersion; ?>">
     <link rel="stylesheet" href="../../../public/css/Events/create_event.css?v=<?php echo $createEventCssVersion; ?>">
     <script>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
@@ -21,7 +21,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = BASE_URL . 'public/uploads/avatars/default.png';
+    $profilePicPath = BASE_URL . 'public/img/default-avatar.svg';
 }
 ?>
 <!DOCTYPE html>
@@ -30,8 +30,7 @@ if ($profilePicPath === '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socail7 Account Settings</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <style>
         .settings-container {

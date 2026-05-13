@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
@@ -53,12 +53,12 @@ $profileModel = new ProfileModel($conn);
 $u_d = $profileModel->getUserData($user_id);
 $profilePicPath = !empty($u_d['ProfilePic']) && file_exists(__DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic']) 
     ? '../../../public/uploads/avatars/' . $u_d['ProfilePic'] 
-    : 'https://via.placeholder.com/150';
+    : '../../../public/img/default-avatar.svg';
 
 // Set group avatar and banner images
 $groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $group['GroupAvatar']) 
     ? '../../../public/uploads/groups/' . $group['GroupAvatar'] 
-    : 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&name=' . urlencode(substr($group['GroupName'], 0, 2));
+    : '../../../public/img/default-avatar.svg';
 $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/uploads/groups/banners/' . $group['GroupBanner'])
     ? '../../../public/uploads/groups/banners/' . $group['GroupBanner']
     : '../../../public/uploads/groups/banners/default_banner.jpg';
@@ -69,8 +69,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/upl
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($group['GroupName']); ?> - LocalConnect</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Home/newPost.css">
     <script>
@@ -220,7 +219,7 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/upl
                         <?php foreach($members as $member): 
                             $memPic = !empty($member['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $member['ProfilePic']) 
                                 ? '../../../public/uploads/avatars/' . $member['ProfilePic'] 
-                                : 'https://ui-avatars.com/api/?name=' . urlencode($member['Username']) . '&background=random';
+                                : '../../../public/img/default-avatar.svg';
                         ?>
                         <div class="member-card" id="member-<?php echo $member['UserID']; ?>">
                             <?php if ($isOwner && $member['UserID'] != $user_id): ?>

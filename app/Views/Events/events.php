@@ -1,4 +1,4 @@
-<?php
+﻿<?php
     session_start();
 
     require_once '../../../config/db_config.php';
@@ -114,7 +114,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 $eventsCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Events/events.css') ?: time());
 $dashboardCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Home/dashboard.css') ?: time());
@@ -127,8 +127,8 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social7 Events</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>
+    
     <link rel="stylesheet" href="../../../public/css/Events/events.css?v=<?php echo $eventsCssVersion; ?>">
     <link rel="stylesheet" href="../../../public/css/Home/dashboard.css?v=<?php echo $dashboardCssVersion; ?>">
     <script>

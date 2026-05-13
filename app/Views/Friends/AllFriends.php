@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 require_once __DIR__ . '/../Component/dashboard_shell.php';
@@ -36,7 +36,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 ?>
 
@@ -46,8 +46,8 @@ if ($profilePicPath === '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social7 All Friends</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>
+    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Friends/friends.css')); ?>">
 </head>
@@ -110,7 +110,7 @@ if ($profilePicPath === '') {
                                 <?php foreach ($friends as $friend): ?>
                                     <?php
                                         $fPath = '../../../public/uploads/avatars/' . $friend['ProfilePic'];
-                                        $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : 'https://ui-avatars.com/api/?name=' . urlencode($friend['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
+                                        $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : '../../../public/img/default-avatar.svg';
                                     ?>
                                     <div class="friend-card-item" data-name="<?php echo strtolower(htmlspecialchars($friend['Username'])); ?>">
                                         <div class="f-avatar">
@@ -149,7 +149,7 @@ if ($profilePicPath === '') {
                             <?php foreach ($suggested_friends as $suggest): ?>
                                 <?php
                                     $sPath = '../../../public/uploads/avatars/' . $suggest['ProfilePic'];
-                                    $sImg  = (!empty($suggest['ProfilePic']) && file_exists($sPath)) ? $sPath : 'https://ui-avatars.com/api/?name=' . urlencode($suggest['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
+                                    $sImg  = (!empty($suggest['ProfilePic']) && file_exists($sPath)) ? $sPath : '../../../public/img/default-avatar.svg';
                                 ?>
                                 <div class="inline-suggestion">
                                     <img src="<?php echo $sImg; ?>" alt="<?php echo htmlspecialchars($suggest['Username']); ?>">

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 require_once __DIR__ . '/../../../config/db_config.php';
@@ -71,9 +71,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_signup') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social7 - Sign Up with Phone</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
 <link rel="stylesheet" href="../../../public/css/Login/auth.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css">
+    <link rel="stylesheet" href="../../../public/css/fonts/fonts.css">
 </head>
 <body>
 
@@ -114,10 +115,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_signup') {
     <div class="auth-divider">or</div>
 
     <button type="button" class="btn-social" onclick="window.location.href='../../Controllers/Auth/google_auth.php'">
-        <img src="https://www.google.com/favicon.ico" width="18" alt="Google"> Continue with Google
+        <img src="../../../public/img/google.png" width="18" alt="Google"> Continue with Google
     </button>
     <button type="button" class="btn-social" onclick="window.location.href='../../Controllers/Auth/facebook_auth.php'">
-        <img src="https://www.facebook.com/favicon.ico" width="18" alt="Facebook"> Continue with Facebook
+        <img src="../../../public/img/facebook.png" width="18" alt="Facebook"> Continue with Facebook
     </button>
 
     <div class="auth-footer">

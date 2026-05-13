@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // app/Views/Groups/create_group.php
 
 session_start();
@@ -59,7 +59,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 
 // Load existing Avatar and Banner images if in Edit Mode
@@ -83,8 +83,7 @@ if ($isEditMode && $groupId > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $isEditMode ? 'Edit Group' : 'Create New Group'; ?> - LocalConnect</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Groups/create_group.css">
 </head>

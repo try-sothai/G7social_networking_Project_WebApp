@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 require_once '../../../config/db_config.php';
@@ -32,7 +32,7 @@ $reports = $adminModel->getReports($reportStatus, $reportSearch);
 $flash = $_SESSION['admin_flash'] ?? null;
 unset($_SESSION['admin_flash']);
 
-$profilePicPath = 'https://via.placeholder.com/150';
+$profilePicPath = '../../../public/img/default-avatar.svg';
 if (!empty($currentUser['ProfilePic'])) {
     $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $currentUser['ProfilePic'];
     if (is_file($candidate)) {
@@ -90,13 +90,12 @@ function admin_short_text(?string $value, int $length = 110): string
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | LocalConnect</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Admin/admin.css')) ?>">
     <!-- Libraries for PDF Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="../../../public/js/vendor/jspdf.umd.min.js"></script>
+    <script src="../../../public/js/vendor/jspdf.plugin.autotable.min.js"></script>
     <style>
         /* 🎨 Typography Improvements */
         .admin-page,

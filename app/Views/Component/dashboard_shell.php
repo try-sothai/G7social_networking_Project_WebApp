@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once dirname(__DIR__, 2) . '/Helpers/admin.php';
 
@@ -8,6 +8,23 @@ if (isset($conn) && $conn instanceof PDO) {
 }
 
 if (!function_exists('lc_shell_default_nav')) {
+    function lc_shell_render_head_assets(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $faPath  = '/public/css/fontawesome/all.min.css';
+        $fntPath = '/public/css/fonts/fonts.css';
+        $faV  = is_file($root . $faPath)  ? filemtime($root . $faPath)  : time();
+        $fntV = is_file($root . $fntPath) ? filemtime($root . $fntPath) : time();
+        if (defined('BASE_URL')) {
+            $base = rtrim(BASE_URL, '/');
+            echo '<link rel="stylesheet" href="' . $base . $faPath  . '?v=' . $faV  . '">' . "\n";
+            echo '    <link rel="stylesheet" href="' . $base . $fntPath . '?v=' . $fntV . '">' . "\n";
+        } else {
+            echo '<link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css?v=' . $faV  . '">' . "\n";
+            echo '    <link rel="stylesheet" href="../../../public/css/fonts/fonts.css?v='        . $fntV . '">' . "\n";
+        }
+    }
+
     function lc_public_asset(string $relativePath): string
     {
         $clean = ltrim(str_replace('\\', '/', $relativePath), '/');
@@ -129,7 +146,7 @@ if (!function_exists('lc_shell_default_nav')) {
         $notificationButtonAttrs = trim((string)($options['notification_button_attrs'] ?? ''));
         $userName = (string)($options['user_name'] ?? 'User');
         $profileHref = (string)($options['profile_href'] ?? BASE_URL . 'app/Views/Profile/profile.php');
-        $profileImage = (string)($options['profile_image'] ?? 'https://via.placeholder.com/150');
+        $profileImage = (string)($options['profile_image'] ?? '../../../public/img/default-avatar.svg');
         $profileImageAttrs = trim((string)($options['profile_image_attrs'] ?? ''));
         $userNameClass = trim((string)($options['user_name_class'] ?? ''));
         $userNameAttrs = trim((string)($options['user_name_attrs'] ?? ''));
@@ -178,7 +195,15 @@ if (!function_exists('lc_shell_default_nav')) {
                         <?php echo htmlspecialchars($userName); ?>
                     </span>
                     <a href="<?php echo htmlspecialchars($profileHref); ?>">
-                        <img src="<?php echo htmlspecialchars($profileImage); ?>" alt="Profile" <?php echo $profileImageAttrs; ?>>
+                        <?php
+                        $fallbackAvatar = defined('BASE_URL')
+                            ? rtrim(BASE_URL, '/') . '/public/img/default-avatar.svg'
+                            : '../../../public/img/default-avatar.svg';
+                        ?>
+                        <img src="<?php echo htmlspecialchars($profileImage); ?>"
+                             alt="Profile"
+                             onerror="this.onerror=null;this.src='<?php echo htmlspecialchars($fallbackAvatar); ?>'"
+                             <?php echo $profileImageAttrs; ?>>
                     </a>
                 </div>
             </div>

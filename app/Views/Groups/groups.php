@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // app/Views/Groups/groups.php
 
 session_start();
@@ -66,7 +66,7 @@ if (isset($_GET['success']) && $_GET['success'] === 'created') {
 }
 $errorMessage = isset($_GET['error']) ? (string)$_GET['error'] : '';
 
-$defaultAvatar = 'https://ui-avatars.com/api/?background=6366f1&color=fff&bold=true&size=100&length=2';
+$defaultAvatar = '../../../public/img/default-avatar.svgG&background=6366f1&color=fff';
 $defaultBanner = '../../../public/uploads/groups/banners/default_banner.jpg';
 $u_d = $userData;
 $profilePicPath = '';
@@ -77,7 +77,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 ?>
 <!DOCTYPE html>
@@ -86,8 +86,8 @@ if ($profilePicPath === '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socail7 Groups Page</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>
+    
     <link rel="stylesheet" href="../../../public/css/Groups/groups.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Home/newPost.css">
@@ -217,7 +217,7 @@ if ($profilePicPath === '') {
                                 if (!empty($userData['ProfilePic']) && file_exists($path)) {
                                     echo $path;
                                 } else {
-                                    echo 'https://ui-avatars.com/api/?background=6366f1&color=fff&name=' . urlencode($userData['Username']);
+                                    echo '../../../public/img/default-avatar.svg';
                                 }
                             ?>" alt="Profile">
                             <div class="fake-input">What's on your mind?</div>

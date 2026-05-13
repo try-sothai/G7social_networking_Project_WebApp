@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
@@ -23,8 +23,9 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Story View</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css">
+    <link rel="stylesheet" href="../../../public/css/fonts/fonts.css">
+    
     <link rel="stylesheet" href="../../../public/css/Home/story_dashboard.css">
 </head>
 <body>
@@ -46,7 +47,7 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
                             if (!empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic'])) {
                                 echo '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
                             } else {
-                                echo 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'U') . '&background=1e293b&color=94a3b8&bold=true';
+                                echo '../../../public/img/default-avatar.svg';
                             }
                         ?>" alt="Profile">
                 <span><?php echo htmlspecialchars($u_d['Username'] ?? 'User'); ?></span>

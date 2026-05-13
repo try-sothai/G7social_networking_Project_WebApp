@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300">
+  <defs>
+    <linearGradient id="coverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" fill="url(#coverGrad)"/>
+  <circle cx="200" cy="80" r="120" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="1050" cy="220" r="180" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="600" cy="150" r="200" fill="rgba(255,255,255,0.03)"/>
+</svg>

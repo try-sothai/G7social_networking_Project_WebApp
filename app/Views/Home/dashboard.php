@@ -1,4 +1,4 @@
-<?php
+﻿<?php
     session_start();
 
     require_once '../../../config/db_config.php';
@@ -31,7 +31,7 @@
         }
     }
     if ($profilePicPath === '') {
-        $profilePicPath = 'https://via.placeholder.com/150';
+        $profilePicPath = '../../../public/img/default-avatar.svg';
     }
 ?>
 <!DOCTYPE html>
@@ -40,8 +40,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social7 Home Page</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <script>
         window.APP_CONFIG = {
@@ -271,7 +270,7 @@
                             <?php foreach ($trendingGroups as $tGroup): 
                                 $groupAvatar = !empty($tGroup['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $tGroup['GroupAvatar']) 
                                     ? '../../../public/uploads/groups/' . $tGroup['GroupAvatar'] 
-                                    : 'https://ui-avatars.com/api/?background=random&color=fff&bold=true&name=' . urlencode(substr($tGroup['GroupName'], 0, 2));
+                                    : '../../../public/img/default-avatar.svg';
                             ?>
                             <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="window.location.href='../Groups/group_details.php?id=<?php echo $tGroup['GroupID']; ?>'">
                                 <img src="<?php echo $groupAvatar; ?>" style="width: 45px; height: 45px; border-radius: 12px; object-fit: cover;" alt="Group Avatar">

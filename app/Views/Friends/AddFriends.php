@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/ProfileModel.php';
@@ -27,7 +27,7 @@ if (!empty($u_d['ProfilePic'])) {
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://via.placeholder.com/150';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 ?>
 
@@ -37,8 +37,7 @@ if ($profilePicPath === '') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socail7 Add Friends</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Friends/friends.css')); ?>">
 </head>
@@ -102,7 +101,7 @@ if ($profilePicPath === '') {
                             <?php foreach ($suggested_friends as $friend): ?>
                                 <?php
                                     $fPath = '../../../public/uploads/avatars/' . $friend['ProfilePic'];
-                                    $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : 'https://ui-avatars.com/api/?name=' . urlencode($friend['Username']) . '&background=dbeafe&color=1d4ed8&bold=true';
+                                    $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : '../../../public/img/default-avatar.svg';
                                 ?>
                                 <div class="suggest-card" data-user-id="<?php echo $friend['UserID']; ?>">
                                     <img src="<?php echo $fImg; ?>" alt="<?php echo htmlspecialchars($friend['Username']); ?>">
@@ -167,7 +166,7 @@ if ($profilePicPath === '') {
                 resultsGrid.innerHTML = users.map(user => {
                     const img = user.ProfilePic && user.ProfilePic !== 'default.png'
                         ? '../../../public/uploads/avatars/' + user.ProfilePic
-                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.Username)}&background=dbeafe&color=1d4ed8&bold=true`;
+                        : `../../../public/img/default-avatar.svg${encodeURIComponent(user.Username)}&background=dbeafe&color=1d4ed8
                     return `<div class="suggest-card" data-user-id="${user.UserID}">
                         <img src="${img}" alt="${escapeHtml(user.Username)}">
                         <div class="suggest-name">${escapeHtml(user.Username)}</div>
@@ -271,7 +270,7 @@ if ($profilePicPath === '') {
             document.body.classList.add('dark-mode');
         }
     </script>
-    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($user_data['Username'] ?? 'User'), $profilePicPath ?? 'https://via.placeholder.com/150'); ?>
+    <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($user_data['Username'] ?? 'User'), $profilePicPath ?? '../../../public/img/default-avatar.svg'); ?>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
 </body>

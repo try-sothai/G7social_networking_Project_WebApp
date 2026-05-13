@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 if (empty($_SESSION['csrf_token'])) {
@@ -31,17 +31,13 @@ $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
 $profilePicPath = '';
 if (!empty($u_d['ProfilePic'])) {
-    if (str_starts_with($u_d['ProfilePic'], 'http://') || str_starts_with($u_d['ProfilePic'], 'https://')) {
-        $profilePicPath = $u_d['ProfilePic'];
-    } else {
-        $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        if (is_file($candidate)) {
-            $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        }
+    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
+    if (is_file($candidate)) {
+        $profilePicPath = '../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
     }
 }
 if ($profilePicPath === '') {
-    $profilePicPath = 'https://ui-avatars.com/api/?name=' . urlencode($u_d['Username'] ?? 'User') . '&background=dbeafe&color=1d4ed8&bold=true';
+    $profilePicPath = '../../../public/img/default-avatar.svg';
 }
 
 // ── Personal Stats ─────────────────────────────────────────────────────────
@@ -142,8 +138,7 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social7 — My Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?= BASE_URL ?>public/css/Report/userReport.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(lc_public_asset('css/Home/dashboard.css')) ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -477,7 +472,7 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
                     <div class="profile-summary-top">
                         <img src="<?= htmlspecialchars($profilePicPath) ?>"
                              alt="<?= htmlspecialchars($u_d['Username'] ?? '') ?>"
-                             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=<?= urlencode($u_d['Username'] ?? 'U') ?>&background=dbeafe&color=1d4ed8'">
+                             onerror="this.onerror=null;this.src='../../../public/img/default-avatar.svg'">
                         <div>
                             <div class="profile-summary-name"><?= htmlspecialchars($u_d['Username'] ?? 'User') ?></div>
                             <div class="profile-summary-sub"><?= htmlspecialchars($u_d['Bio'] ?? 'No bio yet') ?></div>
