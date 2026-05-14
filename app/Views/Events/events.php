@@ -146,7 +146,7 @@ $responsiveJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/
             padding: 10px 16px;
         }
         .tab.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #667eea, #667eea);
             color: #fff;
         }
         .events-list.hidden {
