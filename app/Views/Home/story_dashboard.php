@@ -26,19 +26,27 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
     <link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css">
     <link rel="stylesheet" href="../../../public/css/fonts/fonts.css">
     
-    <link rel="stylesheet" href="../../../public/css/Home/story_dashboard.css">
+    <link rel="stylesheet" href="../../../public/css/Home/story_dashboard.css?v=<?php echo filemtime('../../../public/css/Home/story_dashboard.css'); ?>">
+    <script>
+        // Match dashboard default: treat null/missing as 'dark'
+        var _theme = localStorage.getItem('localconnect_theme') || 'dark';
+        if (_theme === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
     <div class="story-layout">
         <aside class="story-left">
             <a href="dashboard.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
-            <div class="story-notif-wrap" id="notificationBtn" style="position:relative;display:inline-flex;align-items:center;cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.08);margin-bottom:10px;">
+            <div class="story-notif-wrap" id="notificationBtn" style="position:relative;display:inline-flex;align-items:center;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--fb-btn-bg);margin-bottom:10px;color:var(--fb-btn-color);">
                 <i class="fa-solid fa-bell" style="font-size:18px;"></i>
                 <?php if ($unread_notifications > 0): ?>
                     <span class="notification-badge" style="position:absolute;top:-4px;right:-4px;"><?php echo $unread_notifications > 99 ? '99+' : $unread_notifications; ?></span>
                 <?php endif; ?>
                 <div class="notifications-dropdown" id="notificationsDropdown" style="left:0;right:auto;">
-                    <div class="notification-header" style="padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #e5e7eb; text-align: left;">Notifications</div>
+                    <div class="notification-header" style="text-align: left;">Notifications</div>
                     <div id="notificationsList" class="notification-list"></div>
                 </div>
             </div>
@@ -105,10 +113,9 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
     <script src="../../../public/js/Home/story_dashboard.js"></script>
     <script src="../../../public/js/common/notifications.js"></script>
     <script>
-        // Force dark mode — standalone page without the main sidebar
-        document.body.classList.add('dark-mode');
-        if (!localStorage.getItem('localconnect_theme')) {
-            localStorage.setItem('localconnect_theme', 'dark');
+        // Same logic as dashboard: null/missing → dark
+        if ((localStorage.getItem('localconnect_theme') || 'dark') === 'dark') {
+            document.body.classList.add('dark-mode');
         }
     </script>
 </body>

@@ -1,9 +1,27 @@
 :root {
+    --fb-bg: #f1f5f9;
+    --fb-panel: #ffffff;
+    --fb-text: #1e293b;
+    --fb-muted: #64748b;
+    --fb-blue: #2374e1;
+    --fb-border: #e2e8f0;
+    --fb-chip: #f1f5f9;
+    --fb-btn-bg: #e2e8f0;
+    --fb-btn-color: #1e293b;
+    --fb-stage-bg: #dde3ec;
+}
+
+html.dark-mode,
+body.dark-mode {
     --fb-bg: #18191a;
     --fb-panel: #242526;
     --fb-text: #e4e6eb;
     --fb-muted: #b0b3b8;
-    --fb-blue: #2374e1;
+    --fb-border: #3a3b3c;
+    --fb-chip: #3a3b3c;
+    --fb-btn-bg: #3a3b3c;
+    --fb-btn-color: #ffffff;
+    --fb-stage-bg: #080b12;
 }
 
 * {
@@ -30,7 +48,7 @@ body {
 
 .story-left {
     background: var(--fb-panel);
-    border-right: 1px solid #3a3b3c;
+    border-right: 1px solid var(--fb-border);
     padding: 18px;
 }
 
@@ -39,8 +57,8 @@ body {
     align-items: center;
     gap: 8px;
     text-decoration: none;
-    color: #fff;
-    background: #3a3b3c;
+    color: var(--fb-btn-color);
+    background: var(--fb-btn-bg);
     padding: 10px 14px;
     border-radius: 8px;
     margin-bottom: 16px;
@@ -52,7 +70,8 @@ body {
     gap: 10px;
     padding: 10px;
     border-radius: 10px;
-    background: #3a3b3c;
+    background: var(--fb-chip);
+    color: var(--fb-text);
 }
 
 .profile-chip img {
@@ -67,7 +86,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: radial-gradient(ellipse at center, #12161f 0%, #080b12 100%);
+    background: var(--fb-stage-bg);
 }
 
 .story-viewer-wrap {
@@ -87,7 +106,7 @@ body {
     height: 100%;
     background: #101114;
     border-radius: 14px;
-    border: 1px solid #3a3b3c;
+    border: 1px solid var(--fb-border);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -201,7 +220,7 @@ body {
 }
 
 .story-menu button:hover {
-    background: #2d2f31;
+    background: rgba(255,255,255,0.08);
 }
 
 .story-menu button.danger {
@@ -260,13 +279,13 @@ body {
 .story-nav-prev {
     grid-column: 1;
     border-radius: 20px 0 0 20px;
-    border-right: 1px solid #343a44;
+    border-right: 1px solid var(--fb-border);
 }
 
 .story-nav-next {
     grid-column: 3;
     border-radius: 0 20px 20px 0;
-    border-left: 1px solid #343a44;
+    border-left: 1px solid var(--fb-border);
 }
 
 .story-nav-btn i {
@@ -391,7 +410,7 @@ body {
     height: 18px;
     padding: 0 4px;
     border-radius: 20px;
-    border: 2px solid #18191a;
+    border: 2px solid var(--fb-panel);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -404,10 +423,10 @@ body {
     left: 0;
     width: 320px;
     max-width: calc(100vw - 24px);
-    background: #1e293b;
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: var(--fb-panel);
+    border: 1px solid var(--fb-border);
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     display: none;
     z-index: 1000;
     cursor: default;
@@ -420,8 +439,8 @@ body {
     padding: 12px 16px;
     font-weight: 700;
     font-size: 0.9rem;
-    color: #e2e8f0;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    color: var(--fb-text);
+    border-bottom: 1px solid var(--fb-border);
 }
 
 .notification-list {
@@ -431,17 +450,19 @@ body {
 
 .notification-item {
     padding: 11px 16px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    border-bottom: 1px solid var(--fb-border);
     display: flex;
     align-items: flex-start;
     gap: 10px;
     text-decoration: none;
-    color: #cbd5e1;
+    color: var(--fb-text);
     font-size: 0.875rem;
     line-height: 1.4;
 }
 
-.notification-item:hover   { background: rgba(255, 255, 255, 0.04); }
+.notification-item:hover   { background: rgba(0, 0, 0, 0.04); }
+body.dark-mode .notification-item:hover,
+html.dark-mode .notification-item:hover { background: rgba(255, 255, 255, 0.04); }
 .notification-item.unread  { background: rgba(59, 130, 246, 0.1); }
 
 .notification-item img {
@@ -452,5 +473,5 @@ body {
     flex-shrink: 0;
 }
 
-.notification-item .notif-text  { flex: 1; font-size: 0.83rem; color: #cbd5e1; }
-.notification-item .notif-time  { font-size: 0.72rem; color: #64748b; margin-top: 3px; }
+.notification-item .notif-text  { flex: 1; font-size: 0.83rem; color: var(--fb-text); }
+.notification-item .notif-time  { font-size: 0.72rem; color: var(--fb-muted); margin-top: 3px; }
