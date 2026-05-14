@@ -56,7 +56,15 @@ switch ($action) {
         $result = $model->updateReportStatus(
             $actorId,
             (int)($_POST['report_id'] ?? 0),
-            (string)($_POST['new_report_status'] ?? '')
+            (string)($_POST['new_report_status'] ?? ''),
+            (string)($_POST['admin_note'] ?? '')
+        );
+        break;
+
+    case 'delete_post':
+        $result = $model->deletePost(
+            $actorId,
+            (int)($_POST['post_id'] ?? 0)
         );
         break;
 }

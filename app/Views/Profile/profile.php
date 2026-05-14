@@ -6,6 +6,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Groups/GroupModel.php';
 require_once '../../Models/Friends/FriendModel.php';
@@ -105,8 +106,17 @@ function normalizePostMediaPath($path) {
         return '';
     }
 
-    if (preg_match('#^(https?:)?//#i', $raw) || str_starts_with($raw, 'data:')) {
+    if (str_starts_with($raw, 'data:')) {
         return $raw;
+    }
+
+    // Strip hostname from absolute URLs (old ngrok / Cloudflare tunnel URLs)
+    if (preg_match('#^(https?:)?//#i', $raw)) {
+        $localFile = basename(parse_url($raw, PHP_URL_PATH) ?? '');
+        if ($localFile !== '') {
+            return buildAppUrl('/public/uploads/posts/' . $localFile);
+        }
+        return '';
     }
 
     $base = basename($raw);
@@ -224,9 +234,7 @@ if ($headerPicPath === '') {
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <link rel="stylesheet" href="../../../public/css/Profile/profile.css">
     <script>
-        window.APP_CONFIG = {
-            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
-        };
+        window.APP_CONFIG = <?php echo getJsConfig(); ?>;
     </script>
     <style>
         /* Lightbox */

@@ -140,21 +140,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resolveMediaUrl(mediaPath) {
         const raw = String(mediaPath || '').replace(/\\/g, '/').trim();
-        if (!raw) {
-            return FALLBACK_STORY;
-        }
-        // If it's already a full URL or a data URI, return it as is.
-        if (raw.startsWith('http') || raw.startsWith('data:')) {
-            return raw;
+        if (!raw) return FALLBACK_STORY;
+        if (raw.startsWith('data:')) return raw;
+
+        // Strip expired tunnel hostnames (ngrok / Cloudflare) and rebuild with current base
+        if (/^https?:\/\//i.test(raw)) {
+            const marker = '/public/uploads/';
+            const idx = raw.indexOf(marker);
+            if (idx !== -1) {
+                const rel = raw.slice(idx + marker.length); // e.g. "posts/post_18_xxx.mp4"
+                const uploadsBase = (window.APP_CONFIG?.uploadsPath || '').replace(/\/$/, '');
+                if (uploadsBase) return uploadsBase + '/' + rel;
+            }
+            return raw; // genuine external URL — leave untouched
         }
 
-        // For relative paths like "../../../public/uploads/...",
-        // use the URL constructor to resolve it against the current page's location.
-        // This is the most reliable way to get the correct full URL.
         try {
             return new URL(raw, window.location.href).href;
         } catch (e) {
-            // If constructor fails, return the raw path as a fallback.
             return raw;
         }
     }
@@ -162,7 +165,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function resolveAvatarUrl(avatarPath) {
         const raw = String(avatarPath || '').replace(/\\/g, '/').trim();
         if (!raw) return FALLBACK_AVATAR;
-        if (/^(https?:)?\/\//i.test(raw) || raw.startsWith('data:')) return raw;
+        if (raw.startsWith('data:')) return raw;
+        // Strip expired tunnel hostnames for avatar uploads
+        if (/^https?:\/\//i.test(raw)) {
+            const marker = '/public/uploads/avatars/';
+            const idx = raw.indexOf(marker);
+            if (idx !== -1) {
+                const file = raw.slice(idx + marker.length);
+                const base = (window.APP_CONFIG?.imagePath || '').replace(/\/$/, '');
+                if (base && file) return base + '/' + file;
+            }
+            return raw;
+        }
 
         if (raw.startsWith('../../../public/uploads/avatars/') || raw.startsWith('/')) {
             return resolveMediaUrl(raw);

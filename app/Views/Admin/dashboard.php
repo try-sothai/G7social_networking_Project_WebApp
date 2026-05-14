@@ -74,7 +74,7 @@ function admin_short_text(?string $value, int $length = 110): string
 {
     $value = trim((string)$value);
     if ($value === '') {
-        return 'No details';
+        return '';
     }
 
     if (mb_strlen($value, 'UTF-8') <= $length) {
@@ -82,6 +82,45 @@ function admin_short_text(?string $value, int $length = 110): string
     }
 
     return mb_substr($value, 0, $length - 3, 'UTF-8') . '...';
+}
+
+function admin_strike_badge(int $strikes): string
+{
+    if ($strikes === 0) return '';
+    if ($strikes >= 5) {
+        $cls = 'danger';
+        $label = "⚠️ {$strikes} Strikes — AUTO BANNED";
+    } elseif ($strikes >= 3) {
+        $cls = 'warning';
+        $label = "⚠️ {$strikes} Strikes — AUTO SUSPENDED";
+    } else {
+        $cls = 'info';
+        $label = "⚠️ {$strikes} Strike" . ($strikes > 1 ? 's' : '');
+    }
+    return '<span class="admin-badge ' . $cls . '" title="Resolved reports against this user">' . htmlspecialchars($label) . '</span>';
+}
+
+function admin_post_preview(array $report): string
+{
+    $content = trim((string)($report['PostContent'] ?? ''));
+    $mediaType = (string)($report['PostMediaType'] ?? 'text');
+    $hasMedia = !empty($report['PostMediaPath']) || !empty($report['PostImagePath']);
+
+    if ($content !== '') {
+        $short = admin_short_text($content, 200);
+        $icon = $mediaType === 'video' ? '🎬 ' : ($hasMedia ? '🖼️ ' : '');
+        return $icon . htmlspecialchars($short);
+    }
+
+    if ($mediaType === 'video' || (!empty($report['PostMediaPath']) && preg_match('/\.(mp4|mov|avi|mkv|webm)$/i', (string)$report['PostMediaPath']))) {
+        return '🎬 <em>[Video post — no caption]</em>';
+    }
+
+    if ($hasMedia || $mediaType === 'image') {
+        return '🖼️ <em>[Image post — no caption]</em>';
+    }
+
+    return '<em style="color:#94a3b8">[Post deleted or content unavailable]</em>';
 }
 ?>
 <!DOCTYPE html>
@@ -242,6 +281,22 @@ function admin_short_text(?string $value, int $length = 110): string
             font-family: inherit;
             font-size: 13px;
             width: 135px;
+        }
+
+        /* 🔗 Post link in report card */
+        .admin-post-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .admin-post-link:hover { text-decoration: underline; }
+
+        /* 🌙 Dark mode note textarea */
+        body.dark-mode .admin-note-input {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: rgba(148,163,184,0.3) !important;
         }
 
         /* 🛡️ Report Action Buttons Styling */
@@ -617,13 +672,27 @@ function admin_short_text(?string $value, int $length = 110): string
                     <?php endif; ?>
 
                     <?php foreach ($reports as $report): ?>
+                        <?php
+                            $postId       = (int)($report['PostID'] ?? $report['EntityID'] ?? 0);
+                            $targetUserId = (int)($report['TargetUserID'] ?? 0);
+                            $strikes      = (int)($report['TargetUserStrikes'] ?? 0);
+                            $profileUrl   = $targetUserId > 0
+                                ? htmlspecialchars(BASE_URL . 'app/Views/Profile/profile.php?user_id=' . $targetUserId)
+                                : '#';
+                        ?>
                         <article class="admin-report-card">
                             <div class="admin-report-top">
                                 <div>
                                     <div class="admin-report-meta">
                                         <span class="admin-badge <?= admin_badge_class((string)$report['Status']) ?>"><?= htmlspecialchars((string)$report['Status']) ?></span>
-                                        <span>Post #<?= (int)($report['PostID'] ?? $report['EntityID'] ?? 0) ?></span>
-                                        <span>Created <?= htmlspecialchars((string)$report['CreatedAt']) ?></span>
+                                        <?php if ($postId > 0): ?>
+                                            <a href="<?= $profileUrl ?>" target="_blank" class="admin-post-link" title="View post author profile">
+                                                Post #<?= $postId ?> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <span>Post #<?= $postId ?></span>
+                                        <?php endif; ?>
+                                        <span>Reported <?= htmlspecialchars((string)$report['CreatedAt']) ?></span>
                                     </div>
                                     <h3><?= htmlspecialchars((string)$report['Reason']) ?></h3>
                                 </div>
@@ -632,15 +701,39 @@ function admin_short_text(?string $value, int $length = 110): string
                             <div class="admin-report-grid">
                                 <div>
                                     <label>Reporter</label>
-                                    <p><?= htmlspecialchars((string)$report['ReporterName']) ?><?php if (!empty($report['ReporterEmail'])): ?> | <?= htmlspecialchars((string)$report['ReporterEmail']) ?><?php endif; ?></p>
+                                    <p>
+                                        <?= htmlspecialchars((string)$report['ReporterName']) ?>
+                                        <?php if (!empty($report['ReporterEmail'])): ?>
+                                            <br><small style="color:#64748b"><?= htmlspecialchars((string)$report['ReporterEmail']) ?></small>
+                                        <?php endif; ?>
+                                    </p>
                                 </div>
                                 <div>
                                     <label>Target User</label>
-                                    <p><?= htmlspecialchars((string)($report['TargetUserName'] ?? 'Unknown user')) ?></p>
+                                    <p>
+                                        <?php if ($targetUserId > 0): ?>
+                                            <a href="<?= $profileUrl ?>" target="_blank" style="color:#2563eb;text-decoration:none">
+                                                <?= htmlspecialchars((string)($report['TargetUserName'] ?? 'Unknown')) ?>
+                                                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <?= htmlspecialchars((string)($report['TargetUserName'] ?? 'Unknown user')) ?>
+                                        <?php endif; ?>
+                                        <?php if ($strikes > 0): ?>
+                                            <br><?= admin_strike_badge($strikes) ?>
+                                        <?php endif; ?>
+                                    </p>
                                 </div>
                                 <div class="admin-report-span">
-                                    <label>Post Preview</label>
-                                    <p><?= htmlspecialchars(admin_short_text((string)($report['PostContent'] ?? ''), 180)) ?></p>
+                                    <label>Post Preview
+                                        <?php if ($postId > 0 && $targetUserId > 0): ?>
+                                            — <a href="<?= $profileUrl ?>" target="_blank" style="color:#2563eb;font-size:12px;font-weight:600">View on Profile <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px"></i></a>
+                                        <?php endif; ?>
+                                    </label>
+                                    <p><?= admin_post_preview($report) ?></p>
+                                    <?php if (!empty($report['Details'])): ?>
+                                        <p style="margin-top:6px;color:#64748b;font-size:13px"><strong>Reporter note:</strong> <?= htmlspecialchars(admin_short_text((string)$report['Details'], 300)) ?></p>
+                                    <?php endif; ?>
                                 </div>
                                 <div>
                                     <label>Reviewed By</label>
@@ -650,20 +743,51 @@ function admin_short_text(?string $value, int $length = 110): string
                                     <label>Reviewed At</label>
                                     <p><?= htmlspecialchars((string)($report['ReviewedAt'] ?? 'Pending review')) ?></p>
                                 </div>
+                                <?php if (!empty($report['AdminNote'])): ?>
+                                    <div class="admin-report-span" style="background:#f0fdf4;border-left:3px solid #10b981;padding:10px 14px;border-radius:6px">
+                                        <label style="color:#059669">Admin Note</label>
+                                        <p><?= htmlspecialchars((string)$report['AdminNote']) ?></p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
-                            <div class="admin-report-actions">
-                                <?php foreach (['Reviewed', 'Resolved', 'Pending'] as $status): ?>
-                                    <form method="post" action="<?= htmlspecialchars(BASE_URL . 'app/Controllers/Admin/admin_actions.php') ?>">
-                                        <input type="hidden" name="action" value="update_report">
-                                        <input type="hidden" name="report_id" value="<?= (int)$report['ReportID'] ?>">
-                                        <input type="hidden" name="new_report_status" value="<?= htmlspecialchars($status) ?>">
-                                        <?php admin_render_return_fields($search, $roleFilter, $statusFilter, $reportStatus, $reportSearch); ?>
-                                    <button type="submit" class="admin-btn-<?= strtolower($status) ?>">
-                                            Mark <?= htmlspecialchars($status) ?>
-                                        </button>
-                                    </form>
-                                <?php endforeach; ?>
+                            <!-- Admin Note + Status Actions -->
+                            <div class="admin-report-actions" style="flex-direction:column;gap:12px">
+                                <div style="width:100%">
+                                    <label for="note_<?= (int)$report['ReportID'] ?>" style="font-size:13px;font-weight:600;color:#475569;display:block;margin-bottom:4px">
+                                        <i class="fa-solid fa-note-sticky"></i> Admin Note (optional — saved with any status change)
+                                    </label>
+                                    <textarea id="note_<?= (int)$report['ReportID'] ?>"
+                                        class="admin-note-input"
+                                        data-report-id="<?= (int)$report['ReportID'] ?>"
+                                        rows="2"
+                                        placeholder="Write a note explaining the decision..."
+                                        style="width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"><?= htmlspecialchars((string)($report['AdminNote'] ?? '')) ?></textarea>
+                                </div>
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                                    <?php foreach (['Reviewed', 'Resolved', 'Pending'] as $st): ?>
+                                        <form method="post" action="<?= htmlspecialchars(BASE_URL . 'app/Controllers/Admin/admin_actions.php') ?>" class="admin-status-form" data-report-id="<?= (int)$report['ReportID'] ?>">
+                                            <input type="hidden" name="action" value="update_report">
+                                            <input type="hidden" name="report_id" value="<?= (int)$report['ReportID'] ?>">
+                                            <input type="hidden" name="new_report_status" value="<?= htmlspecialchars($st) ?>">
+                                            <input type="hidden" name="admin_note" class="admin-note-carrier" value="">
+                                            <?php admin_render_return_fields($search, $roleFilter, $statusFilter, $reportStatus, $reportSearch); ?>
+                                            <button type="submit" class="admin-btn-<?= strtolower($st) ?>">Mark <?= htmlspecialchars($st) ?></button>
+                                        </form>
+                                    <?php endforeach; ?>
+
+                                    <?php if ($postId > 0): ?>
+                                        <form method="post" action="<?= htmlspecialchars(BASE_URL . 'app/Controllers/Admin/admin_actions.php') ?>"
+                                              onsubmit="return confirm('Delete Post #<?= $postId ?>? This cannot be undone.')">
+                                            <input type="hidden" name="action" value="delete_post">
+                                            <input type="hidden" name="post_id" value="<?= $postId ?>">
+                                            <?php admin_render_return_fields($search, $roleFilter, $statusFilter, $reportStatus, $reportSearch); ?>
+                                            <button type="submit" style="background:#ef4444!important;color:#fff!important;padding:8px 16px;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer">
+                                                <i class="fa-solid fa-trash"></i> Delete Post
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </article>
                     <?php endforeach; ?>
@@ -676,6 +800,19 @@ function admin_short_text(?string $value, int $length = 110): string
     <?php lc_shell_render_user_bootstrap($currentUserId, (string)($currentUser['Username'] ?? 'Admin'), $profilePicPath); ?>
     <script src="<?= htmlspecialchars(lc_public_asset('js/common/theme-toggle.js')) ?>"></script>
     <script src="<?= htmlspecialchars(lc_public_asset('js/Home/responsive.js')) ?>"></script>
+    <script>
+        // Copy the admin note textarea value into every status-change form for that report
+        document.querySelectorAll('.admin-status-form').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                var reportId = form.dataset.reportId;
+                var textarea = document.getElementById('note_' + reportId);
+                var carrier  = form.querySelector('.admin-note-carrier');
+                if (textarea && carrier) {
+                    carrier.value = textarea.value.trim();
+                }
+            });
+        });
+    </script>
     
     <script>
         // Load data from PHP into JavaScript

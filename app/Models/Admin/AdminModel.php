@@ -113,6 +113,7 @@ class AdminModel
                 r.EntityID,
                 r.Reason,
                 r.Details,
+                r.AdminNote,
                 r.Status,
                 r.CreatedAt,
                 r.ReviewedAt,
@@ -122,8 +123,18 @@ class AdminModel
                 reviewer.Username AS ReviewerName,
                 p.PostID,
                 p.Content AS PostContent,
+                p.MediaType AS PostMediaType,
+                p.MediaPath AS PostMediaPath,
+                p.ImagePath AS PostImagePath,
                 target_user.UserID AS TargetUserID,
-                target_user.Username AS TargetUserName
+                target_user.Username AS TargetUserName,
+                (
+                    SELECT COUNT(*)
+                    FROM admin_reports ar2
+                    INNER JOIN posts p2 ON ar2.EntityType = 'post' AND p2.PostID = ar2.EntityID
+                    WHERE p2.UserID = target_user.UserID
+                      AND ar2.Status = 'Resolved'
+                ) AS TargetUserStrikes
             FROM admin_reports r
             INNER JOIN users reporter ON reporter.UserID = r.ReporterID
             LEFT JOIN posts p ON r.EntityType = 'post' AND p.PostID = r.EntityID
@@ -197,7 +208,7 @@ class AdminModel
         return $this->manageUser($actorId, $targetId, ['status' => $newStatus]);
     }
 
-    public function updateReportStatus(int $actorId, int $reportId, string $newStatus): array
+    public function updateReportStatus(int $actorId, int $reportId, string $newStatus, string $adminNote = ''): array
     {
         $newStatus = trim($newStatus);
         if (!in_array($newStatus, ['Pending', 'Reviewed', 'Resolved', 'Dismissed'], true)) {
@@ -209,18 +220,100 @@ class AdminModel
             return ['success' => false, 'message' => 'Unauthorized action.'];
         }
 
+        $noteValue = $adminNote !== '' ? mb_substr(trim($adminNote), 0, 1000, 'UTF-8') : null;
+
         $stmt = $this->db->prepare("
             UPDATE admin_reports
-            SET Status = :status, ReviewedBy = :reviewed_by, ReviewedAt = NOW()
+            SET Status = :status, ReviewedBy = :reviewed_by, ReviewedAt = NOW(),
+                AdminNote = CASE WHEN :note IS NOT NULL THEN :note ELSE AdminNote END
             WHERE ReportID = :report_id
         ");
         $stmt->execute([
-            ':status' => $newStatus,
+            ':status'      => $newStatus,
             ':reviewed_by' => $actorId,
-            ':report_id' => $reportId,
+            ':note'        => $noteValue,
+            ':report_id'   => $reportId,
         ]);
 
-        return ['success' => $stmt->rowCount() > 0, 'message' => 'Report updated successfully.'];
+        if ($stmt->rowCount() > 0 && in_array($newStatus, ['Resolved', 'Reviewed'], true)) {
+            $this->handlePostResolveActions($actorId, $reportId, $newStatus);
+        }
+
+        return ['success' => $stmt->rowCount() > 0 || true, 'message' => 'Report updated successfully.'];
+    }
+
+    private function handlePostResolveActions(int $actorId, int $reportId, string $newStatus): void
+    {
+        // Fetch report + post owner
+        $stmt = $this->db->prepare("
+            SELECT r.ReporterID, r.EntityID,
+                   p.UserID AS PostOwnerID
+            FROM admin_reports r
+            LEFT JOIN posts p ON r.EntityType = 'post' AND p.PostID = r.EntityID
+            WHERE r.ReportID = :id
+            LIMIT 1
+        ");
+        $stmt->execute([':id' => $reportId]);
+        $info = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$info) {
+            return;
+        }
+
+        // Notify the reporter that their report was actioned
+        $reporterId = (int)$info['ReporterID'];
+        if ($reporterId > 0 && $reporterId !== $actorId) {
+            try {
+                $notifStmt = $this->db->prepare("
+                    INSERT INTO notifications (UserID, TriggerID, Type, IsRead, CreatedAt)
+                    VALUES (:user_id, :trigger_id, 'ReportResolved', 0, NOW())
+                ");
+                $notifStmt->execute([
+                    ':user_id'    => $reporterId,
+                    ':trigger_id' => $actorId,
+                ]);
+            } catch (PDOException $e) {
+                error_log('Report notification error: ' . $e->getMessage());
+            }
+        }
+
+        // Auto-action on the post owner based on resolved-strike count
+        if ($newStatus !== 'Resolved') {
+            return;
+        }
+
+        $postOwnerId = (int)($info['PostOwnerID'] ?? 0);
+        if ($postOwnerId <= 0 || $postOwnerId === 1) {
+            return;
+        }
+
+        $strikeStmt = $this->db->prepare("
+            SELECT COUNT(*) FROM admin_reports ar
+            INNER JOIN posts p ON ar.EntityType = 'post' AND p.PostID = ar.EntityID
+            WHERE p.UserID = :uid AND ar.Status = 'Resolved'
+        ");
+        $strikeStmt->execute([':uid' => $postOwnerId]);
+        $strikes = (int)$strikeStmt->fetchColumn();
+
+        if ($strikes >= 5) {
+            $this->db->prepare("UPDATE users SET AccountStatus = 'Banned' WHERE UserID = :id AND UserID != 1")
+                ->execute([':id' => $postOwnerId]);
+        } elseif ($strikes >= 3) {
+            $this->db->prepare("UPDATE users SET AccountStatus = 'Suspended' WHERE UserID = :id AND UserID != 1")
+                ->execute([':id' => $postOwnerId]);
+        }
+    }
+
+    public function deletePost(int $actorId, int $postId): array
+    {
+        $actor = $this->getUserById($actorId);
+        if (!$actor || !in_array($actor['Role'], ['Admin', 'SuperAdmin'], true)) {
+            return ['success' => false, 'message' => 'Unauthorized action.'];
+        }
+
+        $stmt = $this->db->prepare("DELETE FROM posts WHERE PostID = :post_id");
+        $stmt->execute([':post_id' => $postId]);
+
+        return ['success' => $stmt->rowCount() > 0, 'message' => $stmt->rowCount() > 0 ? 'Post deleted.' : 'Post not found.'];
     }
 
     private function manageUser(int $actorId, int $targetId, array $changes): array

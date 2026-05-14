@@ -36,6 +36,7 @@
                 case 'newevent': return 'created a new event';
                 case 'groupinvite': return 'invited you to a group';
                 case 'mention': return 'mentioned you in a post';
+                case 'reportresolved': return 'reviewed and resolved your report';
                 default: return 'interacted with your profile';
             }
         }

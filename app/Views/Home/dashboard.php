@@ -43,9 +43,7 @@
     <?php lc_shell_render_head_assets(); ?>    
     <link rel="stylesheet" href="<?php echo htmlspecialchars(lc_public_asset('css/Home/dashboard.css')); ?>">
     <script>
-        window.APP_CONFIG = {
-            csrfToken: '<?php echo $_SESSION['csrf_token']; ?>'
-        };
+        window.APP_CONFIG = <?php echo getJsConfig(); ?>;
         (function () {
             const key = 'localconnect_theme';
             if (!localStorage.getItem(key)) {

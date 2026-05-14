@@ -48,6 +48,7 @@ if (!function_exists('lc_admin_table_exists')) {
                     EntityID   INT           NOT NULL,
                     Reason     VARCHAR(255)  NOT NULL,
                     Details    TEXT          NULL,
+                    AdminNote  TEXT          NULL,
                     Status     ENUM('Pending','Reviewed','Resolved','Dismissed') DEFAULT 'Pending',
                     ReviewedBy INT           NULL,
                     ReviewedAt DATETIME      NULL,
@@ -59,6 +60,24 @@ if (!function_exists('lc_admin_table_exists')) {
                     KEY idx_admin_reports_created_at (CreatedAt)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3
             ");
+        }
+
+        // Add AdminNote column if missing (for existing installations)
+        if (!lc_admin_column_exists($conn, 'admin_reports', 'AdminNote')) {
+            $conn->exec("ALTER TABLE admin_reports ADD COLUMN AdminNote TEXT NULL AFTER Details");
+        }
+
+        // Add ReportResolved notification type if not already present
+        try {
+            $conn->exec("
+                ALTER TABLE notifications
+                MODIFY COLUMN Type ENUM(
+                    'Like','Comment','FriendRequest','Message',
+                    'NewEvent','GroupInvite','Mention','Share','ReportResolved'
+                ) NOT NULL
+            ");
+        } catch (PDOException $e) {
+            // Enum already contains the value or alter not needed — safe to ignore
         }
 
         $schemaReady = true;
