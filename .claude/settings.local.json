@@ -22,7 +22,8 @@
       "PowerShell(net stop wampapache64)",
       "PowerShell(net start wampapache64)",
       "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\G7social_networking_Project_WebApp\" -Recurse -Directory)",
-      "Bash(Select-Object -First 20)"
+      "Bash(Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\G7social_networking_Project_WebApp\" -Force)"
     ]
   }
 }
