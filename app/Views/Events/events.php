@@ -2,7 +2,7 @@
     session_start();
 
     require_once '../../../config/db_config.php';
-
+    require_once '../../Helpers/functions.php';
     require_once '../../Models/Profile/ProfileModel.php';
     require_once '../../Models/Friends/FriendModel.php';
     require_once __DIR__ . '/../Component/dashboard_shell.php';
@@ -106,16 +106,7 @@
         return $fallback;
     }
 
-    $profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+    $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 $eventsCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Events/events.css') ?: time());
 $dashboardCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Home/dashboard.css') ?: time());
 $dashboardJsVersion = (string) (@filemtime(__DIR__ . '/../../../public/js/Home/dashboard.js') ?: time());

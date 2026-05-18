@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/editProfileModel.php';
 require_once '../../Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
@@ -24,16 +25,7 @@ $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
 $interests = $model->getInterests($user_id);
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = BASE_URL . 'public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = BASE_URL . 'public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 
 <!DOCTYPE html>

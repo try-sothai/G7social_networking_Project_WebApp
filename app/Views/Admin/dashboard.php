@@ -32,13 +32,7 @@ $reports = $adminModel->getReports($reportStatus, $reportSearch);
 $flash = $_SESSION['admin_flash'] ?? null;
 unset($_SESSION['admin_flash']);
 
-$profilePicPath = '../../../public/img/default-avatar.svg';
-if (!empty($currentUser['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $currentUser['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $currentUser['ProfilePic'];
-    }
-}
+$profilePicPath = getAvatarUrl($currentUser['ProfilePic'] ?? null);
 
 function admin_badge_class(string $value): string
 {

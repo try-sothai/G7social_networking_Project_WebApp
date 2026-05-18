@@ -30,16 +30,7 @@ $model = new ProfileModel($conn);
 $u_d = $model->getUserData($user_id);
 $friendModel = new FriendModel($conn);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 
 $reportModel = new ReportModel($conn);
 

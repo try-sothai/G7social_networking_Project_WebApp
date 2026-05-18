@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -20,16 +21,7 @@ $user_id = $_SESSION['user_id'];
 $u_d = $model->getUserData($user_id);
 /** @var EventModel $eventModel */
 $eventModel = new EventModel($conn);
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = 'https://i.pravatar.cc/150?u=' . $user_id;
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 
 $createEventCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Events/create_event.css') ?: time());
 $dashboardCssVersion = (string) (@filemtime(__DIR__ . '/../../../public/css/Home/dashboard.css') ?: time());

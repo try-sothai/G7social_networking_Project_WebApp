@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
@@ -13,16 +14,7 @@ $user_id = $_SESSION['user_id'];
 $profileModel = new ProfileModel($conn);
 $u_d = $profileModel->getUserData($user_id);
 
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = BASE_URL . 'public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = BASE_URL . 'public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 <!DOCTYPE html>
 <html lang="km">

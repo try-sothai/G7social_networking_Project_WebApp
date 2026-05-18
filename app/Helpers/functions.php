@@ -10,6 +10,34 @@ function getImageUrl($imagePath = '') {
     return BASE_URL . 'public/uploads/avatars/' . ltrim($imagePath, '/');
 }
 
+/**
+ * Returns the avatar URL for a user.
+ * Falls back to default-avatar.svg when no real photo is uploaded.
+ *
+ * Usage: getAvatarUrl($u_d['ProfilePic'])
+ */
+function getAvatarUrl(?string $profilePic): string
+{
+    $base    = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
+    $default = $base . '/public/img/default-avatar.svg';
+
+    if (empty($profilePic)) {
+        return $default;
+    }
+
+    // Strip any URL prefix that may have been stored accidentally
+    if (str_contains($profilePic, '/public/uploads/avatars/')) {
+        $parts      = explode('/public/uploads/avatars/', $profilePic, 2);
+        $profilePic = basename($parts[1]);
+    }
+
+    $diskPath = dirname(__DIR__, 2) . '/public/uploads/avatars/' . $profilePic;
+
+    return is_file($diskPath)
+        ? $base . '/public/uploads/avatars/' . $profilePic
+        : $default;
+}
+
 function getProfileUrl($userId = 0) {
     $id = (int)$userId;
     if ($id > 0) {

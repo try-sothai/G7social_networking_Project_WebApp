@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once dirname(__DIR__, 3) . '/config/db_config.php';
+require_once dirname(__DIR__, 2) . '/Helpers/functions.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 
@@ -51,9 +52,7 @@ $isOwner = ((int)($group['CreatedBy'] ?? 0) === $user_id);
 require_once dirname(__DIR__, 2) . '/Models/Profile/ProfileModel.php';
 $profileModel = new ProfileModel($conn);
 $u_d = $profileModel->getUserData($user_id);
-$profilePicPath = !empty($u_d['ProfilePic']) && file_exists(__DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic']) 
-    ? '../../../public/uploads/avatars/' . $u_d['ProfilePic'] 
-    : '../../../public/img/default-avatar.svg';
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 
 // Set group avatar and banner images
 $groupAvatar = !empty($group['GroupAvatar']) && file_exists('../../../public/uploads/groups/' . $group['GroupAvatar']) 
