@@ -160,6 +160,11 @@ if ($profilePicPath === '') {
     <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
     
     <script>
+        window.APP_CONFIG = {
+            csrfToken: '<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>'
+        };
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const saveBtn = document.getElementById('save-btn');
             const profileInput = document.getElementById('upload-photo');
@@ -227,6 +232,7 @@ if ($profilePicPath === '') {
             // Save via AJAX to Controller
             saveBtn.addEventListener('click', async () => {
                 const formData = new FormData();
+                formData.append('csrf_token', window.APP_CONFIG.csrfToken);
                 formData.append('username', usernameInput.value.trim());
                 formData.append('bio', bioInput.value.trim());
                 formData.append('Locations', locationInput.value.trim());

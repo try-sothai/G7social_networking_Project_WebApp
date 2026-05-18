@@ -92,7 +92,7 @@ if (!function_exists('lc_admin_table_exists')) {
     function lc_admin_normalize_status(?string $status): string
     {
         $status = trim((string)$status);
-        return in_array($status, ['Active', 'Suspended', 'Banned'], true) ? $status : 'Active';
+        return in_array($status, ['Active', 'Pending', 'Suspended', 'Banned'], true) ? $status : 'Active';
     }
 
     function lc_admin_sync_session(PDO $conn): void

@@ -23,7 +23,8 @@
       "PowerShell(net start wampapache64)",
       "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\G7social_networking_Project_WebApp\" -Recurse -Directory)",
       "Bash(Select-Object -First 20)",
-      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\G7social_networking_Project_WebApp\" -Force)"
+      "Bash(Get-ChildItem -Path \"c:\\\\wamp64\\\\www\\\\G7social_networking_Project_WebApp\" -Force)",
+      "Bash(php -r \"echo realpath\\('c:\\\\\\\\wamp64\\\\\\\\www\\\\\\\\G7social_networking_Project_WebApp\\\\\\\\app\\\\\\\\Views\\\\\\\\Login' . '/../../../app/Helpers/mailer.php'\\);\")"
     ]
   }
 }

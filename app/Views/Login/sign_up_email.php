@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once __DIR__ . '/../../../app/Helpers/mailer.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -40,14 +41,20 @@ if (isset($_POST['signup'])) {
                 $passwordHash = password_hash($pass_val, PASSWORD_DEFAULT);
                 $token = bin2hex(random_bytes(32));
 
-                $stmt = $conn->prepare("INSERT INTO users (Username, Email, Password, AccountStatus, VerificationToken, Role) VALUES (:Username, :Email, :Password, 'Active', :VerificationToken, 'User')");
+                $stmt = $conn->prepare("INSERT INTO users (Username, Email, Password, AccountStatus, VerificationToken, Role) VALUES (:Username, :Email, :Password, 'Pending', :VerificationToken, 'User')");
                 $stmt->bindValue(':Username', $username_val, PDO::PARAM_STR);
                 $stmt->bindValue(':Email', $email_val, PDO::PARAM_STR);
                 $stmt->bindValue(':Password', $passwordHash, PDO::PARAM_STR);
                 $stmt->bindValue(':VerificationToken', $token, PDO::PARAM_STR);
 
                 if ($stmt->execute()) {
-                    $message = 'Account created successfully! You can now log in.';
+                    $verifyUrl = BASE_URL . 'app/Views/Login/verify.php?token=' . urlencode($token);
+                    $sent = lc_send_verification_email($email_val, $username_val, $verifyUrl);
+                    if ($sent['success']) {
+                        $message = 'Account created! Please check your email to verify your account before logging in.';
+                    } else {
+                        $message = 'Account created! However, we could not send the verification email. Please contact support.';
+                    }
                 } else {
                     $error = 'Failed to create account.';
                 }

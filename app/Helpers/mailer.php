@@ -48,6 +48,46 @@ function lc_mailer_config(): array
     ];
 }
 
+function lc_send_verification_email(string $toEmail, string $toName, string $verifyUrl): array
+{
+    $config = lc_mailer_config();
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = $config['host'];
+        $mail->SMTPAuth = true;
+        $mail->Username = $config['username'];
+        $mail->Password = $config['password'];
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = $config['port'];
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom($config['from_email'], $config['from_name']);
+        $mail->addAddress($toEmail, $toName);
+        $mail->isHTML(true);
+        $mail->Subject = 'Verify your Social7 account';
+        $mail->Body = "
+            <div style='font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;'>
+                <h2 style='margin: 0 0 12px; color: #0f172a;'>Verify your Social7 account</h2>
+                <p style='margin: 0 0 20px; color: #475569; line-height: 1.6;'>Hello <strong>" . htmlspecialchars($toName, ENT_QUOTES, 'UTF-8') . "</strong>, click the button below to activate your account.</p>
+                <div style='text-align: center; margin: 24px 0;'>
+                    <a href='" . htmlspecialchars($verifyUrl, ENT_QUOTES, 'UTF-8') . "' style='display: inline-block; padding: 14px 32px; background: #1d4ed8; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 16px;'>Verify Email</a>
+                </div>
+                <p style='margin: 0 0 8px; color: #94a3b8; font-size: 13px;'>This link will expire in 24 hours.</p>
+                <p style='margin: 0; color: #94a3b8; font-size: 13px;'>If you did not create this account, you can ignore this email.</p>
+            </div>
+        ";
+        $mail->AltBody = 'Verify your Social7 account by visiting: ' . $verifyUrl;
+        $mail->send();
+
+        return ['success' => true];
+    } catch (Exception $e) {
+        error_log('Verification email error: ' . $mail->ErrorInfo);
+        return ['success' => false];
+    }
+}
+
 function lc_send_otp_email(string $toEmail, string $toName, string $otp): array
 {
     $config = lc_mailer_config();

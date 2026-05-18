@@ -66,7 +66,7 @@ if (isset($_GET['success']) && $_GET['success'] === 'created') {
 }
 $errorMessage = isset($_GET['error']) ? (string)$_GET['error'] : '';
 
-$defaultAvatar = '../../../public/img/default-avatar.svgG&background=6366f1&color=fff';
+$defaultAvatar = '../../../public/img/default-avatar.svg?background=6366f1&color=fff';
 $defaultBanner = '../../../public/uploads/groups/banners/default_banner.jpg';
 $u_d = $userData;
 $profilePicPath = '';
@@ -153,6 +153,121 @@ if ($profilePicPath === '') {
             color: #3b82f6 !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
         }
+
+        /* 🚀 Create Group CTA Banner */
+        .group-cta-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #7c3aed 100%);
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .group-cta-banner::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 160px;
+            height: 160px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+        .group-cta-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 30%;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .group-cta-content {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        .group-cta-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.18);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .group-cta-text h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 4px;
+        }
+        .group-cta-text p {
+            font-size: 0.875rem;
+            color: rgba(255,255,255,0.8);
+            margin: 0;
+            line-height: 1.4;
+        }
+        .group-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            color: #4f46e5;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            white-space: nowrap;
+            position: relative;
+            z-index: 1;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+        .group-cta-btn:hover {
+            background: #eef2ff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        @media (max-width: 600px) {
+            .group-cta-banner { flex-direction: column; align-items: flex-start; }
+            .group-cta-btn { width: 100%; justify-content: center; }
+        }
+
+        /* 🌙 Dark Mode — Page Header */
+        body.dark-mode .page-header h1 {
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode .page-header p {
+            color: #94a3b8 !important;
+        }
+
+        /* 🌙 Dark Mode — CTA Banner */
+        body.dark-mode .group-cta-banner {
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+        }
+        body.dark-mode .group-cta-btn {
+            background: rgba(255, 255, 255, 0.90);
+            color: #4f46e5;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+        body.dark-mode .group-cta-btn:hover {
+            background: #eef2ff;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+        }
     </style>
 </head>
 <body>
@@ -210,23 +325,19 @@ if ($profilePicPath === '') {
         <div class="content-body">
             <div class="groups-layout">
                 <div class="groups-main-content">
-                    <div class="create-post-card js-open-create-post" data-open-create-post>
-                        <div class="create-post-header">
-                            <img src="<?php 
-                                $path = '../../../public/uploads/avatars/' . ($userData['ProfilePic'] ?? '');
-                                if (!empty($userData['ProfilePic']) && file_exists($path)) {
-                                    echo $path;
-                                } else {
-                                    echo '../../../public/img/default-avatar.svg';
-                                }
-                            ?>" alt="Profile">
-                            <div class="fake-input">What's on your mind?</div>
+                    <div class="group-cta-banner">
+                        <div class="group-cta-content">
+                            <div class="group-cta-icon">
+                                <i class="fa-solid fa-users-rectangle"></i>
+                            </div>
+                            <div class="group-cta-text">
+                                <h2>Build Your Community</h2>
+                                <p>Create a group around your passion, invite friends, and grow together.</p>
+                            </div>
                         </div>
-                        <div class="create-post-actions">
-                            <div class="action-btn photo"><i class="fa-solid fa-photo-film"></i> Photo</div>
-                            <div class="action-btn video"><i class="fa-solid fa-video"></i> Video</div>
-                            <a href="../Events/create_event.php" class="action-btn event" style="text-decoration:none;" onclick="event.stopPropagation();"><i class="fa-solid fa-calendar-days"></i> Event</a>
-                        </div>
+                        <a href="create_group.php" class="group-cta-btn">
+                            <i class="fa-solid fa-plus"></i> Create New Group
+                        </a>
                     </div>
                     
                     <div class="groups-grid" id="groupsGrid">
@@ -322,9 +433,6 @@ if ($profilePicPath === '') {
                             <a href="?filter=joined" class="filter-btn <?php echo $currentFilter == 'joined' ? 'active' : ''; ?>">Joined</a>
                             <a href="?filter=popular" class="filter-btn <?php echo $currentFilter == 'popular' ? 'active' : ''; ?>">Popular</a>
                         </div>
-                        <button class="btn-create-group" onclick="window.location.href='create_group.php'">
-                            <i class="fa-solid fa-plus"></i> Create Group
-                        </button>
                     </div>
                 </div>
             </div>

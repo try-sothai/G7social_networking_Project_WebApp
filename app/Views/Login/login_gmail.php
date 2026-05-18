@@ -55,7 +55,9 @@ if (isset($_POST['login'])) {
 
                 if ($user && $passwordOk) {
                     $accountStatus = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
-                    if ($accountStatus !== 'Active') {
+                    if ($accountStatus === 'Pending') {
+                        $error = 'Please verify your email before logging in. Check your inbox for the verification link.';
+                    } elseif ($accountStatus !== 'Active') {
                         $error = 'This account is currently ' . strtolower($accountStatus) . '.';
                     } else {
                         session_regenerate_id(true);

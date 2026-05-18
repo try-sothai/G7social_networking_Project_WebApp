@@ -1,7 +1,7 @@
 -- =================================================================
--- g7social_networking.sql  |  Version 3.0  (Indexes Integrated)
+-- g7social_networking.sql  |  Version 3.1  (Email Verification)
 -- G7 Social Networking WebApp - Full Database Schema
--- Updated: 2026-04-29
+-- Updated: 2026-05-18
 --
 -- FIXES APPLIED:
 --   [1]  លុប ALTER TABLE PeerID ដែល Duplicate
@@ -18,6 +18,8 @@
 --        users, posts, friends, notifications, messages, interactions,
 --        stories, events, event_participants, group_members, shares,
 --        saved_posts, post_hashtags, admin_reports, user_presence
+--   [13] AccountStatus ENUM — បន្ថែម 'Pending' សម្រាប់ Email Verification System
+--        (sign_up_email.php insert Pending → verify email → Active)
 --   [12] VerificationToken column — ​បន្ថែមទៅ users table
 -- =================================================================
 
@@ -60,7 +62,7 @@ CREATE TABLE users (
     IsVerified         TINYINT(1)    DEFAULT 0,
     Website            VARCHAR(255)  NULL,
     Role               ENUM('User', 'Admin', 'SuperAdmin') DEFAULT 'User',
-    AccountStatus      ENUM('Active', 'Suspended', 'Banned') DEFAULT 'Active',
+    AccountStatus      ENUM('Active', 'Pending', 'Suspended', 'Banned') DEFAULT 'Active',
     PeerID             VARCHAR(255)  NULL,
     LastActive         TIMESTAMP     NULL,
     VerificationToken  VARCHAR(100)  NULL DEFAULT NULL,
