@@ -14,6 +14,7 @@ class MessageChat {
         this.peer = null;
         this.myPeerId = null;
         this.incomingRingtone = null;
+        this.isLoadingMessages = false;
         
         this.initElements();
         this.initEventListeners();
@@ -232,20 +233,33 @@ class MessageChat {
         }, 60000);
     }
 
+    isNearBottom() {
+        const { chatBox } = this.elements;
+        return chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 120;
+    }
+
     loadNewMessages() {
+        if (this.isLoadingMessages) return;
+
         const lastId = this.messages.length > 0
             ? Math.max(...this.messages.map(m => parseInt(m.MessageID)))
             : 0;
+        const existingIds = new Set(this.messages.map(m => String(m.MessageID)));
+
         fetch(`${API_PATH}?action=fetch&receiver_id=${this.activeReceiverID}&after_id=${lastId}`)
             .then(res => res.json())
             .then(newMsgs => {
                 if (!Array.isArray(newMsgs) || newMsgs.length === 0) return;
+                const wasNearBottom = this.isNearBottom();
                 newMsgs.forEach(m => {
+                    if (existingIds.has(String(m.MessageID))) return;
                     this.messages.push(m);
                     const html = this.buildMessageHTML(m);
                     if (html) this.elements.chatBox.insertAdjacentHTML('beforeend', html);
                 });
-                this.elements.chatBox.scrollTop = this.elements.chatBox.scrollHeight;
+                if (wasNearBottom) {
+                    this.elements.chatBox.scrollTop = this.elements.chatBox.scrollHeight;
+                }
             })
             .catch(() => {});
     }
@@ -422,14 +436,16 @@ class MessageChat {
     
     loadMessages() {
         if (!this.activeReceiverID) return;
-        
+
+        this.isLoadingMessages = true;
         fetch(`${API_PATH}?action=fetch&receiver_id=${this.activeReceiverID}`)
             .then(res => res.json())
             .then(messages => {
                 this.messages = Array.isArray(messages) ? messages : [];
                 this.renderMessages();
             })
-            .catch(err => console.error('Error loading messages:', err));
+            .catch(err => console.error('Error loading messages:', err))
+            .finally(() => { this.isLoadingMessages = false; });
     }
 
     renderMessages() {

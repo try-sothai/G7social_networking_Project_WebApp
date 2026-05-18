@@ -88,7 +88,7 @@ if ($profilePicPath === '') {
                 <!-- Suggestions -->
                 <div id="suggestionsSection">
                     <div class="sec-header">
-                        <h2 class="sec-title"><i class="fa-solid fa-wand-sparkles"></i> People You May Know</h2>
+                        <h2 class="sec-title"><i class="fa-solid fa-wand-sparkles"></i> People May You Know</h2>
                     </div>
                     <div class="suggestions-grid" id="suggestionsGrid">
                         <?php if (empty($suggested_friends)): ?>
@@ -166,7 +166,7 @@ if ($profilePicPath === '') {
                 resultsGrid.innerHTML = users.map(user => {
                     const img = user.ProfilePic && user.ProfilePic !== 'default.png'
                         ? '../../../public/uploads/avatars/' + user.ProfilePic
-                        : `../../../public/img/default-avatar.svg${encodeURIComponent(user.Username)}&background=dbeafe&color=1d4ed8
+                        : '../../../public/img/default-avatar.svg';
                     return `<div class="suggest-card" data-user-id="${user.UserID}">
                         <img src="${img}" alt="${escapeHtml(user.Username)}">
                         <div class="suggest-name">${escapeHtml(user.Username)}</div>
@@ -259,17 +259,8 @@ if ($profilePicPath === '') {
             });
         }
         
-        // Theme toggle
-        document.querySelector('.theme-toggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('localconnect_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        });
-        
-        if (!localStorage.getItem('localconnect_theme')) { localStorage.setItem('localconnect_theme', 'dark'); }
-        if (localStorage.getItem('localconnect_theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
     </script>
+    <script src="../../../public/js/common/theme-toggle.js"></script>
     <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($user_data['Username'] ?? 'User'), $profilePicPath ?? '../../../public/img/default-avatar.svg'); ?>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/dashboard.js')); ?>"></script>
     <script src="<?php echo htmlspecialchars(lc_public_asset('js/Home/responsive.js')); ?>"></script>
