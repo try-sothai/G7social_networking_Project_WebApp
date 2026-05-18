@@ -38,6 +38,14 @@ if (!function_exists('lc_admin_table_exists')) {
             $conn->exec("ALTER TABLE users ADD COLUMN AccountStatus VARCHAR(20) NOT NULL DEFAULT 'Active'");
         }
 
+        // បន្ថែម Column Phone ប្រសិនបើមិនទាន់មាន
+        if (!lc_admin_column_exists($conn, 'users', 'Phone')) {
+            $conn->exec("ALTER TABLE users ADD COLUMN Phone VARCHAR(25) NULL AFTER Email");
+        }
+
+        // កំណត់ឱ្យ Column Email អាចមានតម្លៃ NULL បាន (សម្រាប់ការចុះឈ្មោះតាមលេខទូរស័ព្ទ)
+        $conn->exec("ALTER TABLE users MODIFY COLUMN Email VARCHAR(191) NULL");
+
         if (!lc_admin_table_exists($conn, 'admin_reports')) {
             // Schema must match AdminModel.php (EntityType, EntityID, Details, ReviewedBy)
             $conn->exec("

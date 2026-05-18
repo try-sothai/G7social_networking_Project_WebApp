@@ -1,6 +1,10 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/admin.php';
+
+// ធានាថា Database ត្រូវបានរៀបចំរួចរាល់មុនពេល Login
+lc_admin_ensure_schema($conn);
 
 // AJAX handler for Firebase phone login
 if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_login') {

@@ -38,7 +38,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_signup') {
         // Insert new user
         $stmt = $conn->prepare('INSERT INTO users (Username, Email, Phone, Password, Role, AccountStatus) VALUES (:username, :email, :phone, :password, :role, :status)');
         $stmt->bindValue(':username', $name, PDO::PARAM_STR);
-        $stmt->bindValue(':email', NULL, PDO::PARAM_STR);
+        $stmt->bindValue(':email', null, PDO::PARAM_NULL); // កែសម្រួលឱ្យមានតែមួយខ្សែ និងប្រើ PARAM_NULL
         $stmt->bindValue(':phone', $phone, PDO::PARAM_STR);
         $stmt->bindValue(':password', password_hash($password, PASSWORD_DEFAULT), PDO::PARAM_STR);
         $stmt->bindValue(':role', 'User', PDO::PARAM_STR);
