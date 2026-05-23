@@ -22,17 +22,8 @@
     $stats = $model->getProfileStats($user_id);
     $friendModel = new FriendModel($conn); // Create an instance of FriendModel
     $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id); // Use FriendModel
-    $profilePicPath = '';
+    $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
     $trendingGroups = $groupModel->getPopularGroups($user_id, 3);
-    if (!empty($u_d['ProfilePic'])) {
-        $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        if (is_file($candidate)) {
-            $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        }
-    }
-    if ($profilePicPath === '') {
-        $profilePicPath = '../../../public/img/default-avatar.svg';
-    }
 ?>
 <!DOCTYPE html>
 <html lang="en">

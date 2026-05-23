@@ -19,16 +19,7 @@
     $u_d = $model->getUserData($user_id);
     $unreadCount = $messageModel->getUnreadCount($user_id);
     $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
-    $profilePicPath = '';
-    if (!empty($u_d['ProfilePic'])) {
-        $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        if (is_file($candidate)) {
-            $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-        }
-    }
-    if ($profilePicPath === '') {
-        $profilePicPath = '../../../public/img/default-avatar.svg';
-    }
+    $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -213,7 +204,7 @@
     <?php lc_shell_render_user_bootstrap((int)($_SESSION['user_id'] ?? 0), (string)($u_d['Username'] ?? 'User'), $profilePicPath); ?>
     <script>
         const API_PATH = '../../Controllers/Messages/ChatController.php';
-        const MY_AVATAR = <?= json_encode(!empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : '../../../public/img/default-avatar.svg') ?>;
+        const MY_AVATAR = <?= json_encode(getAvatarUrl($u_d['ProfilePic'] ?? null)) ?>;
         window.APP_CONFIG = <?php echo getJsConfig(); ?>;
     </script>
     <script src="../../../public/js/Messages/message.js?v=<?php echo filemtime(__DIR__.'/../../../public/js/Messages/message.js'); ?>"></script>

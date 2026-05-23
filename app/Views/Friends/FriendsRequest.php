@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
@@ -20,37 +21,7 @@ $received_requests = $friendModel->getReceivedRequests($user_id);
 $sent_requests = $friendModel->getSentRequests($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
-
-function time_ago($datetime) {
-    $time = strtotime($datetime);
-    $now = time();
-    $diff = max(0, $now - $time); // Prevent negative time difference
-    
-    if ($diff < 60) {
-        return $diff == 0 ? 'Just now' : $diff . ' seconds ago';
-    } elseif ($diff < 3600) {
-        $mins = floor($diff / 60);
-        return $mins . ' minute' . ($mins > 1 ? 's' : '') . ' ago';
-    } elseif ($diff < 86400) {
-        $hours = floor($diff / 3600);
-        return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
-    } elseif ($diff < 2592000) {
-        $days = floor($diff / 86400);
-        return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
-    } else {
-        return date('M j, Y', $time);
-    }
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 
 <!DOCTYPE html>
@@ -126,10 +97,7 @@ function time_ago($datetime) {
                         <?php foreach ($received_requests as $request): ?>
                             <div class="request-card" data-request-id="<?php echo $request['UserID']; ?>" data-name="<?php echo strtolower(htmlspecialchars($request['Username'])); ?>">
                                 <div class="req-avatar">
-                                    <img src="<?php
-                                        $path = '../../../public/uploads/avatars/' . $request['ProfilePic'];
-                                        echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : '../../../public/img/default-avatar.svg';
-                                    ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null;this.src='../../../public/img/default-avatar.svg'">
+                                    <img src="<?php echo htmlspecialchars(getAvatarUrl($request['ProfilePic'] ?? null)); ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>">
                                 </div>
                                 <div class="req-info">
                                     <p class="req-name"><?php echo htmlspecialchars($request['Username']); ?></p>
@@ -173,10 +141,7 @@ function time_ago($datetime) {
                         <?php foreach ($sent_requests as $request): ?>
                             <div class="request-card" data-name="<?php echo strtolower(htmlspecialchars($request['Username'])); ?>">
                                 <div class="req-avatar">
-                                    <img src="<?php
-                                        $path = '../../../public/uploads/avatars/' . $request['ProfilePic'];
-                                        echo (!empty($request['ProfilePic']) && file_exists($path)) ? $path : '../../../public/img/default-avatar.svg';
-                                    ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>" onerror="this.onerror=null;this.src='../../../public/img/default-avatar.svg'">
+                                    <img src="<?php echo htmlspecialchars(getAvatarUrl($request['ProfilePic'] ?? null)); ?>" alt="<?php echo htmlspecialchars($request['Username']); ?>">
                                 </div>
                                 <div class="req-info">
                                     <p class="req-name"><?php echo htmlspecialchars($request['Username']); ?></p>

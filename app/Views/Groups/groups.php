@@ -7,6 +7,7 @@ require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';
 require_once dirname(__DIR__, 2) . '/Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
+require_once dirname(__DIR__, 2) . '/Helpers/functions.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -69,16 +70,7 @@ $errorMessage = isset($_GET['error']) ? (string)$_GET['error'] : '';
 $defaultAvatar = '../../../public/img/default-avatar.svg?background=6366f1&color=fff';
 $defaultBanner = '../../../public/uploads/groups/banners/default_banner.jpg';
 $u_d = $userData;
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 <!DOCTYPE html>
 <html lang="en">

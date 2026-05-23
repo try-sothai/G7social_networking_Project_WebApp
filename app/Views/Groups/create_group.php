@@ -4,6 +4,7 @@
 session_start();
 require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
+require_once dirname(__DIR__, 2) . '/Helpers/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "app/Views/Login/login_gmail.php");
@@ -51,16 +52,7 @@ require_once dirname(__DIR__, 2) . '/Models/Profile/ProfileModel.php';
 $profileModel = new ProfileModel($conn);
 $user_id = $_SESSION['user_id'];
 $u_d = $profileModel->getUserData($user_id);
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 
 // Load existing Avatar and Banner images if in Edit Mode
 $currentAvatarUrl = '';

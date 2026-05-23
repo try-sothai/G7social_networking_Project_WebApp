@@ -28,16 +28,7 @@ $suggested_friends = $friendModel->getSuggestedFriends($user_id, 5);
 $eventModel = new EventModel($conn);
 $upcoming_events = array_slice($eventModel->getUpcomingEvents($user_id), 0, 3);
 
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 
 <!DOCTYPE html>
@@ -108,10 +99,7 @@ if ($profilePicPath === '') {
                         <?php else: ?>
                             <div class="friends-grid" id="friendsGrid">
                                 <?php foreach ($friends as $friend): ?>
-                                    <?php
-                                        $fPath = '../../../public/uploads/avatars/' . $friend['ProfilePic'];
-                                        $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : '../../../public/img/default-avatar.svg';
-                                    ?>
+                                    <?php $fImg = getAvatarUrl($friend['ProfilePic'] ?? null); ?>
                                     <div class="friend-card-item" data-name="<?php echo strtolower(htmlspecialchars($friend['Username'])); ?>">
                                         <div class="f-avatar">
                                             <img src="<?php echo $fImg; ?>" alt="<?php echo htmlspecialchars($friend['Username']); ?>">
@@ -147,10 +135,7 @@ if ($profilePicPath === '') {
                             <p style="font-size:.8rem;color:#94a3b8;text-align:center;padding:12px 0;">No suggestions right now.</p>
                         <?php else: ?>
                             <?php foreach ($suggested_friends as $suggest): ?>
-                                <?php
-                                    $sPath = '../../../public/uploads/avatars/' . $suggest['ProfilePic'];
-                                    $sImg  = (!empty($suggest['ProfilePic']) && file_exists($sPath)) ? $sPath : '../../../public/img/default-avatar.svg';
-                                ?>
+                                <?php $sImg = getAvatarUrl($suggest['ProfilePic'] ?? null); ?>
                                 <div class="inline-suggestion">
                                     <img src="<?php echo $sImg; ?>" alt="<?php echo htmlspecialchars($suggest['Username']); ?>">
                                     <div class="inline-suggest-info">

@@ -177,13 +177,7 @@ function formatTimeAgo($dateTime) {
     return date('M j, Y', $ts);
 }
 
-$profileAvatarPath = '../../../public/img/default-avatar.svg';
-if (!empty($u_d['ProfilePic'])) {
-    $profileAvatarCandidate = __DIR__ . '/../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
-    if (is_file($profileAvatarCandidate)) {
-        $profileAvatarPath = normalizeProfileImagePath((string)$u_d['ProfilePic']);
-    }
-}
+$profileAvatarPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 
 $profileFeedPosts = [];
 foreach ($userPosts as $postRow) {
@@ -212,16 +206,7 @@ foreach ($userPosts as $postRow) {
         'view_count' => (int)($postRow['view_count'] ?? 0),
     ];
 }
-$headerPicPath = '';
-if (!empty($current_u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $current_u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $headerPicPath = normalizeProfileImagePath((string)$current_u_d['ProfilePic']);
-    }
-}
-if ($headerPicPath === '') {
-    $headerPicPath = BASE_URL . 'public/img/default-avatar.svg';
-}
+$headerPicPath = getAvatarUrl($current_u_d['ProfilePic'] ?? null);
 ?>
 
 <!DOCTYPE html>
@@ -413,7 +398,7 @@ if ($headerPicPath === '') {
                 <div style="padding: 20px 30px 30px; position: relative;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: -80px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                         <div class="avatar-container" style="position: relative; z-index: 2;">
-                            <?php $avatarPhotoUrl = !empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic']) ? '../../../public/uploads/avatars/' . $u_d['ProfilePic'] : BASE_URL . 'public/img/default-avatar.svg'; ?>
+                            <?php $avatarPhotoUrl = getAvatarUrl($u_d['ProfilePic'] ?? null); ?>
                             <img onclick="openLightbox('<?php echo $avatarPhotoUrl; ?>')" class="profile-img-large" src="<?php echo $avatarPhotoUrl; ?>" alt="Profile" style="cursor: pointer; width: 140px; height: 140px; border: 4px solid var(--bg-card, #ffffff); box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: var(--bg-card, #ffffff);">
                         </div>
                         <div style="position: relative; z-index: 2; margin-bottom: 10px;">

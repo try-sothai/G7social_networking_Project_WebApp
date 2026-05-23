@@ -215,10 +215,8 @@ $groupBanner = !empty($group['GroupBanner']) && file_exists('../../../public/upl
                 <div class="post-card">
                     <h3 style="margin-bottom: 15px;">Members (<?php echo count($members); ?>)</h3>
                     <div class="members-grid">
-                        <?php foreach($members as $member): 
-                            $memPic = !empty($member['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $member['ProfilePic']) 
-                                ? '../../../public/uploads/avatars/' . $member['ProfilePic'] 
-                                : '../../../public/img/default-avatar.svg';
+                        <?php foreach($members as $member):
+                            $memPic = getAvatarUrl($member['ProfilePic'] ?? null);
                         ?>
                         <div class="member-card" id="member-<?php echo $member['UserID']; ?>">
                             <?php if ($isOwner && $member['UserID'] != $user_id): ?>

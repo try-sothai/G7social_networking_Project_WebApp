@@ -408,7 +408,7 @@ function timeAgo($datetime) {
                         <?php foreach($recentActivities as $activity): ?>
                         <div class="activity-item">
                             <div class="activity-avatar">
-                                <img src="<?php echo getImageUrl($activity['ProfilePic'] ?? 'default.png'); ?>" alt="">
+                                <img src="<?php echo getAvatarUrl($activity['ProfilePic'] ?? null); ?>" alt="">
                             </div>
                             <div class="activity-details">
                                 <div class="activity-text">
@@ -459,7 +459,7 @@ function timeAgo($datetime) {
                                 <tr>
                                     <td class="user-cell">
                                         <div class="user-info">
-                                            <img src="<?php echo getImageUrl($user['ProfilePic'] ?? 'default.png'); ?>" alt="">
+                                            <img src="<?php echo getAvatarUrl($user['ProfilePic'] ?? null); ?>" alt="">
                                             <div>
                                                 <div class="username"><?php echo htmlspecialchars($user['Username']); ?></div>
                                                 <div class="user-handle">@<?php echo strtolower(htmlspecialchars($user['Username'])); ?></div>
@@ -504,7 +504,7 @@ function timeAgo($datetime) {
                 <div class="users-grid">
                     <?php foreach($topActiveUsers as $user): ?>
                     <div class="user-card">
-                        <img src="<?php echo getImageUrl($user['ProfilePic'] ?? 'default.png'); ?>" alt="">
+                        <img src="<?php echo getAvatarUrl($user['ProfilePic'] ?? null); ?>" alt="">
                         <div class="user-name"><?php echo htmlspecialchars($user['Username']); ?></div>
                         <div class="user-stats">
                             <span><i class="fa-regular fa-newspaper"></i> <?php echo $user['total_posts']; ?> posts</span>

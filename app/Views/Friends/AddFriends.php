@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../Helpers/functions.php';
 require_once '../../Models/Profile/ProfileModel.php';
 require_once '../../Models/Friends/FriendModel.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
@@ -19,16 +20,7 @@ $u_d = $user_data;
 $suggested_friends = $friendModel->getSuggestedFriends($user_id);
 $unread_notifications = $friendModel->getUnreadNotificationsCount($user_id);
 
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 
 <!DOCTYPE html>
@@ -99,10 +91,7 @@ if ($profilePicPath === '') {
                             </div>
                         <?php else: ?>
                             <?php foreach ($suggested_friends as $friend): ?>
-                                <?php
-                                    $fPath = '../../../public/uploads/avatars/' . $friend['ProfilePic'];
-                                    $fImg  = (!empty($friend['ProfilePic']) && file_exists($fPath)) ? $fPath : '../../../public/img/default-avatar.svg';
-                                ?>
+                                <?php $fImg = getAvatarUrl($friend['ProfilePic'] ?? null); ?>
                                 <div class="suggest-card" data-user-id="<?php echo $friend['UserID']; ?>">
                                     <img src="<?php echo $fImg; ?>" alt="<?php echo htmlspecialchars($friend['Username']); ?>">
                                     <div class="suggest-name"><?php echo htmlspecialchars($friend['Username']); ?></div>

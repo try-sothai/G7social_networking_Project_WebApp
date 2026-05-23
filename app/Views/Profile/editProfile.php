@@ -72,13 +72,7 @@ $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
                 
                 <!-- Profile Photo Overlapping -->
                 <div class="profile-avatar" style="position: absolute; bottom: -50px; left: 30px; display: flex; flex-direction: row; align-items: flex-end; gap: 15px;">
-                    <img id="profile-preview" src="<?php 
-                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic'])) {
-                                echo BASE_URL . 'public/uploads/avatars/' . $u_d['ProfilePic'];
-                            } else {
-                                echo BASE_URL . 'public/img/default-avatar.svg';
-                            }
-                        ?>" alt="Profile" style="border: 4px solid var(--bg-card, #fff); background: var(--bg-card, #fff); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <img id="profile-preview" src="<?php echo htmlspecialchars(getAvatarUrl($u_d['ProfilePic'] ?? null)); ?>" alt="Profile" style="border: 4px solid var(--bg-card, #fff); background: var(--bg-card, #fff); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                     <label for="upload-photo" class="change-photo-btn" style="margin-bottom: 15px; font-size: 13px;">
                         <i class="fa-solid fa-camera"></i>
                         Change Photo

@@ -51,13 +51,7 @@ $story_id = isset($_GET['story_id']) ? (int)$_GET['story_id'] : 0;
                 </div>
             </div>
             <div class="profile-chip">
-                <img src="<?php 
-                            if (!empty($u_d['ProfilePic']) && file_exists('../../../public/uploads/avatars/' . $u_d['ProfilePic'])) {
-                                echo '../../../public/uploads/avatars/' . $u_d['ProfilePic'];
-                            } else {
-                                echo '../../../public/img/default-avatar.svg';
-                            }
-                        ?>" alt="Profile">
+                <img src="<?php echo htmlspecialchars(getAvatarUrl($u_d['ProfilePic'] ?? null)); ?>" alt="Profile">
                 <span><?php echo htmlspecialchars($u_d['Username'] ?? 'User'); ?></span>
             </div>
         </aside>

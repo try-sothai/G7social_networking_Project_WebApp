@@ -17,16 +17,7 @@ $u_d = $model->getUserData($user_id);
 $stats = $model->getProfileStats($user_id);
 $notifications = $model->getNotifications($user_id);
 $unread_notifications = $model->getUnreadNotificationCount($user_id);
-$profilePicPath = '';
-if (!empty($u_d['ProfilePic'])) {
-    $candidate = __DIR__ . '/../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
-    if (is_file($candidate)) {
-        $profilePicPath = '../../../public/uploads/avatars/' . basename($u_d['ProfilePic']);
-    }
-}
-if ($profilePicPath === '') {
-    $profilePicPath = '../../../public/img/default-avatar.svg';
-}
+$profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 ?>
 <!DOCTYPE html>
 <html lang="km">
@@ -296,7 +287,7 @@ if ($profilePicPath === '') {
 window.currentUser = <?php echo json_encode([
     'id' => $user_id, 
     'username' => $u_d['Username'], 
-    'profilePic' => !empty($u_d['ProfilePic']) ? getImageUrl($u_d['ProfilePic']) : '../../../public/img/default-avatar.svg'
+    'profilePic' => getAvatarUrl($u_d['ProfilePic'] ?? null)
 ]); ?>;
 window.APP_CONFIG = <?php echo getJsConfig(); ?>;
 </script>
