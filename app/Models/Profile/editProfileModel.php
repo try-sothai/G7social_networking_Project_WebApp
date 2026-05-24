@@ -44,24 +44,37 @@ class editProfileModel {
 
     // Fetch user interests
     public function getInterests($user_id) {
-        $sql = "SELECT InterestName FROM user_interests WHERE UserID = ?";
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->conn->prepare("
+            SELECT i.InterestName
+            FROM user_interests ui
+            JOIN interests i ON ui.InterestID = i.InterestID
+            WHERE ui.UserID = ?
+        ");
         $stmt->execute([$user_id]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
     // Update interests (delete old ones, insert new ones)
     public function updateInterests($user_id, $interests) {
-        // Delete old interests
         $stmt = $this->conn->prepare("DELETE FROM user_interests WHERE UserID = ?");
         $stmt->execute([$user_id]);
 
-        // Insert new interests
         if (!empty($interests)) {
-            $stmt = $this->conn->prepare("INSERT INTO user_interests (UserID, InterestName) VALUES (?, ?)");
             foreach ($interests as $interest) {
-                if(!empty($interest)) {
-                    $stmt->execute([$user_id, $interest]);
+                $interest = trim($interest);
+                if ($interest === '') continue;
+
+                // Find or create interest in master table
+                $this->conn->prepare("INSERT IGNORE INTO interests (InterestName) VALUES (?)")
+                    ->execute([$interest]);
+
+                $row = $this->conn->prepare("SELECT InterestID FROM interests WHERE InterestName = ? LIMIT 1");
+                $row->execute([$interest]);
+                $interestId = $row->fetchColumn();
+
+                if ($interestId) {
+                    $this->conn->prepare("INSERT IGNORE INTO user_interests (UserID, InterestID) VALUES (?, ?)")
+                        ->execute([$user_id, $interestId]);
                 }
             }
         }

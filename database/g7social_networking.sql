@@ -1,5 +1,5 @@
 -- =================================================================
--- g7social_networking.sql  |  Version 3.1  (Email Verification)
+-- g7social_networking.sql  |  Version 3.2  (Normalized + Audit Log)
 -- G7 Social Networking WebApp - Full Database Schema
 -- Updated: 2026-05-18
 --
@@ -36,11 +36,12 @@ DROP TABLE IF EXISTS
     post_hashtags, hashtags,
     admin_reports, saved_posts, mentions, shares,
     event_participants, events,
-    notifications, user_interests, friends,
+    notifications, user_interests, interests, friends,
     messages, group_members, `groups`,
     post_views, story_views,
     interactions, stories, posts,
-    call_logs, user_presence, user_settings, users;
+    call_logs, user_presence, user_settings,
+    user_audit_log, users;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -51,11 +52,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE users (
     UserID             INT           AUTO_INCREMENT PRIMARY KEY,
-    Username           VARCHAR(255)  NOT NULL,
+    Username           VARCHAR(50)   NOT NULL,
     Password           VARCHAR(255)  NOT NULL,
     Email              VARCHAR(255)  NOT NULL UNIQUE,
     Phone              VARCHAR(20)   UNIQUE,
-    Locations          VARCHAR(255),
+    Locations          VARCHAR(100),
     ProfilePic         VARCHAR(255)  DEFAULT 'default.png',
     CoverPic           VARCHAR(255)  DEFAULT 'default_cover.jpg',
     Bio                VARCHAR(255),
@@ -96,6 +97,23 @@ CREATE TABLE user_presence (
     LastSeen   TIMESTAMP  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_presence_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE,
     INDEX idx_presence_online (IsOnline, LastSeen)
+) ENGINE=InnoDB;
+
+-- Audit Trail — Log ការ Ban/Suspend/Role Change ទាំងអស់
+CREATE TABLE user_audit_log (
+    AuditID   INT          AUTO_INCREMENT PRIMARY KEY,
+    UserID    INT          NOT NULL,
+    ChangedBy INT          NULL,
+    OldStatus VARCHAR(20)  NULL,
+    NewStatus VARCHAR(20)  NULL,
+    OldRole   VARCHAR(20)  NULL,
+    NewRole   VARCHAR(20)  NULL,
+    Action    VARCHAR(255) NOT NULL,
+    ChangedAt TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_audit_user    FOREIGN KEY (UserID)    REFERENCES users(UserID) ON DELETE CASCADE,
+    CONSTRAINT fk_audit_changer FOREIGN KEY (ChangedBy) REFERENCES users(UserID) ON DELETE SET NULL,
+    INDEX idx_audit_user (UserID),
+    INDEX idx_audit_time (ChangedAt)
 ) ENGINE=InnoDB;
 
 
@@ -308,15 +326,28 @@ CREATE TABLE friends (
 
 
 -- =================================================================
--- ១១. USER INTERESTS
+-- ១១. INTERESTS (Normalized) + USER INTERESTS
 -- =================================================================
 
-CREATE TABLE user_interests (
+-- Master table — Interest categories ទាំងអស់ (Normalized)
+CREATE TABLE interests (
     InterestID   INT          AUTO_INCREMENT PRIMARY KEY,
-    UserID       INT          NOT NULL,
-    InterestName VARCHAR(100) NOT NULL,
+    InterestName VARCHAR(100) NOT NULL UNIQUE,
+    Category     VARCHAR(50)  NULL,
     CreatedAt    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_interest_user FOREIGN KEY (UserID) REFERENCES users(UserID) ON DELETE CASCADE
+    INDEX idx_interest_name (InterestName)
+) ENGINE=InnoDB;
+
+-- Junction table — User ជ្រើស Interest ណាខ្លះ
+CREATE TABLE user_interests (
+    UserInterestID INT       AUTO_INCREMENT PRIMARY KEY,
+    UserID         INT       NOT NULL,
+    InterestID     INT       NOT NULL,
+    CreatedAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ui_user     FOREIGN KEY (UserID)     REFERENCES users(UserID)         ON DELETE CASCADE,
+    CONSTRAINT fk_ui_interest FOREIGN KEY (InterestID) REFERENCES interests(InterestID) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_interest (UserID, InterestID),
+    INDEX idx_ui_user (UserID)
 ) ENGINE=InnoDB;
 
 
@@ -539,6 +570,18 @@ BEGIN
     RETURN mutual_count;
 END$$
 
+DROP FUNCTION IF EXISTS GetUnreadMessageCount $$
+CREATE FUNCTION GetUnreadMessageCount(p_user_id INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE unread_count INT DEFAULT 0;
+    SELECT COUNT(*) INTO unread_count
+    FROM messages
+    WHERE ReceiverID = p_user_id AND IsRead = 0;
+    RETURN unread_count;
+END$$
+
 DELIMITER ;
 
 
@@ -631,6 +674,27 @@ BEGIN
     INSERT INTO user_presence (UserID, IsOnline, LastSeen)
     VALUES (NEW.SenderID, 1, NOW())
     ON DUPLICATE KEY UPDATE IsOnline = 1, LastSeen = NOW();
+END$$
+
+
+-- Audit Log Trigger — Log ការ Ban/Suspend/Role Change ដោយ Admin
+DROP TRIGGER IF EXISTS after_user_status_change $$
+CREATE TRIGGER after_user_status_change
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+    IF OLD.AccountStatus <> NEW.AccountStatus OR OLD.Role <> NEW.Role THEN
+        INSERT INTO user_audit_log (UserID, OldStatus, NewStatus, OldRole, NewRole, Action)
+        VALUES (
+            NEW.UserID,
+            OLD.AccountStatus,
+            NEW.AccountStatus,
+            OLD.Role,
+            NEW.Role,
+            CONCAT('Status: ', OLD.AccountStatus, ' → ', NEW.AccountStatus,
+                   ' | Role: ', OLD.Role, ' → ', NEW.Role)
+        );
+    END IF;
 END$$
 
 
@@ -730,6 +794,11 @@ BEGIN
     DECLARE tag_name     VARCHAR(100);
     DECLARE tag_id       INT;
     DECLARE remaining    TEXT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
 
     START TRANSACTION;
 
@@ -776,8 +845,10 @@ DELIMITER ;
 
 -- =================================================================
 -- ២១. SCHEDULED EVENTS (MySQL Event Scheduler)
--- ត្រូវបើក: SET GLOBAL event_scheduler = ON;
 -- =================================================================
+
+-- បើក Event Scheduler (ចាំបាច់!)
+SET GLOBAL event_scheduler = ON;
 
 CREATE EVENT IF NOT EXISTS auto_delete_expired_stories
 ON SCHEDULE EVERY 1 HOUR

@@ -186,9 +186,14 @@ public function checkLikeStatus($post_id, $user_id) {
         return $row ? $row['count'] : 0;
     }
     public function getUserInterests($user_id) {
-    $stmt = $this->conn->prepare("SELECT * FROM user_interests WHERE UserID = ?");
-    $stmt->execute([$user_id]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        $stmt = $this->conn->prepare("
+            SELECT i.InterestID, i.InterestName, ui.UserID
+            FROM user_interests ui
+            JOIN interests i ON ui.InterestID = i.InterestID
+            WHERE ui.UserID = ?
+        ");
+        $stmt->execute([$user_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
