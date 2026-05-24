@@ -21,11 +21,18 @@ if (isset($_GET['code'])) {
         'code' => $_GET['code']
     ]);
 
+    $caPath = ini_get('curl.cainfo');
+    if (empty($caPath) || !file_exists($caPath)) {
+        $phpVer = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;
+        $caPath = 'C:/wamp64/bin/php/php' . $phpVer . '/extras/ssl/cacert.pem';
+    }
+    $sslVerify = file_exists($caPath);
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $tokenUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch, CURLOPT_CAINFO, ini_get('curl.cainfo') ?: 'C:/wamp64/bin/php/php8.2.29/extras/ssl/cacert.pem');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $sslVerify);
+    if ($sslVerify) curl_setopt($ch, CURLOPT_CAINFO, $caPath);
     $response = curl_exec($ch);
     curl_close($ch);
 
@@ -33,12 +40,12 @@ if (isset($_GET['code'])) {
 
     if (isset($token['access_token'])) {
         $userInfoUrl = "https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=" . $token['access_token'];
-        
+
         $ch2 = curl_init();
         curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
         curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch2, CURLOPT_CAINFO, ini_get('curl.cainfo') ?: 'C:/wamp64/bin/php/php8.2.29/extras/ssl/cacert.pem');
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, $sslVerify);
+        if ($sslVerify) curl_setopt($ch2, CURLOPT_CAINFO, $caPath);
         $userInfoResponse = curl_exec($ch2);
         curl_close($ch2);
 
