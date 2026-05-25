@@ -29,6 +29,8 @@ $reportSearch = trim((string)($_GET['report_q'] ?? ''));
 
 $users = $adminModel->getUsers($search, $roleFilter, $statusFilter);
 $reports = $adminModel->getReports($reportStatus, $reportSearch);
+$topPosts = $adminModel->getTopPosts(5);
+$recentUsers = $adminModel->getRecentlyActiveUsers(5);
 $flash = $_SESSION['admin_flash'] ?? null;
 unset($_SESSION['admin_flash']);
 
@@ -513,6 +515,74 @@ function admin_post_preview(array $report): string
                     <span class="admin-stat-note">Closed moderation items</span>
                 </div>
             </div>
+
+            <!-- Analytics Widgets: Top Posts + Recently Active Users -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
+
+                <!-- post_analytics view -->
+                <div class="admin-section" style="margin-bottom:0; padding:20px;">
+                    <h3 style="margin:0 0 16px; font-size:16px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-fire" style="color:#f59e0b;"></i> Top Posts by Engagement
+                    </h3>
+                    <?php if (empty($topPosts)): ?>
+                        <p style="color:#94a3b8; font-size:13px;">No posts with engagement yet.</p>
+                    <?php else: ?>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <?php foreach ($topPosts as $tp): ?>
+                                <div style="display:flex; align-items:flex-start; gap:12px; padding:10px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-weight:600; font-size:13px; margin-bottom:2px;">
+                                            <?= htmlspecialchars($tp['Username']) ?>
+                                        </div>
+                                        <div style="font-size:12px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;">
+                                            <?= htmlspecialchars(substr((string)($tp['Content'] ?? '[media]'), 0, 60)) ?>
+                                        </div>
+                                        <div style="display:flex; gap:10px; margin-top:5px; font-size:11px; color:#64748b;">
+                                            <span><i class="fa-solid fa-heart" style="color:#ef4444;"></i> <?= (int)$tp['total_reactions'] ?></span>
+                                            <span><i class="fa-solid fa-comment" style="color:#3b82f6;"></i> <?= (int)$tp['total_comments'] ?></span>
+                                            <span><i class="fa-solid fa-share" style="color:#10b981;"></i> <?= (int)$tp['total_shares'] ?></span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:center; background:#6366f1; color:#fff; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:700; white-space:nowrap; flex-shrink:0;">
+                                        &#9889; <?= (int)$tp['engagement_score'] ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- vw_user_profiles view -->
+                <div class="admin-section" style="margin-bottom:0; padding:20px;">
+                    <h3 style="margin:0 0 16px; font-size:16px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-circle" style="color:#10b981; font-size:10px;"></i> Recently Active Users
+                    </h3>
+                    <?php if (empty($recentUsers)): ?>
+                        <p style="color:#94a3b8; font-size:13px;">No recent activity recorded.</p>
+                    <?php else: ?>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <?php foreach ($recentUsers as $ru): ?>
+                                <?php
+                                    $ruPic = !empty($ru['ProfilePic']) && $ru['ProfilePic'] !== 'default.png'
+                                        ? BASE_URL . 'public/uploads/avatars/' . htmlspecialchars($ru['ProfilePic'])
+                                        : BASE_URL . 'public/img/default-avatar.svg';
+                                    $lastSeen = !empty($ru['LastActive']) ? date('M j, g:i A', strtotime($ru['LastActive'])) : 'Unknown';
+                                ?>
+                                <div style="display:flex; align-items:center; gap:12px; padding:8px 10px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
+                                    <img src="<?= $ruPic ?>" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #e2e8f0;" onerror="this.src='<?= BASE_URL ?>public/img/default-avatar.svg'">
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-weight:600; font-size:13px;"><?= htmlspecialchars($ru['Username']) ?></div>
+                                        <div style="font-size:11px; color:#94a3b8;"><?= htmlspecialchars($lastSeen) ?></div>
+                                    </div>
+                                    <span class="admin-badge <?= admin_badge_class($ru['Role']) ?>"><?= htmlspecialchars($ru['Role']) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+            </div>
+            <!-- /Analytics Widgets -->
 
             <section class="admin-section">
                 <div class="admin-section-head" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">

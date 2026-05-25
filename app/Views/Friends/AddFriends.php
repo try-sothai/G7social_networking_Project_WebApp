@@ -101,6 +101,12 @@ $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
                                     <?php if (!empty($friend['Bio'])): ?>
                                         <div class="suggest-bio"><?php echo htmlspecialchars(substr($friend['Bio'], 0, 70)); ?></div>
                                     <?php endif; ?>
+                                    <?php if (!empty($friend['mutual_count']) && (int)$friend['mutual_count'] > 0): ?>
+                                        <div class="suggest-meta" style="color:#6366f1;font-weight:600;">
+                                            <i class="fa-solid fa-user-group" style="font-size:.7rem"></i>
+                                            <?php echo (int)$friend['mutual_count']; ?> mutual friend<?php echo $friend['mutual_count'] > 1 ? 's' : ''; ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <button class="btn-add-friend" onclick="sendFriendRequest(<?php echo $friend['UserID']; ?>, this)">
                                         <i class="fa-solid fa-user-plus"></i> Add Friend
                                     </button>

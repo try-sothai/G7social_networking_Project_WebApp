@@ -20,6 +20,7 @@ if (!isset($_SESSION['user_id'])) {
 $current_user_id = $_SESSION['user_id'];
 $profile_user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : $current_user_id;
 $is_own_profile = ($current_user_id === $profile_user_id);
+$mutual_count = 0;
 
 $model = new ProfileModel($conn);
 $groupModel = new GroupModel($conn);
@@ -38,6 +39,9 @@ if (!$u_d) {
 
 $stats = $model->getProfileStats($profile_user_id);
 $userPosts = $model->getUserPosts($profile_user_id, 80, $current_user_id);
+if (!$is_own_profile) {
+    $mutual_count = $friendModel->getMutualFriendsCount($current_user_id, $profile_user_id);
+}
 $posts = $stats['posts'];
 $followers = $stats['followers'];
 $following = $stats['following'];
@@ -425,6 +429,12 @@ $headerPicPath = getAvatarUrl($current_u_d['ProfilePic'] ?? null);
                         <div class="profile-stats" style="margin-bottom: 25px;">
                             <div class="stat-item"><strong><?php echo $stats['posts'] ?? 0; ?></strong> <span>Posts</span></div>
                             <div class="stat-item" style="cursor: pointer;" onclick="openFollowModal('followersModal')"><strong><?php echo $stats['friends'] ?? 0; ?></strong> <span>Friends</span></div>
+                            <?php if (!$is_own_profile && $mutual_count > 0): ?>
+                                <div class="stat-item" title="Mutual friends with you" style="color:#6366f1;">
+                                    <strong><?php echo (int)$mutual_count; ?></strong>
+                                    <span>Mutual</span>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                         <p class="profile-bio"><?php echo !empty($u_d['Bio']) ? htmlspecialchars($u_d['Bio']) : 'Welcome to LocalConnect! 🎉'; ?></p>

@@ -153,6 +153,46 @@ class AdminModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    public function getTopPosts(int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT pa.PostID, pa.UserID, pa.Content, pa.CreatedAt,
+                       pa.total_reactions, pa.total_comments, pa.total_shares,
+                       pa.total_saves, pa.engagement_score,
+                       u.Username, u.ProfilePic
+                FROM post_analytics pa
+                JOIN users u ON pa.UserID = u.UserID
+                WHERE pa.engagement_score > 0
+                ORDER BY pa.engagement_score DESC
+                LIMIT :limit
+            ");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function getRecentlyActiveUsers(int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT UserID, Username, ProfilePic, Role, LastActive
+                FROM vw_user_profiles
+                WHERE LastActive IS NOT NULL
+                ORDER BY LastActive DESC
+                LIMIT :limit
+            ");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
     public function createPostReport(int $reporterId, int $postId, string $reason, string $details = ''): array
     {
         $reason = trim($reason);

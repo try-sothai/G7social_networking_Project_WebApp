@@ -62,25 +62,50 @@ class FriendModel {
      * Get users not friends and not pending (for suggestions)
      */
     public function getSuggestedFriends($user_id, $limit = 100) {
-        $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, u.Locations
-                FROM users u
-                WHERE u.AccountStatus = 'Active'
-                  AND u.UserID != :user_id
-                  AND NOT EXISTS (
-                      SELECT 1 FROM friends f
-                      WHERE (f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID)
-                         OR (f.ReceiverID  = :user_id2 AND f.RequesterID = u.UserID)
-                  )
-                ORDER BY u.Username ASC
-                LIMIT :limit";
+        try {
+            $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, u.Locations,
+                           GetMutualFriendsCount(:mc_user_id, u.UserID) as mutual_count
+                    FROM users u
+                    WHERE u.AccountStatus = 'Active'
+                      AND u.UserID != :user_id
+                      AND NOT EXISTS (
+                          SELECT 1 FROM friends f
+                          WHERE (f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID)
+                             OR (f.ReceiverID  = :user_id2 AND f.RequesterID = u.UserID)
+                      )
+                    ORDER BY mutual_count DESC, u.Username ASC
+                    LIMIT :limit";
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':user_id',  $user_id, PDO::PARAM_INT);
-        $stmt->bindValue(':user_id1', $user_id, PDO::PARAM_INT);
-        $stmt->bindValue(':user_id2', $user_id, PDO::PARAM_INT);
-        $stmt->bindValue(':limit',    $limit,   PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':mc_user_id', $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id',    $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id1',   $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id2',   $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':limit',      $limit,   PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Fallback: DB function not available — return without mutual_count
+            $sql = "SELECT u.UserID, u.Username, u.Email, u.ProfilePic, u.Bio, u.Locations,
+                           0 as mutual_count
+                    FROM users u
+                    WHERE u.AccountStatus = 'Active'
+                      AND u.UserID != :user_id
+                      AND NOT EXISTS (
+                          SELECT 1 FROM friends f
+                          WHERE (f.RequesterID = :user_id1 AND f.ReceiverID = u.UserID)
+                             OR (f.ReceiverID  = :user_id2 AND f.RequesterID = u.UserID)
+                      )
+                    ORDER BY u.Username ASC
+                    LIMIT :limit";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':user_id',  $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id1', $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id2', $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(':limit',    $limit,   PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
     
     /**
