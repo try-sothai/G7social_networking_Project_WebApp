@@ -395,9 +395,28 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
                         Welcome back, <strong><?= htmlspecialchars($u_d['Username'] ?? 'User') ?></strong>! Here's your activity overview.
                     </p>
                 </div>
-                <div style="font-size:0.82rem; color:#94a3b8; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-regular fa-calendar"></i>
-                    Member since <?= date('M Y', strtotime($u_d['CreatedAt'] ?? 'now')) ?>
+                <div class="drp-wrap">
+                    <button class="drp-btn" id="myDrpBtn" onclick="myDrpToggle(event)">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span id="myDrpLabel">Last 30 Days</span>
+                        <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;"></i>
+                    </button>
+                    <div class="drp-menu" id="myDrpMenu">
+                        <div class="drp-opt" onclick="mySetPreset(7,this)">Last 7 Days</div>
+                        <div class="drp-opt active" onclick="mySetPreset(30,this)">Last 30 Days</div>
+                        <div class="drp-opt" onclick="mySetPreset(90,this)">Last 3 Months</div>
+                        <div class="drp-opt" onclick="mySetPreset(180,this)">Last 6 Months</div>
+                        <div class="drp-opt" onclick="myShowCustom()">Custom Range...</div>
+                        <div class="drp-custom-box" id="myDrpCustom" style="display:none;">
+                            <label>From
+                                <input type="date" id="myDrpFrom">
+                            </label>
+                            <label>To
+                                <input type="date" id="myDrpTo">
+                            </label>
+                            <button class="drp-apply" onclick="myApplyCustom()">Apply</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -450,34 +469,9 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
 
             <!-- ── Engagement Chart ── -->
             <div class="chart-container">
-                <div class="chart-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <h3>My Engagement Trends</h3>
-                        <p id="myChartSubtitle">Likes &amp; Comments on my posts (Last 30 Days)</p>
-                    </div>
-                    <div class="drp-wrap">
-                        <button class="drp-btn" id="myDrpBtn" onclick="myDrpToggle(event)">
-                            <i class="fa-regular fa-calendar"></i>
-                            <span id="myDrpLabel">Last 30 Days</span>
-                            <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;"></i>
-                        </button>
-                        <div class="drp-menu" id="myDrpMenu">
-                            <div class="drp-opt" onclick="mySetPreset(7,this)">Last 7 Days</div>
-                            <div class="drp-opt active" onclick="mySetPreset(30,this)">Last 30 Days</div>
-                            <div class="drp-opt" onclick="mySetPreset(90,this)">Last 3 Months</div>
-                            <div class="drp-opt" onclick="mySetPreset(180,this)">Last 6 Months</div>
-                            <div class="drp-opt" onclick="myShowCustom()">Custom Range...</div>
-                            <div class="drp-custom-box" id="myDrpCustom" style="display:none;">
-                                <label>From
-                                    <input type="date" id="myDrpFrom">
-                                </label>
-                                <label>To
-                                    <input type="date" id="myDrpTo">
-                                </label>
-                                <button class="drp-apply" onclick="myApplyCustom()">Apply</button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="chart-header">
+                    <h3>My Engagement Trends</h3>
+                    <p id="myChartSubtitle">Likes &amp; Comments on my posts (Last 30 Days)</p>
                 </div>
                 <canvas id="myEngagementChart"></canvas>
             </div>
