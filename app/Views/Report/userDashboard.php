@@ -300,6 +300,63 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
             .stats-grid { grid-template-columns: 1fr !important; }
             .profile-stats-row { grid-template-columns: repeat(3, 1fr); }
         }
+
+        /* ── Date Range Picker ──────────────────────────────────────── */
+        .drp-wrap { position: relative; }
+        .drp-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 14px;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            font-size: 0.83rem; font-weight: 600; color: #334155;
+            cursor: pointer; transition: all 0.18s; white-space: nowrap;
+            font-family: inherit;
+        }
+        .drp-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+        .drp-btn .fa-calendar { color: #2563eb; }
+        .drp-menu {
+            display: none; position: absolute; right: 0; top: calc(100% + 6px);
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 210px; z-index: 60;
+            overflow: hidden;
+        }
+        .drp-menu.open { display: block; animation: drpFade 0.18s ease; }
+        @keyframes drpFade {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .drp-opt {
+            padding: 10px 16px; font-size: 0.85rem; color: #334155;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .drp-opt:hover  { background: #f1f5f9; color: #0f172a; }
+        .drp-opt.active { color: #2563eb; font-weight: 600; background: #eff6ff; }
+        .drp-custom-box {
+            padding: 10px 14px; border-top: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .drp-custom-box label { font-size: 12px; font-weight: 600; color: #64748b; }
+        .drp-custom-box input[type="date"] {
+            display: block; width: 100%; margin-top: 4px;
+            padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px;
+            font-size: 13px; font-family: inherit;
+        }
+        .drp-apply {
+            background: #2563eb; color: #fff; border: none; border-radius: 6px;
+            padding: 7px 14px; font-size: 13px; font-weight: 600;
+            cursor: pointer; margin-top: 2px; font-family: inherit;
+        }
+        .drp-apply:hover { background: #1d4ed8; }
+        body.dark-mode .drp-btn { background: #1e293b; border-color: rgba(148,163,184,0.2); color: #e2e8f0; }
+        body.dark-mode .drp-btn:hover { background: #0f172a; }
+        body.dark-mode .drp-menu { background: #1e293b; border-color: rgba(148,163,184,0.2); }
+        body.dark-mode .drp-opt { color: #e2e8f0; }
+        body.dark-mode .drp-opt:hover { background: #0f172a; }
+        body.dark-mode .drp-opt.active { background: rgba(37,99,235,0.2); color: #60a5fa; }
+        body.dark-mode .drp-custom-box { border-color: rgba(148,163,184,0.2); }
+        body.dark-mode .drp-custom-box input[type="date"] {
+            background: #0f172a; color: #e2e8f0;
+            border-color: rgba(148,163,184,0.3); color-scheme: dark;
+        }
     </style>
 </head>
 <body>
@@ -393,9 +450,34 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
 
             <!-- ── Engagement Chart ── -->
             <div class="chart-container">
-                <div class="chart-header">
-                    <h3>My Engagement Trends</h3>
-                    <p>Likes &amp; Comments on my posts (Last 30 Days)</p>
+                <div class="chart-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h3>My Engagement Trends</h3>
+                        <p id="myChartSubtitle">Likes &amp; Comments on my posts (Last 30 Days)</p>
+                    </div>
+                    <div class="drp-wrap">
+                        <button class="drp-btn" id="myDrpBtn" onclick="myDrpToggle(event)">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span id="myDrpLabel">Last 30 Days</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;"></i>
+                        </button>
+                        <div class="drp-menu" id="myDrpMenu">
+                            <div class="drp-opt" onclick="mySetPreset(7,this)">Last 7 Days</div>
+                            <div class="drp-opt active" onclick="mySetPreset(30,this)">Last 30 Days</div>
+                            <div class="drp-opt" onclick="mySetPreset(90,this)">Last 3 Months</div>
+                            <div class="drp-opt" onclick="mySetPreset(180,this)">Last 6 Months</div>
+                            <div class="drp-opt" onclick="myShowCustom()">Custom Range...</div>
+                            <div class="drp-custom-box" id="myDrpCustom" style="display:none;">
+                                <label>From
+                                    <input type="date" id="myDrpFrom">
+                                </label>
+                                <label>To
+                                    <input type="date" id="myDrpTo">
+                                </label>
+                                <button class="drp-apply" onclick="myApplyCustom()">Apply</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <canvas id="myEngagementChart"></canvas>
             </div>
@@ -522,56 +604,152 @@ $profileCompleteness = (int)(($filled / count($fields)) * 100);
     <?php require_once __DIR__ . '/../Component/create_post_modal.php'; ?>
 
     <script>
-        const trendData = <?= json_encode($myEngagementTrend) ?>;
+        // ── Engagement Chart ──────────────────────────────────────────────────
+        const _initialTrend = <?= json_encode($myEngagementTrend) ?>;
 
-        const labels = trendData.map(d => {
-            const dt = new Date(d.date);
-            return ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][dt.getMonth()]
-                + ' ' + dt.getDate();
-        });
+        const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const PRESET_LABELS = {7:'Last 7 Days', 30:'Last 30 Days', 90:'Last 3 Months', 180:'Last 6 Months'};
 
-        new Chart(document.getElementById('myEngagementChart').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Likes',
-                        data: trendData.map(d => d.likes),
-                        borderColor: '#4361ee',
-                        backgroundColor: 'rgba(67,97,238,0.1)',
-                        tension: 0.4, fill: true,
-                        pointBackgroundColor: '#4361ee', pointBorderColor: '#fff',
-                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
-                    },
-                    {
-                        label: 'Comments',
-                        data: trendData.map(d => d.comments),
-                        borderColor: '#f72585',
-                        backgroundColor: 'rgba(247,37,133,0.1)',
-                        tension: 0.4, fill: true,
-                        pointBackgroundColor: '#f72585', pointBorderColor: '#fff',
-                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 10 } },
-                    tooltip: {
-                        mode: 'index', intersect: false,
-                        backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1'
-                    }
+        function fmtDate(d) { return d.toISOString().slice(0, 10); }
+        function chartLabel(dateStr) {
+            const dt = new Date(dateStr + 'T00:00:00');
+            return MONTHS[dt.getMonth()] + ' ' + dt.getDate();
+        }
+
+        let myChart = null;
+
+        function renderChart(data) {
+            const labels   = data.map(d => chartLabel(d.date));
+            const likes    = data.map(d => d.likes);
+            const comments = data.map(d => d.comments);
+
+            if (myChart) {
+                myChart.data.labels              = labels;
+                myChart.data.datasets[0].data    = likes;
+                myChart.data.datasets[1].data    = comments;
+                myChart.update();
+                return;
+            }
+
+            myChart = new Chart(document.getElementById('myEngagementChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Likes',
+                            data: likes,
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67,97,238,0.1)',
+                            tension: 0.4, fill: true,
+                            pointBackgroundColor: '#4361ee', pointBorderColor: '#fff',
+                            pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Comments',
+                            data: comments,
+                            borderColor: '#f72585',
+                            backgroundColor: 'rgba(247,37,133,0.1)',
+                            tension: 0.4, fill: true,
+                            pointBackgroundColor: '#f72585', pointBorderColor: '#fff',
+                            pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                        }
+                    ]
                 },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } },
-                    x: { grid: { display: false } }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 10 } },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1'
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    }
                 }
+            });
+        }
+
+        renderChart(_initialTrend);
+
+        async function myLoadChartData(from, to) {
+            const btn = document.getElementById('myDrpBtn');
+            btn.disabled = true;
+            try {
+                const res  = await fetch(`<?= BASE_URL ?>app/Views/Report/userDashboard_ajax.php?from=${from}&to=${to}`);
+                if (!res.ok) throw new Error('Failed');
+                renderChart(await res.json());
+            } catch (e) {
+                console.error('Chart load error', e);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ── Date Range Picker ──────────────────────────────────────────────────
+        function myDrpToggle(e) {
+            e.stopPropagation();
+            document.getElementById('myDrpMenu').classList.toggle('open');
+        }
+
+        function mySetPreset(days, el) {
+            const to   = new Date();
+            const from = new Date();
+            from.setDate(to.getDate() - (days - 1));
+
+            const label = PRESET_LABELS[days] || `Last ${days} Days`;
+            document.getElementById('myDrpLabel').textContent      = label;
+            document.getElementById('myChartSubtitle').textContent = `Likes & Comments on my posts (${label})`;
+            document.getElementById('myDrpMenu').classList.remove('open');
+            document.querySelectorAll('#myDrpMenu .drp-opt').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+
+            myLoadChartData(fmtDate(from), fmtDate(to));
+        }
+
+        function myShowCustom() {
+            const box = document.getElementById('myDrpCustom');
+            box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+
+            const today = new Date();
+            const past  = new Date();
+            past.setDate(today.getDate() - 29);
+            const maxStr = fmtDate(today);
+
+            const fromEl = document.getElementById('myDrpFrom');
+            const toEl   = document.getElementById('myDrpTo');
+            if (!fromEl.value) fromEl.value = fmtDate(past);
+            if (!toEl.value)   toEl.value   = maxStr;
+            fromEl.max = maxStr;
+            toEl.max   = maxStr;
+        }
+
+        function myApplyCustom() {
+            const from = document.getElementById('myDrpFrom').value;
+            const to   = document.getElementById('myDrpTo').value;
+            if (!from || !to) return;
+            if (from > to) { alert('Start date must be before end date.'); return; }
+
+            const fmt = str => new Date(str + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+            const label = `${fmt(from)} – ${fmt(to)}`;
+            document.getElementById('myDrpLabel').textContent      = label;
+            document.getElementById('myChartSubtitle').textContent = `Likes & Comments on my posts (${label})`;
+            document.getElementById('myDrpMenu').classList.remove('open');
+            document.querySelectorAll('#myDrpMenu .drp-opt').forEach(o => o.classList.remove('active'));
+
+            myLoadChartData(from, to);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.drp-wrap')) {
+                document.getElementById('myDrpMenu').classList.remove('open');
             }
         });
 
-        // Search: filter recent posts by content
+        // ── Search: filter recent posts ────────────────────────────────────────
         const searchInput = document.getElementById('dashSearch');
         if (searchInput) {
             searchInput.addEventListener('input', function () {

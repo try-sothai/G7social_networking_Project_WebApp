@@ -301,6 +301,44 @@ function timeAgo($datetime) {
                 gap: 10px;
             }
         }
+
+        /* ── Date Range Picker ──────────────────────────────────────── */
+        .drp-wrap { position: relative; }
+        .date-range { cursor: pointer; user-select: none; }
+        .date-range:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .drp-menu {
+            display: none; position: absolute; right: 0; top: calc(100% + 6px);
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 210px; z-index: 60;
+            overflow: hidden;
+        }
+        .drp-menu.open { display: block; animation: drpFade 0.18s ease; }
+        @keyframes drpFade {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .drp-opt {
+            padding: 10px 16px; font-size: 14px; color: #334155;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .drp-opt:hover  { background: #f1f5f9; color: #0f172a; }
+        .drp-opt.active { color: #2563eb; font-weight: 600; background: #eff6ff; }
+        .drp-custom-box {
+            padding: 10px 14px; border-top: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .drp-custom-box label { font-size: 12px; font-weight: 600; color: #64748b; }
+        .drp-custom-box input[type="date"] {
+            display: block; width: 100%; margin-top: 4px;
+            padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px;
+            font-size: 13px; font-family: inherit;
+        }
+        .drp-apply {
+            background: #2563eb; color: #fff; border: none; border-radius: 6px;
+            padding: 7px 14px; font-size: 13px; font-weight: 600;
+            cursor: pointer; margin-top: 2px; font-family: inherit;
+        }
+        .drp-apply:hover { background: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -333,10 +371,28 @@ function timeAgo($datetime) {
             <!-- Header -->
             <div class="report-header">
                 <h1>Social Activity & Engagement</h1>
-                <div class="date-range">
-                    <i class="fa-regular fa-calendar"></i>
-                    <span>Last 30 Days</span>
-                    <i class="fa-solid fa-chevron-down"></i>
+                <div class="drp-wrap">
+                    <div class="date-range" id="rpDrpBtn" onclick="rpDrpToggle(event)">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span id="rpDrpLabel">Last 30 Days</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="drp-menu" id="rpDrpMenu">
+                        <div class="drp-opt" onclick="rpSetPreset(7,this)">Last 7 Days</div>
+                        <div class="drp-opt active" onclick="rpSetPreset(30,this)">Last 30 Days</div>
+                        <div class="drp-opt" onclick="rpSetPreset(90,this)">Last 3 Months</div>
+                        <div class="drp-opt" onclick="rpSetPreset(180,this)">Last 6 Months</div>
+                        <div class="drp-opt" onclick="rpShowCustom()">Custom Range...</div>
+                        <div class="drp-custom-box" id="rpDrpCustom" style="display:none;">
+                            <label>From
+                                <input type="date" id="rpDrpFrom">
+                            </label>
+                            <label>To
+                                <input type="date" id="rpDrpTo">
+                            </label>
+                            <button class="drp-apply" onclick="rpApplyCustom()">Apply</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -391,7 +447,7 @@ function timeAgo($datetime) {
             <div class="chart-container" id="engagement-trends-section">
                 <div class="chart-header">
                     <h3>Engagement Trends</h3>
-                    <p>Post Likes vs. Comments (Last 30 Days)</p>
+                    <p id="rpChartSubtitle">Post Likes vs. Comments (Last 30 Days)</p>
                 </div>
                 <canvas id="engagementChart"></canvas>
             </div>
@@ -520,94 +576,149 @@ function timeAgo($datetime) {
     <?php lc_shell_render_overlay(); ?>
 
     <script>
-        // Engagement Chart Data
-        const engagementTrends = <?php echo json_encode($engagementTrends); ?>;
-        
-        // Prepare data for chart
-        const labels = engagementTrends.map(item => {
-            const date = new Date(item.date);
-            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-            return `${monthNames[date.getMonth()]} ${date.getDate()}`;
-        });
-        
-        const likesData = engagementTrends.map(item => parseInt(item.likes) || 0);
-        const commentsData = engagementTrends.map(item => parseInt(item.comments) || 0);
+        // ── Engagement Chart ──────────────────────────────────────────────────
+        const _rpInitialTrend = <?php echo json_encode($engagementTrends); ?>;
 
-        // Create chart
-        const ctx = document.getElementById('engagementChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Likes',
-                        data: likesData,
-                        borderColor: '#4361ee',
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#4361ee',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    },
-                    {
-                        label: 'Comments',
-                        data: commentsData,
-                        borderColor: '#f72585',
-                        backgroundColor: 'rgba(247, 37, 133, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#f72585',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            boxWidth: 10
-                        }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: '#1e293b',
-                        titleColor: '#f1f5f9',
-                        bodyColor: '#cbd5e1'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
+        const RP_MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+        const RP_PRESET_LABELS = {7:'Last 7 Days', 30:'Last 30 Days', 90:'Last 3 Months', 180:'Last 6 Months'};
+
+        function rpFmtDate(d) { return d.toISOString().slice(0, 10); }
+
+        let rpChart = null;
+
+        function rpRenderChart(data) {
+            const labels   = data.map(item => {
+                const dt = new Date(item.date + 'T00:00:00');
+                return RP_MONTHS[dt.getMonth()] + ' ' + dt.getDate();
+            });
+            const likesData    = data.map(item => parseInt(item.likes)    || 0);
+            const commentsData = data.map(item => parseInt(item.comments) || 0);
+
+            if (rpChart) {
+                rpChart.data.labels              = labels;
+                rpChart.data.datasets[0].data    = likesData;
+                rpChart.data.datasets[1].data    = commentsData;
+                rpChart.update();
+                return;
+            }
+
+            rpChart = new Chart(document.getElementById('engagementChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Likes',
+                            data: likesData,
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67,97,238,0.1)',
+                            tension: 0.4, fill: true,
+                            pointBackgroundColor: '#4361ee', pointBorderColor: '#fff',
+                            pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
                         },
-                        ticks: {
-                            stepSize: 50
+                        {
+                            label: 'Comments',
+                            data: commentsData,
+                            borderColor: '#f72585',
+                            backgroundColor: 'rgba(247,37,133,0.1)',
+                            tension: 0.4, fill: true,
+                            pointBackgroundColor: '#f72585', pointBorderColor: '#fff',
+                            pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 10 } },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1'
                         }
                     },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                },
-                interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 50 } },
+                        x: { grid: { display: false } }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
                 }
+            });
+        }
+
+        rpRenderChart(_rpInitialTrend);
+
+        async function rpLoadChartData(from, to) {
+            const btn = document.getElementById('rpDrpBtn');
+            btn.style.opacity = '0.6';
+            try {
+                const res = await fetch(`<?= BASE_URL ?>app/Views/Report/userReport_ajax.php?from=${from}&to=${to}`);
+                if (!res.ok) throw new Error('Failed');
+                rpRenderChart(await res.json());
+            } catch (e) {
+                console.error('Chart load error', e);
+            } finally {
+                btn.style.opacity = '';
+            }
+        }
+
+        // ── Date Range Picker ──────────────────────────────────────────────────
+        function rpDrpToggle(e) {
+            e.stopPropagation();
+            document.getElementById('rpDrpMenu').classList.toggle('open');
+        }
+
+        function rpSetPreset(days, el) {
+            const to   = new Date();
+            const from = new Date();
+            from.setDate(to.getDate() - (days - 1));
+
+            const label = RP_PRESET_LABELS[days] || `Last ${days} Days`;
+            document.getElementById('rpDrpLabel').textContent      = label;
+            document.getElementById('rpChartSubtitle').textContent = `Post Likes vs. Comments (${label})`;
+            document.getElementById('rpDrpMenu').classList.remove('open');
+            document.querySelectorAll('#rpDrpMenu .drp-opt').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+
+            rpLoadChartData(rpFmtDate(from), rpFmtDate(to));
+        }
+
+        function rpShowCustom() {
+            const box = document.getElementById('rpDrpCustom');
+            box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+
+            const today = new Date();
+            const past  = new Date();
+            past.setDate(today.getDate() - 29);
+            const maxStr = rpFmtDate(today);
+
+            const fromEl = document.getElementById('rpDrpFrom');
+            const toEl   = document.getElementById('rpDrpTo');
+            if (!fromEl.value) fromEl.value = rpFmtDate(past);
+            if (!toEl.value)   toEl.value   = maxStr;
+            fromEl.max = maxStr;
+            toEl.max   = maxStr;
+        }
+
+        function rpApplyCustom() {
+            const from = document.getElementById('rpDrpFrom').value;
+            const to   = document.getElementById('rpDrpTo').value;
+            if (!from || !to) return;
+            if (from > to) { alert('Start date must be before end date.'); return; }
+
+            const fmt = str => new Date(str + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+            const label = `${fmt(from)} – ${fmt(to)}`;
+            document.getElementById('rpDrpLabel').textContent      = label;
+            document.getElementById('rpChartSubtitle').textContent = `Post Likes vs. Comments (${label})`;
+            document.getElementById('rpDrpMenu').classList.remove('open');
+            document.querySelectorAll('#rpDrpMenu .drp-opt').forEach(o => o.classList.remove('active'));
+
+            rpLoadChartData(from, to);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.drp-wrap')) {
+                document.getElementById('rpDrpMenu').classList.remove('open');
             }
         });
     </script>
