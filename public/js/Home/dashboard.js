@@ -887,7 +887,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetch(POST_API, { method: 'POST', body: payload })
                     .then((res) => res.json())
                     .then((data) => {
-                        window.alert((data && data.message) ? data.message : 'Report sent.');
+                        // window.alert((data && data.message) ? data.message : 'Report sent.');
                     })
                     .catch(() => window.alert('Unable to submit report.'));
             };
