@@ -6,10 +6,10 @@ ini_set('html_errors', '0');
 ini_set('log_errors', '1');
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_NOTICE & ~E_WARNING);
 
-$host = "localhost";
-$dbname = "g7social_networking";
-$username = "root";
-$password = "";
+$host = "bx6ifxp9uk5fmi1fqtia-mysql.services.clever-cloud.com";
+$dbname = "bx6ifxp9uk5fmi1fqtia";
+$username = "uovzq7arcre9qv6q";
+$password = "Hfz2SqF8PpVxwzFKlnpC";
 
 if (!defined('BASE_URL')) {
     // ពិនិត្យមើលថាតើកំពុងប្រើប្រាស់ HTTP ឬ HTTPS (Ngrok ប្រើ HTTPS)
