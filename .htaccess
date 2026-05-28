@@ -1,15 +1,10 @@
-Options -Indexes
-Require all granted
-
+# ── Upload Size Limits ──────────────────────────────────────
 php_value upload_max_filesize 200M
 php_value post_max_size       250M
 php_value max_execution_time  300
 php_value max_input_time      300
 php_value memory_limit        256M
 
-RewriteEngine On
-RewriteBase /
-
-# Redirect to public folder
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(.*)$ /public/$1 [L]
+# —— URL Rewriting ————————————————————————————————————
+Options +Indexes
+Require all granted
