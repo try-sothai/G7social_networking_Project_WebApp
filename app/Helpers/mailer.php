@@ -18,14 +18,6 @@ function lc_mailer_config(): array
         $host = 'smtp.gmail.com';
     }
 
-    if ($username === '') {
-        $username = 'shy784162@gmail.com';
-    }
-
-    if ($password === '') {
-        $password = 'obmnqzigmrupwhbq';
-    }
-
     if ($port <= 0) {
         $port = 587;
     }
@@ -35,7 +27,7 @@ function lc_mailer_config(): array
     }
 
     if ($fromName === '') {
-        $fromName = 'LocalConnect';
+        $fromName = 'Social7';
     }
 
     return [
