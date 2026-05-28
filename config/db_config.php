@@ -12,28 +12,7 @@ $username = "uovzq7arcre9qv6q";
 $password = "Hfz2SqF8PpVxwzFKlnpC";
 
 if (!defined('BASE_URL')) {
-    // ពិនិត្យមើលថាតើកំពុងប្រើប្រាស់ HTTP ឬ HTTPS (Ngrok ប្រើ HTTPS)
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' 
-        || $_SERVER['SERVER_PORT'] == 443 
-        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')) 
-        ? "https://" : "http://";
-
-    // ទាញយកឈ្មោះ Host
-    $serverHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
-
-    $projectRoot = str_replace('\\', '/', realpath(__DIR__ . '/..'));
-    $documentRoot = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'] ?? ''));
-
-    if ($projectRoot && $documentRoot && str_starts_with($projectRoot, $documentRoot)) {
-        $basePath = str_replace($documentRoot, '', $projectRoot);
-        $basePath = '/' . trim(str_replace('\\', '/', $basePath), '/') . '/';
-    } else {
-        // Fallback: use current project folder name
-        $basePath = '/' . basename($projectRoot ?: 'G7social_networking_Project_WebApp') . '/';
-    }
-
-    // កំណត់ BASE_URL ដោយស្វ័យប្រវត្តិរួមទាំង Protocol និង Host
-    define('BASE_URL', $protocol . $serverHost . $basePath);
+    define('BASE_URL', 'https://g7social-networking-project-webapp.onrender.com/');
 }
 
 try {
