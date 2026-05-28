@@ -10,6 +10,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 $error = '';
+$pendingEmail = '';
 $maxAttempts = 5;
 $lockoutSeconds = 300;
 
@@ -56,7 +57,8 @@ if (isset($_POST['login'])) {
                 if ($user && $passwordOk) {
                     $accountStatus = lc_admin_normalize_status($user['AccountStatus'] ?? 'Active');
                     if ($accountStatus === 'Pending') {
-                        $error = 'Please verify your email before logging in. Check your inbox for the verification link.';
+                        $pendingEmail = $user['Email'];
+                        $error = 'pending_verification';
                     } elseif ($accountStatus !== 'Active') {
                         $error = 'This account is currently ' . strtolower($accountStatus) . '.';
                     } else {
@@ -120,7 +122,12 @@ if (isset($_POST['login'])) {
         </a>
     </div>
 
-    <?php if ($error): ?>
+    <?php if ($error === 'pending_verification'): ?>
+        <div class="auth-msg error">
+            Your email is not verified yet.
+            <a href="resend_verification.php?email=<?php echo urlencode($pendingEmail); ?>" style="color:#1d4ed8;font-weight:600;">Resend verification email</a>
+        </div>
+    <?php elseif ($error): ?>
         <div class="auth-msg error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
