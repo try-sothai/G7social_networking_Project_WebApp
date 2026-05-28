@@ -45,7 +45,7 @@ if (isset($_GET['token'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Verification - Social7</title>
     
-    <link rel="stylesheet" href="../../../public/css/Login/auth.css">
+    <link rel="stylesheet" href="../../../public/css/login/auth.css">
 </head>
 <body>
 <div class="auth-card" style="text-align: center;">

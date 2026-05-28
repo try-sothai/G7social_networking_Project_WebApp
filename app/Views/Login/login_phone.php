@@ -58,7 +58,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'firebase_phone_login') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social7 - Phone Login</title>
     
-<link rel="stylesheet" href="../../../public/css/Login/auth.css">
+<link rel="stylesheet" href="../../../public/css/login/auth.css">
 <link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css">
     <link rel="stylesheet" href="../../../public/css/fonts/fonts.css">
 <style>

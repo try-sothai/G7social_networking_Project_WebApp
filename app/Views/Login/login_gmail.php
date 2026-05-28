@@ -102,7 +102,7 @@ if (isset($_POST['login'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Social7 - Login</title>
 
-<link rel="stylesheet" href="../../../public/css/Login/auth.css">
+<link rel="stylesheet" href="../../../public/css/login/auth.css">
 <link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css">
     <link rel="stylesheet" href="../../../public/css/fonts/fonts.css">
 </head>
