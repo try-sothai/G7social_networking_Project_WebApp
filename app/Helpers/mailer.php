@@ -5,14 +5,23 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
+function lc_env(string $key): string
+{
+    $v = getenv($key);
+    if ($v === false || $v === '') {
+        $v = $_ENV[$key] ?? ($_SERVER[$key] ?? '');
+    }
+    return trim((string) $v);
+}
+
 function lc_mailer_config(): array
 {
-    $host = trim((string) (getenv('SMTP_HOST') ?: ''));
-    $username = trim((string) (getenv('SMTP_USERNAME') ?: ''));
-    $password = trim((string) (getenv('SMTP_PASSWORD') ?: ''));
-    $port = (int) (getenv('SMTP_PORT') ?: 0);
-    $fromEmail = trim((string) (getenv('SMTP_FROM_EMAIL') ?: ''));
-    $fromName = trim((string) (getenv('SMTP_FROM_NAME') ?: ''));
+    $host      = lc_env('SMTP_HOST');
+    $username  = lc_env('SMTP_USERNAME');
+    $password  = lc_env('SMTP_PASSWORD');
+    $port      = (int) (lc_env('SMTP_PORT') ?: 0);
+    $fromEmail = lc_env('SMTP_FROM_EMAIL');
+    $fromName  = lc_env('SMTP_FROM_NAME');
 
     if ($host === '') {
         $host = 'smtp.gmail.com';
@@ -75,8 +84,8 @@ function lc_send_verification_email(string $toEmail, string $toName, string $ver
 
         return ['success' => true];
     } catch (Exception $e) {
-        error_log('Verification email error: ' . $mail->ErrorInfo);
-        return ['success' => false];
+        error_log('Verification email error [host=' . $config['host'] . ' port=' . $config['port'] . ' user=' . $config['username'] . ']: ' . $mail->ErrorInfo);
+        return ['success' => false, 'error' => $mail->ErrorInfo];
     }
 }
 

@@ -53,7 +53,8 @@ if (isset($_POST['signup'])) {
                     if ($sent['success']) {
                         $message = 'Account created! Please check your email to verify your account before logging in.';
                     } else {
-                        $message = 'Account created! However, we could not send the verification email. Please contact support.';
+                        $smtpErr = $sent['error'] ?? 'unknown';
+                        $message = 'Account created! Email sending failed: ' . htmlspecialchars($smtpErr);
                     }
                 } else {
                     $error = 'Failed to create account.';
