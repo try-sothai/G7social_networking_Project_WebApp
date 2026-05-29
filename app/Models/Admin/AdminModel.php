@@ -356,6 +356,55 @@ class AdminModel
         return ['success' => $stmt->rowCount() > 0, 'message' => $stmt->rowCount() > 0 ? 'Post deleted.' : 'Post not found.'];
     }
 
+    public function deleteUser(int $actorId, int $targetId): array
+    {
+        if ($actorId <= 0 || $targetId <= 0) {
+            return ['success' => false, 'message' => 'Invalid user selection.'];
+        }
+
+        if ($actorId === $targetId) {
+            return ['success' => false, 'message' => 'You cannot delete your own account.'];
+        }
+
+        $actor = $this->getUserById($actorId);
+        if (!$actor || $actor['Role'] !== 'SuperAdmin') {
+            return ['success' => false, 'message' => 'Only SuperAdmin can delete accounts.'];
+        }
+
+        $target = $this->getUserById($targetId);
+        if (!$target) {
+            return ['success' => false, 'message' => 'User not found.'];
+        }
+
+        if ($target['Role'] === 'SuperAdmin') {
+            return ['success' => false, 'message' => 'SuperAdmin accounts cannot be deleted.'];
+        }
+
+        $username = $target['Username'];
+
+        try {
+            $this->db->beginTransaction();
+
+            foreach ([
+                "DELETE FROM notifications WHERE UserID = :id OR TriggerID = :id",
+                "DELETE FROM admin_reports WHERE ReporterID = :id",
+                "DELETE FROM posts WHERE UserID = :id",
+                "DELETE FROM friendships WHERE UserID = :id OR FriendID = :id",
+            ] as $sql) {
+                $this->db->prepare($sql)->execute([':id' => $targetId]);
+            }
+
+            $this->db->prepare("DELETE FROM users WHERE UserID = :id")->execute([':id' => $targetId]);
+
+            $this->db->commit();
+            return ['success' => true, 'message' => "Account \"$username\" deleted successfully."];
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('deleteUser error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to delete account. Please try again.'];
+        }
+    }
+
     private function manageUser(int $actorId, int $targetId, array $changes): array
     {
         if ($actorId <= 0 || $targetId <= 0) {

@@ -67,6 +67,13 @@ switch ($action) {
             (int)($_POST['post_id'] ?? 0)
         );
         break;
+
+    case 'delete_user':
+        $result = $model->deleteUser(
+            $actorId,
+            (int)($_POST['target_user_id'] ?? 0)
+        );
+        break;
 }
 
 $_SESSION['admin_flash'] = [

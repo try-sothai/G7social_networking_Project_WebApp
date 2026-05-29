@@ -636,6 +636,9 @@ function admin_post_preview(array $report): string
                                 <th>Joined</th>
                                 <th>Role Action</th>
                                 <th>Status Action</th>
+                                <?php if (lc_current_user_role() === 'SuperAdmin'): ?>
+                                <th>Delete</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -686,6 +689,23 @@ function admin_post_preview(array $report): string
                                             <button type="submit">Apply</button>
                                         </form>
                                     </td>
+                                    <?php if (lc_current_user_role() === 'SuperAdmin'): ?>
+                                    <td>
+                                        <?php if ((string)$user['Role'] !== 'SuperAdmin' && (int)$user['UserID'] !== $currentUserId): ?>
+                                        <form method="post" action="<?= htmlspecialchars(BASE_URL . 'app/Controllers/Admin/admin_actions.php') ?>"
+                                              onsubmit="return confirm('Delete account \"<?= htmlspecialchars((string)$user['Username'], ENT_QUOTES) ?>\"?\n\nThis will permanently remove the account and all their posts. This cannot be undone.')">
+                                            <input type="hidden" name="action" value="delete_user">
+                                            <input type="hidden" name="target_user_id" value="<?= (int)$user['UserID'] ?>">
+                                            <?php admin_render_return_fields($search, $roleFilter, $statusFilter, $reportStatus, $reportSearch); ?>
+                                            <button type="submit" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer;">
+                                                <i class="fa-solid fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                        <?php else: ?>
+                                        <span style="color:#cbd5e1;font-size:12px;">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
