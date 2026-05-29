@@ -12,5 +12,9 @@ function env(string $key, string $default = ''): string {
             }
         }
     }
-    return $vars[$key] ?? $default;
+    // Fall back to Render environment variables
+    if (isset($vars[$key])) return $vars[$key];
+    $sys = getenv($key);
+    if ($sys !== false && $sys !== '') return trim($sys);
+    return $_ENV[$key] ?? ($_SERVER[$key] ?? $default);
 }
