@@ -14,6 +14,52 @@ function lc_env(string $key): string
     return trim((string) $v);
 }
 
+// Send via Brevo API (free, no domain needed — just verify sender email)
+function lc_send_via_brevo(string $toEmail, string $toName, string $subject, string $htmlBody, string $altBody): array
+{
+    $apiKey = lc_env('BREVO_API_KEY');
+    if ($apiKey === '') {
+        return ['success' => false, 'error' => 'BREVO_API_KEY not set'];
+    }
+
+    $fromName  = lc_env('SMTP_FROM_NAME') ?: 'Social7';
+    $fromEmail = lc_env('SMTP_FROM_EMAIL') ?: lc_env('SMTP_USERNAME');
+
+    $payload = json_encode([
+        'sender'      => ['name' => $fromName, 'email' => $fromEmail],
+        'to'          => [['email' => $toEmail, 'name' => $toName]],
+        'subject'     => $subject,
+        'htmlContent' => $htmlBody,
+        'textContent' => $altBody,
+    ]);
+
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => [
+            'api-key: ' . $apiKey,
+            'Content-Type: application/json',
+            'Accept: application/json',
+        ],
+        CURLOPT_TIMEOUT => 15,
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr  = curl_error($ch);
+    curl_close($ch);
+
+    if ($httpCode === 201) {
+        return ['success' => true];
+    }
+
+    $decoded = json_decode($response, true);
+    $errMsg  = $decoded['message'] ?? ($curlErr ?: $response);
+    error_log('Brevo API error [' . $httpCode . ']: ' . $errMsg);
+    return ['success' => false, 'error' => 'Brevo error: ' . $errMsg];
+}
+
 // Send via Resend HTTP API (works on Render - uses HTTPS port 443)
 function lc_send_via_resend(string $toEmail, string $toName, string $subject, string $htmlBody, string $altBody): array
 {
@@ -111,6 +157,12 @@ function lc_send_verification_email(string $toEmail, string $toName, string $ver
     ";
     $altBody = 'Verify your Social7 account by visiting: ' . $verifyUrl;
 
+    if (lc_env('BREVO_API_KEY') !== '') {
+        return lc_send_via_brevo($toEmail, $toName, $subject, $htmlBody, $altBody);
+    }
+    if (lc_env('BREVO_API_KEY') !== '') {
+        return lc_send_via_brevo($toEmail, $toName, $subject, $htmlBody, $altBody);
+    }
     if (lc_env('RESEND_API_KEY') !== '') {
         return lc_send_via_resend($toEmail, $toName, $subject, $htmlBody, $altBody);
     }
@@ -133,6 +185,9 @@ function lc_send_otp_email(string $toEmail, string $toName, string $otp): array
     ";
     $altBody = 'Your Social7 verification code is ' . $otp . '. This code expires in 5 minutes.';
 
+    if (lc_env('BREVO_API_KEY') !== '') {
+        return lc_send_via_brevo($toEmail, $toName, $subject, $htmlBody, $altBody);
+    }
     if (lc_env('RESEND_API_KEY') !== '') {
         return lc_send_via_resend($toEmail, $toName, $subject, $htmlBody, $altBody);
     }
