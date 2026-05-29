@@ -22,6 +22,12 @@ try {
     die("Connection failed: " . $e->getMessage());
 }
 
+// Store sessions in DB so they survive Render server restarts
+if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/session_handler.php';
+    lc_init_db_sessions($conn);
+}
+
 // Generate CSRF token for the session
 if (session_status() === PHP_SESSION_ACTIVE && empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
