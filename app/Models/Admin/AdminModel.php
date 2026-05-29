@@ -383,25 +383,17 @@ class AdminModel
         $username = $target['Username'];
 
         try {
-            $this->db->beginTransaction();
+            // All related tables have ON DELETE CASCADE — one delete handles everything
+            $stmt = $this->db->prepare("DELETE FROM users WHERE UserID = :id");
+            $stmt->execute([':id' => $targetId]);
 
-            foreach ([
-                "DELETE FROM notifications WHERE UserID = :id OR TriggerID = :id",
-                "DELETE FROM admin_reports WHERE ReporterID = :id",
-                "DELETE FROM posts WHERE UserID = :id",
-                "DELETE FROM friendships WHERE UserID = :id OR FriendID = :id",
-            ] as $sql) {
-                $this->db->prepare($sql)->execute([':id' => $targetId]);
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true, 'message' => "Account \"$username\" deleted successfully."];
             }
-
-            $this->db->prepare("DELETE FROM users WHERE UserID = :id")->execute([':id' => $targetId]);
-
-            $this->db->commit();
-            return ['success' => true, 'message' => "Account \"$username\" deleted successfully."];
+            return ['success' => false, 'message' => 'User not found.'];
         } catch (PDOException $e) {
-            $this->db->rollBack();
             error_log('deleteUser error: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'Failed to delete account. Please try again.'];
+            return ['success' => false, 'message' => 'Delete failed: ' . $e->getMessage()];
         }
     }
 
