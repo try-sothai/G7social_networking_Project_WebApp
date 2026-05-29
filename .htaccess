@@ -7,5 +7,5 @@ php_value memory_limit        256M
 
 # —— Access & Directory ————————————————————————————————
 Options -Indexes
-DirectoryIndex index.php index.html
+DirectoryIndex public/index.php index.php index.html
 Require all granted
