@@ -173,6 +173,10 @@ function parseMediaList($imagePathValue): array {
 }
 
 function safeMediaPath(string $uploadDirDb, string $mediaPath): string {
+    // Cloudinary or external URLs — return unchanged
+    if (str_starts_with($mediaPath, 'https://') || str_starts_with($mediaPath, 'http://')) {
+        return $mediaPath;
+    }
     $base = basename(str_replace('\\', '/', $mediaPath));
     return rtrim($uploadDirDb, '/\\') . '/' . $base;
 }
