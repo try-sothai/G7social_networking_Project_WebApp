@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../../config/db_config.php';
 require_once __DIR__ . '/../../Models/Home/PostModel.php';
 require_once __DIR__ . '/../../Helpers/admin.php';
 require_once __DIR__ . '/../../Models/Admin/AdminModel.php';
+require_once __DIR__ . '/../../Helpers/cloudinary.php';
 
 $current_user_id = (int)($_SESSION['user_id'] ?? 0);
 if (!$current_user_id) {
@@ -204,23 +205,33 @@ function mediaListToDbValue(array $mediaList): string {
 }
 
 function uploadMediaFiles(array $uploadedFiles, int $current_user_id, string $uploadDirAbs, string $uploadDirDb): array {
-    $savedMedia = [];
+    $savedMedia    = [];
+    $useCloudinary = lc_cloudinary_enabled();
+
     foreach ($uploadedFiles as $file) {
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($extension === '') {
             $extension = 'jpg';
         }
 
-        $filename = 'post_' . $current_user_id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+        $filename  = 'post_' . $current_user_id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
         $targetAbs = $uploadDirAbs . $filename;
-        $targetDb = $uploadDirDb . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $targetAbs)) {
             deleteMediaFiles($uploadDirAbs, $savedMedia);
             return ['ok' => false, 'paths' => []];
         }
 
-        $savedMedia[] = $targetDb;
+        if ($useCloudinary) {
+            $cloudUrl = lc_cloudinary_upload($targetAbs, 'social7/posts');
+            if ($cloudUrl) {
+                @unlink($targetAbs);
+                $savedMedia[] = $cloudUrl;
+                continue;
+            }
+        }
+
+        $savedMedia[] = $uploadDirDb . $filename;
     }
 
     return ['ok' => true, 'paths' => $savedMedia];

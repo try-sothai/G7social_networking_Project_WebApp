@@ -2,6 +2,7 @@
 session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/editProfileModel.php';
+require_once __DIR__ . '/../../Helpers/cloudinary.php';
 
 $model = new editProfileModel($conn);
 $user_id = $_SESSION['user_id'] ?? null;
@@ -54,11 +55,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $file_name = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
 
         if (move_uploaded_file($tmp, $uploadDirAbs . $file_name)) {
-            // Delete old profile picture to free disk space
-            if ($profile_pic && is_file($uploadDirAbs . $profile_pic)) {
-                @unlink($uploadDirAbs . $profile_pic);
+            if (lc_cloudinary_enabled()) {
+                $cloudUrl = lc_cloudinary_upload($uploadDirAbs . $file_name, 'social7/avatars');
+                if ($cloudUrl) {
+                    @unlink($uploadDirAbs . $file_name);
+                    $profile_pic = $cloudUrl;
+                } else {
+                    $profile_pic = $file_name;
+                }
+            } else {
+                if ($profile_pic && is_file($uploadDirAbs . $profile_pic)) {
+                    @unlink($uploadDirAbs . $profile_pic);
+                }
+                $profile_pic = $file_name;
             }
-            $profile_pic = $file_name;
         }
     }
 
@@ -81,11 +91,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cover_file_name = time() . '_cover_' . bin2hex(random_bytes(4)) . '.' . $ext;
 
         if (move_uploaded_file($tmp, $uploadDirAbs . $cover_file_name)) {
-            // Delete old cover photo to free disk space
-            if ($cover_pic && is_file($uploadDirAbs . $cover_pic)) {
-                @unlink($uploadDirAbs . $cover_pic);
+            if (lc_cloudinary_enabled()) {
+                $cloudUrl = lc_cloudinary_upload($uploadDirAbs . $cover_file_name, 'social7/covers');
+                if ($cloudUrl) {
+                    @unlink($uploadDirAbs . $cover_file_name);
+                    $cover_pic = $cloudUrl;
+                } else {
+                    $cover_pic = $cover_file_name;
+                }
+            } else {
+                if ($cover_pic && is_file($uploadDirAbs . $cover_pic)) {
+                    @unlink($uploadDirAbs . $cover_pic);
+                }
+                $cover_pic = $cover_file_name;
             }
-            $cover_pic = $cover_file_name;
         }
     }
 
