@@ -12,7 +12,7 @@ $username = "uovzq7arcre9qv6q";
 $password = "Hfz2SqF8PpVxwzFKlnpC";
 
 if (!defined('BASE_URL')) {
-    define('BASE_URL', 'https://g7social-networking-project-webapp.onrender.com/');
+    define('BASE_URL', 'https://social7.win/');
 }
 
 try {
