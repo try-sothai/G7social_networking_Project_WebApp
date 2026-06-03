@@ -26,7 +26,6 @@ try {
 if (session_status() === PHP_SESSION_NONE) {
     require_once __DIR__ . '/session_handler.php';
     lc_init_db_sessions($conn);
-    session_start();
 }
 
 // Generate CSRF token for the session
