@@ -26,6 +26,18 @@ try {
 if (session_status() === PHP_SESSION_NONE) {
     require_once __DIR__ . '/session_handler.php';
     lc_init_db_sessions($conn);
+    session_start(); // Always start session here with DB handler
+} elseif (session_status() === PHP_SESSION_ACTIVE) {
+    // Session already started (file-based) — switch to DB handler for next request
+    // by writing user_id back to DB session if it exists in current session
+    if (!empty($_SESSION['user_id'])) {
+        $sessId = session_id();
+        session_write_close();
+        require_once __DIR__ . '/session_handler.php';
+        lc_init_db_sessions($conn);
+        session_id($sessId);
+        session_start();
+    }
 }
 
 // Generate CSRF token for the session
