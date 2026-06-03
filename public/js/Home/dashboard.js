@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resolveAvatarUrl(avatarPath) {
         const raw = String(avatarPath || '').replace(/\\/g, '/').trim();
         if (!raw) return FALLBACK_AVATAR;
+        if (raw === 'default.png' || raw === 'default-avatar.svg') return FALLBACK_AVATAR;
         if (raw.startsWith('data:')) return raw;
         // Strip expired tunnel hostnames for avatar uploads
         if (/^https?:\/\//i.test(raw)) {
