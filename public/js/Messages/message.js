@@ -268,7 +268,7 @@ class MessageChat {
         const myAvatar = this.elements.myAvatar.src;
         const receiverAvatar = this.elements.activeUserImg.src;
         const isMe = m.SenderID == CURRENT_USER_ID;
-        const avatar = isMe ? myAvatar : (m.ProfilePic ? `${window.APP_CONFIG.imagePath}${m.ProfilePic}` : receiverAvatar);
+        const avatar = isMe ? myAvatar : (m.ProfilePic ? (m.ProfilePic.startsWith('http') ? m.ProfilePic : `${window.APP_CONFIG.imagePath}${m.ProfilePic}`) : receiverAvatar);
         const messageContent = this.formatMessageContent(m);
         if (!messageContent.trim()) return '';
         const timeStr = this.formatTime(m.SentAt);
@@ -341,7 +341,7 @@ class MessageChat {
         }
         
         this.elements.userListContainer.innerHTML = friends.map(friend => {
-            const userImg = friend.ProfilePic ? `${window.APP_CONFIG.imagePath}${friend.ProfilePic}` : 'https://via.placeholder.com/50';
+            const userImg = friend.ProfilePic ? (friend.ProfilePic.startsWith('http') ? friend.ProfilePic : `${window.APP_CONFIG.imagePath}${friend.ProfilePic}`) : 'https://via.placeholder.com/50';
             let lastMessage = friend.last_message || 'No messages yet';
             
             if (lastMessage.length > 30) {
