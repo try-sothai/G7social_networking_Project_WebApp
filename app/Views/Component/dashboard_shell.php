@@ -17,10 +17,12 @@ if (!function_exists('lc_shell_default_nav')) {
         $fntV = is_file($root . $fntPath) ? filemtime($root . $fntPath) : time();
         if (defined('BASE_URL')) {
             $base = rtrim(BASE_URL, '/');
-            echo '<link rel="stylesheet" href="' . $base . $faPath  . '?v=' . $faV  . '">' . "\n";
+            echo '<link rel="icon" type="image/svg+xml" href="' . $base . '/public/img/favicon.svg">' . "\n";
+            echo '    <link rel="stylesheet" href="' . $base . $faPath  . '?v=' . $faV  . '">' . "\n";
             echo '    <link rel="stylesheet" href="' . $base . $fntPath . '?v=' . $fntV . '">' . "\n";
         } else {
-            echo '<link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css?v=' . $faV  . '">' . "\n";
+            echo '<link rel="icon" type="image/svg+xml" href="../../../public/img/favicon.svg">' . "\n";
+            echo '    <link rel="stylesheet" href="../../../public/css/fontawesome/all.min.css?v=' . $faV  . '">' . "\n";
             echo '    <link rel="stylesheet" href="../../../public/css/fonts/fonts.css?v='        . $fntV . '">' . "\n";
         }
     }
