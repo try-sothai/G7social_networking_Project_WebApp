@@ -262,6 +262,11 @@ if ($action === 'fetch') {
         $posts = $postModel->getRecentPosts(25, $groupId);
         if (is_array($posts)) {
             foreach ($posts as &$post) {
+                // Fix timezone: tell JS this is UTC so "7h ago" shows correctly
+                if (!empty($post['CreatedAt'])) {
+                    $post['CreatedAt'] = str_replace(' ', 'T', $post['CreatedAt']) . 'Z';
+                }
+
                 $mediaList = parseMediaList($post['ImagePath'] ?? '');
                 if (count($mediaList) > 0) {
                     $post['ImagePath'] = mediaListToDbValue(array_map(
