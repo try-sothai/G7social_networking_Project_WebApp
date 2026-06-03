@@ -1,11 +1,22 @@
 <?php
 // Cloudinary upload helper — persists files across Render server restarts
 
+function lc_get_env_var(string $key): string
+{
+    // Try lc_env() if available (env.php loaded), else fall back to getenv()
+    if (function_exists('lc_env')) {
+        return lc_env($key);
+    }
+    $v = getenv($key);
+    if ($v !== false && $v !== '') return trim($v);
+    return trim((string)($_ENV[$key] ?? ($_SERVER[$key] ?? '')));
+}
+
 function lc_cloudinary_upload(string $filePath, string $folder = 'social7'): ?string
 {
-    $cloudName = lc_env('CLOUDINARY_CLOUD_NAME');
-    $apiKey    = lc_env('CLOUDINARY_API_KEY');
-    $apiSecret = lc_env('CLOUDINARY_API_SECRET');
+    $cloudName = lc_get_env_var('CLOUDINARY_CLOUD_NAME');
+    $apiKey    = lc_get_env_var('CLOUDINARY_API_KEY');
+    $apiSecret = lc_get_env_var('CLOUDINARY_API_SECRET');
 
     if ($cloudName === '' || $apiKey === '' || $apiSecret === '') {
         return null;
@@ -49,7 +60,7 @@ function lc_cloudinary_upload(string $filePath, string $folder = 'social7'): ?st
 
 function lc_cloudinary_enabled(): bool
 {
-    return lc_env('CLOUDINARY_CLOUD_NAME') !== ''
-        && lc_env('CLOUDINARY_API_KEY') !== ''
-        && lc_env('CLOUDINARY_API_SECRET') !== '';
+    return lc_get_env_var('CLOUDINARY_CLOUD_NAME') !== ''
+        && lc_get_env_var('CLOUDINARY_API_KEY') !== ''
+        && lc_get_env_var('CLOUDINARY_API_SECRET') !== '';
 }
