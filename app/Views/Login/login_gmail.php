@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require_once '../../../config/db_config.php';
+require_once '../../../config/remember_me.php';
 require_once '../../Helpers/admin.php';
 
 lc_admin_ensure_schema($conn);
@@ -74,6 +75,10 @@ if (isset($_POST['login'])) {
 
                         lc_admin_sync_session($conn);
 
+                        if (!empty($_POST['remember_me'])) {
+                            lc_remember_create($conn, (int) $user['UserID']);
+                        }
+
                         header('Location: ' . BASE_URL . 'app/Views/Home/dashboard.php');
                         exit();
                     }
@@ -140,6 +145,10 @@ if (isset($_POST['login'])) {
         <div class="form-group">
             <label>Password</label>
             <input type="password" name="Password" placeholder="Enter your Password" minlength="8" required>
+        </div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;margin-top:-4px;">
+            <input type="checkbox" name="remember_me" id="remember_me" value="1" style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary,#1d4ed8);">
+            <label for="remember_me" style="margin:0;font-size:0.9rem;cursor:pointer;font-weight:400;">Remember me for 30 days</label>
         </div>
         <button type="submit" name="login" class="btn-primary">Log In</button>
     </form>

@@ -693,11 +693,13 @@ function admin_post_preview(array $report): string
                                     <td>
                                         <?php if ((string)$user['Role'] !== 'SuperAdmin' && (int)$user['UserID'] !== $currentUserId): ?>
                                         <form method="post" action="<?= htmlspecialchars(BASE_URL . 'app/Controllers/Admin/admin_actions.php') ?>"
-                                              onsubmit="return confirm('Delete account \"<?= htmlspecialchars((string)$user['Username'], ENT_QUOTES) ?>\"?\n\nThis will permanently remove the account and all their posts. This cannot be undone.')">
+                                              id="del-form-<?= (int)$user['UserID'] ?>">
                                             <input type="hidden" name="action" value="delete_user">
                                             <input type="hidden" name="target_user_id" value="<?= (int)$user['UserID'] ?>">
                                             <?php admin_render_return_fields($search, $roleFilter, $statusFilter, $reportStatus, $reportSearch); ?>
-                                            <button type="submit" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer;">
+                                            <button type="button"
+                                                    onclick="adminConfirmDelete('del-form-<?= (int)$user['UserID'] ?>', '<?= htmlspecialchars((string)$user['Username'], ENT_QUOTES) ?>', '<?= htmlspecialchars((string)($user['Email'] ?? ''), ENT_QUOTES) ?>')"
+                                                    style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer;">
                                                 <i class="fa-solid fa-trash"></i> Delete
                                             </button>
                                         </form>
@@ -880,11 +882,78 @@ function admin_post_preview(array $report): string
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div id="admin-delete-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;animation:modalPop 0.2s ease;">
+            <div style="width:64px;height:64px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:28px;color:#ef4444;"></i>
+            </div>
+            <h3 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Delete Account?</h3>
+            <p id="admin-delete-modal-name" style="font-weight:700;font-size:16px;color:#ef4444;margin:0 0 4px;"></p>
+            <p id="admin-delete-modal-email" style="font-size:13px;color:#64748b;margin:0 0 16px;"></p>
+            <p style="font-size:14px;color:#475569;margin:0 0 28px;line-height:1.6;">
+                This will permanently delete this account and all their posts.<br>
+                <strong style="color:#ef4444;">This cannot be undone.</strong>
+            </p>
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <button onclick="adminDeleteCancel()" style="flex:1;max-width:150px;padding:11px 20px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff;color:#334155;font-weight:600;font-size:14px;cursor:pointer;">
+                    Cancel
+                </button>
+                <button id="admin-delete-confirm-btn" style="flex:1;max-width:150px;padding:11px 20px;border:none;border-radius:10px;background:#ef4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i> Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes modalPop {
+            from { transform:scale(0.92); opacity:0; }
+            to   { transform:scale(1);   opacity:1; }
+        }
+        body.dark-mode #admin-delete-modal > div {
+            background: #1e293b;
+        }
+        body.dark-mode #admin-delete-modal h3 {
+            color: #f1f5f9;
+        }
+        body.dark-mode #admin-delete-modal > div > p:last-of-type {
+            color: #94a3b8;
+        }
+        body.dark-mode #admin-delete-modal button:first-child {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-color: rgba(148,163,184,0.3);
+        }
+    </style>
+
     <?php lc_shell_render_overlay(); ?>
     <?php lc_shell_render_user_bootstrap($currentUserId, (string)($currentUser['Username'] ?? 'Admin'), $profilePicPath); ?>
     <script src="<?= htmlspecialchars(lc_public_asset('js/common/theme-toggle.js')) ?>"></script>
     <script src="<?= htmlspecialchars(lc_public_asset('js/Home/responsive.js')) ?>"></script>
     <script>
+        // Delete confirmation modal
+        let _adminDeleteFormId = null;
+        function adminConfirmDelete(formId, username, email) {
+            _adminDeleteFormId = formId;
+            document.getElementById('admin-delete-modal-name').textContent = username;
+            document.getElementById('admin-delete-modal-email').textContent = email;
+            const modal = document.getElementById('admin-delete-modal');
+            modal.style.display = 'flex';
+            document.getElementById('admin-delete-confirm-btn').onclick = function () {
+                if (_adminDeleteFormId) {
+                    document.getElementById(_adminDeleteFormId).submit();
+                }
+            };
+        }
+        function adminDeleteCancel() {
+            _adminDeleteFormId = null;
+            document.getElementById('admin-delete-modal').style.display = 'none';
+        }
+        // Close modal when clicking backdrop
+        document.getElementById('admin-delete-modal').addEventListener('click', function(e) {
+            if (e.target === this) adminDeleteCancel();
+        });
+
         // Copy the admin note textarea value into every status-change form for that report
         document.querySelectorAll('.admin-status-form').forEach(function (form) {
             form.addEventListener('submit', function () {
