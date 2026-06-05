@@ -371,8 +371,8 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($success) {
             // 3. If there is a file, delete it from the server
             if ($msgData && !empty($msgData['FileUrl'])) {
-                $baseDir = str_starts_with($msgData['FileUrl'], time() . '_call_') ? 'calls/' : 'chat/';
-                $filePath = "../../../public/uploads/" . $baseDir . basename($msgData['FileUrl']);
+                $baseDir = preg_match('/^\d+_call_/', $msgData['FileUrl']) ? 'calls/' : 'chat/';
+                $filePath = __DIR__ . "/../../../public/uploads/" . $baseDir . basename($msgData['FileUrl']);
                 if (is_file($filePath)) {
                     @unlink($filePath);
                 }

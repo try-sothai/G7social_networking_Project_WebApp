@@ -268,7 +268,7 @@ class MessageModel {
         // Update the message to represent a deleted state for everyone
         $stmt = $this->db->prepare("
             UPDATE messages 
-            SET MessageBody = '🚫 This message was deleted',
+            SET MessageBody = '[Message deleted]',
                 MessageType = 'text',
                 FileUrl = NULL
             WHERE MessageID = :id
