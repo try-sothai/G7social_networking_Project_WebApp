@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 
 // Image compression function
 function compressImage(string $source, string $destination, int $quality) {
+    if (!extension_loaded('gd')) return false;
     $info = @getimagesize($source);
     if (!$info) return false;
 
@@ -143,7 +144,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        $uploadDir = "../../../public/uploads/chat/";
+        $uploadDir = __DIR__ . "/../../../public/uploads/chat/";
 
         // Create directory if not exists
         if (!file_exists($uploadDir)) {
@@ -234,7 +235,7 @@ if ($action === 'send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Handle call recording (audio file)
     if ($type === 'call' && isset($_FILES['call_recording'])) {
-        $uploadDir = "../../../public/uploads/calls/";
+        $uploadDir = __DIR__ . "/../../../public/uploads/calls/";
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
