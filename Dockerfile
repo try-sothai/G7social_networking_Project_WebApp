@@ -17,6 +17,11 @@ COPY . /var/www/html/
 
 RUN mkdir -p /var/www/html/public/uploads/chat \
     && mkdir -p /var/www/html/public/uploads/calls \
+    && mkdir -p /var/www/html/public/uploads/avatars \
+    && mkdir -p /var/www/html/public/uploads/posts \
+    && mkdir -p /var/www/html/public/uploads/stories \
+    && mkdir -p /var/www/html/public/uploads/events \
+    && mkdir -p /var/www/html/public/uploads/groups \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 775 /var/www/html/public/uploads

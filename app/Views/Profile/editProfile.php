@@ -109,7 +109,7 @@ $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
                 <label class="interests-label">Interests & Hobbies</label>
                 <div class="interests">
                     <?php foreach ($interests as $interest): ?>
-                        <button type="button" class="interest-tag">
+                        <button type="button" class="interest-tag" data-interest="<?php echo htmlspecialchars((string)$interest); ?>">
                             <?php echo htmlspecialchars((string)$interest); ?>
                             <span class="remove-interest"><i class="fa-solid fa-xmark"></i></span>
                         </button>
@@ -181,9 +181,11 @@ $profilePicPath = getAvatarUrl($u_d['ProfilePic'] ?? null);
 
             // Load Existing Interests
             document.querySelectorAll('.interest-tag').forEach(tag => {
-                const text = tag.childNodes[0].nodeValue.trim();
-                if(text) interestsList.push(text);
-                
+                const text = tag.dataset.interest || Array.from(tag.childNodes)
+                    .filter(n => n.nodeType === Node.TEXT_NODE && n.nodeValue.trim())
+                    .map(n => n.nodeValue.trim())[0] || '';
+                if (text) interestsList.push(text);
+
                 tag.querySelector('.remove-interest').addEventListener('click', function() {
                     interestsList = interestsList.filter(i => i !== text);
                     tag.remove();
