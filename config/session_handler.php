@@ -33,12 +33,13 @@ class DbSessionHandler implements SessionHandlerInterface
             $expires = date('Y-m-d H:i:s', time() + (int)ini_get('session.gc_maxlifetime'));
             $stmt = $this->db->prepare("
                 INSERT INTO php_sessions (session_id, data, expires_at)
-                VALUES (:id, :data, :expires)
-                ON DUPLICATE KEY UPDATE data = :data, expires_at = :expires
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE data = ?, expires_at = ?
             ");
-            $stmt->execute([':id' => $id, ':data' => $data, ':expires' => $expires]);
+            $stmt->execute([$id, $data, $expires, $data, $expires]);
             return true;
         } catch (PDOException $e) {
+            error_log('Session write error: ' . $e->getMessage());
             return false;
         }
     }
