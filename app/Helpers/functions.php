@@ -25,6 +25,11 @@ function getAvatarUrl(?string $profilePic): string
         return $default;
     }
 
+    // External URL (Google, Cloudinary, etc.) — return directly
+    if (str_starts_with($profilePic, 'http://') || str_starts_with($profilePic, 'https://')) {
+        return $profilePic;
+    }
+
     // Strip any URL prefix that may have been stored accidentally
     if (str_contains($profilePic, '/public/uploads/avatars/')) {
         $parts      = explode('/public/uploads/avatars/', $profilePic, 2);
