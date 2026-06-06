@@ -1,6 +1,5 @@
 <?php
 // app/Controllers/Friends/friend_actions.php
-session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Friends/FriendModel.php';
 

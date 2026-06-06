@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Models/Profile/editProfileModel.php';
 require_once __DIR__ . '/../../Helpers/cloudinary.php';

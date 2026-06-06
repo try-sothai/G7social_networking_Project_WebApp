@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<title>Social7 - Deployment Guide</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px; color: #1e293b; line-height: 1.7; }
+  h1 { color: #1d4ed8; border-bottom: 3px solid #1d4ed8; padding-bottom: 10px; font-size: 28px; }
+  h2 { color: #1d4ed8; margin-top: 40px; font-size: 20px; background: #eff6ff; padding: 10px 16px; border-radius: 8px; border-left: 4px solid #1d4ed8; }
+  h3 { color: #334155; font-size: 16px; margin-top: 20px; }
+  .step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin: 16px 0; }
+  .step-num { background: #1d4ed8; color: white; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin-right: 10px; }
+  code { background: #1e293b; color: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #1d4ed8; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 8px 14px; border-bottom: 1px solid #e2e8f0; }
+  tr:nth-child(even) { background: #f8fafc; }
+  .success { background: #f0fdf4; border-left: 4px solid #10b981; padding: 10px 16px; border-radius: 6px; margin: 10px 0; }
+  .warning { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 16px; border-radius: 6px; margin: 10px 0; }
+  .cover { text-align: center; padding: 60px 0 40px; border-bottom: 2px solid #e2e8f0; margin-bottom: 40px; }
+  .cover h1 { border: none; font-size: 36px; }
+  .cover p { color: #64748b; font-size: 16px; }
+  .badge { background: #1d4ed8; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+  @media print { body { padding: 20px; } }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div style="font-size:60px;">🌐</div>
+  <h1>Social7 Deployment Guide</h1>
+  <p>ការណែនាំពេញលេញ — Deploy PHP Social Network ទៅ Cloud</p>
+  <p><span class="badge">PHP 8.2</span> &nbsp; <span class="badge">MySQL</span> &nbsp; <span class="badge">Render</span> &nbsp; <span class="badge">Clever Cloud</span> &nbsp; <span class="badge">Brevo</span></p>
+  <p style="color:#94a3b8; margin-top:20px;">Created: May 2026 &nbsp;|&nbsp; Project: G7social_networking_Project_WebApp</p>
+</div>
+
+<!-- ===== OVERVIEW ===== -->
+<h2>📋 Overview — Architecture</h2>
+<div class="step">
+  <table>
+    <tr><th>Service</th><th>ធ្វើអ្វី</th><th>Free Tier</th></tr>
+    <tr><td><strong>Render</strong></td><td>Run PHP + Apache (Docker)</td><td>✅ Free</td></tr>
+    <tr><td><strong>Clever Cloud</strong></td><td>MySQL Database</td><td>✅ Free (Dev plan)</td></tr>
+    <tr><td><strong>Brevo</strong></td><td>Send Verification Emails</td><td>✅ 300 emails/day</td></tr>
+    <tr><td><strong>GitHub</strong></td><td>Source code hosting + Auto-deploy</td><td>✅ Free</td></tr>
+  </table>
+  <div class="success">✅ Flow: User → Render (PHP) → Clever Cloud (MySQL) + Brevo (Email)</div>
+</div>
+
+<!-- ===== STEP 1 ===== -->
+<h2>🐳 ជំហាន ១: Dockerfile Setup</h2>
+<div class="step">
+  <p>Create file <code>Dockerfile</code> នៅ root project:</p>
+  <pre>FROM php:8.2-apache
+
+RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN a2enmod rewrite && \
+    sed -i 's|AllowOverride None|AllowOverride All|g' /etc/apache2/apache2.conf
+
+RUN echo 'output_buffering = On' > /usr/local/etc/php/conf.d/custom.ini
+
+COPY . /var/www/html/
+
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+EXPOSE 80</pre>
+  <div class="warning">⚠️ <strong>សំខាន់:</strong> DocumentRoot ត្រូវ point ទៅ project root (<code>/var/www/html/</code>) មិនមែន <code>/public</code> ទេ — ព្រោះ app/ folder ស្ថិតនៅខាងក្រៅ public/</div>
+</div>
+
+<!-- ===== STEP 2 ===== -->
+<h2>⚙️ ជំហាន ២: .htaccess Setup</h2>
+<div class="step">
+  <p>File <code>.htaccess</code> នៅ root project:</p>
+  <pre>php_value upload_max_filesize 200M
+php_value post_max_size       250M
+php_value max_execution_time  300
+php_value max_input_time      300
+php_value memory_limit        256M
+
+Options -Indexes
+DirectoryIndex public/index.php index.php index.html
+Require all granted</pre>
+  <div class="success">✅ <code>DirectoryIndex public/index.php</code> — ធ្វើឱ្យ root URL បើក login page ដោយស្វ័យប្រវត្តិ</div>
+</div>
+
+<!-- ===== STEP 3 ===== -->
+<h2>🗄️ ជំហាន ៣: Clever Cloud MySQL</h2>
+<div class="step">
+  <h3>Setup:</h3>
+  <ol>
+    <li>ចូល <strong>console.clever-cloud.com</strong></li>
+    <li>Create addon → MySQL → Dev plan (Free)</li>
+    <li>Copy credentials: HOST, DATABASE, USER, PASSWORD</li>
+    <li>Import SQL schema ពី phpMyAdmin</li>
+  </ol>
+  <h3>config/db_config.php:</h3>
+  <pre>&lt;?php
+$host     = "xxxx-mysql.services.clever-cloud.com";
+$dbname   = "your_dbname";
+$username = "your_username";
+$password = "your_password";
+
+if (!defined('BASE_URL')) {
+    define('BASE_URL', 'https://your-app.onrender.com/');
+}
+
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+
+// DB Sessions — survive Render server restarts
+if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/session_handler.php';
+    lc_init_db_sessions($conn);
+}
+?&gt;</pre>
+</div>
+
+<!-- ===== STEP 4 ===== -->
+<h2>🚀 ជំហាន ៤: Deploy ទៅ Render</h2>
+<div class="step">
+  <ol>
+    <li>Push code ទៅ <strong>GitHub</strong></li>
+    <li>ចូល <strong>render.com</strong> → New → Web Service</li>
+    <li>Connect GitHub repo</li>
+    <li>Settings:
+      <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Runtime</td><td>Docker</td></tr>
+        <tr><td>Branch</td><td>main</td></tr>
+        <tr><td>Plan</td><td>Free</td></tr>
+      </table>
+    </li>
+    <li>ចុច <strong>Create Web Service</strong> → រង់ចាំ 5-10 នាទី</li>
+  </ol>
+  <div class="success">✅ Render auto-deploy ជារៀងរាល់ git push</div>
+</div>
+
+<!-- ===== STEP 5 ===== -->
+<h2>📧 ជំហាន ៥: Brevo Email Setup</h2>
+<div class="step">
+  <div class="warning">⚠️ <strong>ហេតុអ្វី Brevo?</strong> Render free tier block outbound SMTP (port 587) ទាំងស្រុង — Brevo ប្រើ HTTPS API (port 443) ដែលមិន block!</div>
+  <h3>Setup Brevo:</h3>
+  <ol>
+    <li>ចូល <strong>brevo.com</strong> → Sign up with Google</li>
+    <li>Fill profile → Free plan (300 emails/day)</li>
+    <li>Settings ⚙️ → SMTP &amp; API → Generate API Key → Copy</li>
+  </ol>
+  <h3>Setup Brevo Sender Email:</h3>
+  <ol>
+    <li>Brevo Dashboard → Settings ⚙️ → <strong>Senders, domains, IPs</strong></li>
+    <li>ចុច <strong>Add a sender</strong> → Email: <code>your@gmail.com</code> → Name: <code>Social7</code></li>
+    <li>ចូល Gmail → ចុច verify link ដែល Brevo បញ្ជូន → Verified ✅</li>
+  </ol>
+  <div class="warning">⚠️ <strong>សំខាន់:</strong> SMTP_FROM_EMAIL ត្រូវតែជា email ដែល Verified ក្នុង Brevo — បើប្រើ <code>onboarding@resend.dev</code> Gmail នឹង block email!</div>
+  <h3>Add Environment Variables ក្នុង Render:</h3>
+  <table>
+    <tr><th>Key</th><th>Value</th></tr>
+    <tr><td>BREVO_API_KEY</td><td>xkeysib-xxxxxxxxxxxx (ពី Brevo Settings → SMTP &amp; API)</td></tr>
+    <tr><td>SMTP_FROM_EMAIL</td><td>your@gmail.com (Verified sender ក្នុង Brevo)</td></tr>
+    <tr><td>SMTP_FROM_NAME</td><td>Social7</td></tr>
+  </table>
+  <div class="success">✅ Free tier: 300 emails/ថ្ងៃ — គ្រប់គ្រាន់សម្រាប់ social network តូច</div>
+  <h3>របៀប Verify Email ដំណើរការ:</h3>
+  <ol>
+    <li>User Sign up → account created ជាមួយ status <strong>Pending</strong></li>
+    <li>Brevo send email "Verify your Social7 account" → user inbox</li>
+    <li>User ចុច <strong>Verify Email</strong> button → status ក្លាយជា <strong>Active</strong></li>
+    <li>User login បាន ✅</li>
+  </ol>
+</div>
+
+<!-- ===== STEP 6 ===== -->
+<h2>🔐 ជំហាន ៦: Database Sessions (Fix Render Logout Bug)</h2>
+<div class="step">
+  <div class="warning">⚠️ <strong>បញ្ហា:</strong> Render free tier spin down server រៀងរាល់ 15 នាទី inactive → session files បាត់ → user logout ដោយស្វ័យប្រវត្តិ → "Access denied"</div>
+  <p><strong>Fix:</strong> Store PHP sessions ក្នុង MySQL database ជំនួស server files</p>
+  <h3>Files ដែលត្រូវ Create/Edit:</h3>
+  <table>
+    <tr><th>File</th><th>Action</th></tr>
+    <tr><td><code>config/session_handler.php</code></td><td>Create — DbSessionHandler class</td></tr>
+    <tr><td><code>config/db_config.php</code></td><td>Edit — Add lc_init_db_sessions($conn)</td></tr>
+  </table>
+  <h3>session_handler.php logic:</h3>
+  <ul>
+    <li>Implement <code>SessionHandlerInterface</code> (open, close, read, write, destroy, gc)</li>
+    <li>Store sessions ក្នុង table <code>php_sessions</code> (auto-create)</li>
+    <li>Sessions expire after 24 hours</li>
+  </ul>
+  <h3>db_config.php — Add before session_start():</h3>
+  <pre>if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/session_handler.php';
+    lc_init_db_sessions($conn);
+}</pre>
+  <div class="success">✅ Sessions persist 24 ម៉ោង — Render restart ក៏ login នៅដដែល!</div>
+</div>
+
+<!-- ===== STEP 7 ===== -->
+<h2>🛡️ ជំហាន ៧: Admin Delete User Feature</h2>
+<div class="step">
+  <h3>Files ដែល edit:</h3>
+  <table>
+    <tr><th>File</th><th>Changes</th></tr>
+    <tr><td>app/Models/Admin/AdminModel.php</td><td>Add deleteUser() method</td></tr>
+    <tr><td>app/Controllers/Admin/admin_actions.php</td><td>Add 'delete_user' case</td></tr>
+    <tr><td>app/Views/Admin/dashboard.php</td><td>Add Delete column ក្នុង User table</td></tr>
+  </table>
+  <h3>Rules:</h3>
+  <ul>
+    <li>✅ SuperAdmin ប៉ុណ្ណោះ អាច delete</li>
+    <li>❌ មិនអាច delete SuperAdmin</li>
+    <li>❌ មិនអាច delete account ខ្លួនឯង</li>
+    <li>✅ Cascade delete — posts, notifications, friendships ត្រូវបានលុបដោយ DB</li>
+    <li>✅ Email free ដើម្បី sign up ជា account ថ្មី</li>
+  </ul>
+</div>
+
+<!-- ===== STEP 8 ===== -->
+<h2>🔑 ជំហាន ៨: Google & Facebook Login Setup</h2>
+<div class="step">
+  <div class="warning">⚠️ <strong>បញ្ហា:</strong> .env ស្ថិតក្នុង .gitignore → មិន upload ទៅ Render → credentials ទទេ → Google/Facebook login fail!</div>
+  <h3>Fix: Add ទៅ Render Environment Variables</h3>
+  <table>
+    <tr><th>Key</th><th>Value (ពីណា)</th></tr>
+    <tr><td>GOOGLE_CLIENT_ID</td><td>Google Cloud Console → Credentials</td></tr>
+    <tr><td>GOOGLE_CLIENT_SECRET</td><td>Google Cloud Console → Credentials</td></tr>
+    <tr><td>FACEBOOK_APP_ID</td><td>Meta for Developers → App Settings</td></tr>
+    <tr><td>FACEBOOK_APP_SECRET</td><td>Meta for Developers → App Settings</td></tr>
+    <tr><td>FACEBOOK_REDIRECT_URI</td><td>https://your-app.onrender.com/app/Controllers/Auth/facebook_auth.php</td></tr>
+  </table>
+
+  <h3>Google Cloud Console — Update Redirect URI:</h3>
+  <ol>
+    <li>ចូល <strong>console.cloud.google.com</strong></li>
+    <li>APIs &amp; Services → <strong>Credentials</strong></li>
+    <li>ចុច OAuth 2.0 Client ID</li>
+    <li><strong>Authorized redirect URIs</strong> → Add:
+      <pre>https://your-app.onrender.com/app/Controllers/Auth/google_auth.php</pre>
+    </li>
+    <li>Save</li>
+  </ol>
+
+  <h3>Facebook Developer Console — Update Redirect URI:</h3>
+  <ol>
+    <li>ចូល <strong>developers.facebook.com</strong></li>
+    <li>App → Facebook Login → Settings</li>
+    <li><strong>Valid OAuth Redirect URIs</strong> → Add:
+      <pre>https://your-app.onrender.com/app/Controllers/Auth/facebook_auth.php</pre>
+    </li>
+    <li>Save Changes</li>
+  </ol>
+
+  <h3>Fix env.php — Read from Render env vars:</h3>
+  <pre>// Fall back to Render environment variables
+if (isset($vars[$key])) return $vars[$key];
+$sys = getenv($key);
+if ($sys !== false && $sys !== '') return trim($sys);
+return $_ENV[$key] ?? ($_SERVER[$key] ?? $default);</pre>
+  <div class="success">✅ env() reads .env file locally + Render environment variables on server</div>
+</div>
+
+<!-- ===== STEP 9 ===== -->
+<h2>🗑️ ជំហាន ១០: Admin Delete User + Re-register Flow</h2>
+<div class="step">
+  <h3>Admin Delete User:</h3>
+  <ul>
+    <li>Admin Dashboard → User Management → column <strong>Delete</strong> (SuperAdmin only)</li>
+    <li>ចុច Delete → Confirm popup → Account + posts + notifications ត្រូវបានលុប</li>
+    <li>Email free → user អាច sign up ជាមួយ email ដូចគ្នាម្តងទៀត</li>
+  </ul>
+  <h3>Re-register Flow (User Pending → Fix):</h3>
+  <ol>
+    <li>Admin delete account Pending</li>
+    <li>User sign up ជាមួយ email ដូចគ្នា</li>
+    <li>Check Gmail inbox → ចុច <strong>Verify Email</strong></li>
+    <li>Login ជោគជ័យ ✅</li>
+  </ol>
+  <div class="warning">⚠️ SuperAdmin មិនអាច delete SuperAdmin ឬ account ខ្លួនឯង</div>
+</div>
+
+<!-- ===== STEP 11 ===== -->
+<h2>🌐 ជំហាន ១១: Custom Domain (social7.win) + Cloudflare CDN</h2>
+<div class="step">
+  <h3>ទិញ Domain ពី Cloudflare Registrar:</h3>
+  <ol>
+    <li>ចូល <strong>dash.cloudflare.com</strong> → Domains → Registrations → Buy domain</li>
+    <li>Search: <code>social7</code> → ជ្រើស <strong>social7.win</strong> ($4.18/ឆ្នាំ)</li>
+    <li>បំពេញ contact info → Purchase ✅</li>
+    <li>Enable <strong>Auto-Renew</strong> (renew ដោយស្វ័យប្រវត្តិ)</li>
+  </ol>
+
+  <h3>Setup DNS Records ក្នុង Cloudflare:</h3>
+  <p>Cloudflare → social7.win → DNS → Records → Add record (x2):</p>
+  <table>
+    <tr><th>Type</th><th>Name</th><th>Target</th><th>Proxy</th></tr>
+    <tr><td>CNAME</td><td>@</td><td>g7social-networking-project-webapp.onrender.com</td><td>🟠 Proxied</td></tr>
+    <tr><td>CNAME</td><td>www</td><td>g7social-networking-project-webapp.onrender.com</td><td>🟠 Proxied</td></tr>
+  </table>
+
+  <h3>Add Custom Domain ក្នុង Render:</h3>
+  <ol>
+    <li>Render → social7 → Settings → <strong>Custom Domains</strong> → Add</li>
+    <li>វាយ: <code>social7.win</code> → Add Domain → <strong>Verify</strong></li>
+    <li>✅ Verified + SSL certificate issued ដោយស្វ័យប្រវត្តិ</li>
+  </ol>
+
+  <h3>Update BASE_URL ក្នុង code:</h3>
+  <pre>define('BASE_URL', 'https://social7.win/');</pre>
+  <div class="success">✅ Website ចូលបានតាម <strong>https://social7.win</strong> + HTTPS + Cloudflare protection!</div>
+</div>
+
+<!-- ===== STEP 12 ===== -->
+<h2>⚡ ជំហាន ១២: UptimeRobot — Keep Server Awake</h2>
+<div class="step">
+  <div class="warning">⚠️ <strong>បញ្ហា Render Free:</strong> Server spin down ក្រោយ 15 នាទី inactive → first load ช้า 30-60 វិនាទី!</div>
+  <h3>Fix: UptimeRobot ping រៀងរាល់ 5 នាទី</h3>
+  <ol>
+    <li>ចូល <strong>uptimerobot.com</strong> → Register with Google (ឥតគិតថ្លៃ)</li>
+    <li>Create monitor:
+      <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Type</td><td>HTTP/website monitoring</td></tr>
+        <tr><td>URL</td><td>https://social7.win</td></tr>
+        <tr><td>Interval</td><td>5 minutes</td></tr>
+      </table>
+    </li>
+    <li>Create monitor → Finish setup ✅</li>
+  </ol>
+  <div class="success">✅ social7.win — 🟢 Up — 100% uptime — Server មិន sleep ទៀតទេ!</div>
+</div>
+
+<!-- ===== STEP 13 ===== -->
+<h2>🖼️ ជំហាន ១៣: Cloudinary — Persistent Image Storage</h2>
+<div class="step">
+  <div class="warning">⚠️ <strong>បញ្ហា Render Free:</strong> Filesystem ephemeral — images upload ត្រូវបានលុបពេល server restart!</div>
+  <h3>Setup Cloudinary (Free — 25GB):</h3>
+  <ol>
+    <li>ចូល <strong>cloudinary.com</strong> → Sign up free → Dashboard</li>
+    <li>Copy: <strong>Cloud Name</strong>, <strong>API Key</strong>, <strong>API Secret</strong></li>
+    <li>Add ទៅ Render Environment Variables:</li>
+  </ol>
+  <table>
+    <tr><th>Key</th><th>Value</th></tr>
+    <tr><td>CLOUDINARY_CLOUD_NAME</td><td>your_cloud_name</td></tr>
+    <tr><td>CLOUDINARY_API_KEY</td><td>your_api_key</td></tr>
+    <tr><td>CLOUDINARY_API_SECRET</td><td>your_api_secret</td></tr>
+  </table>
+  <h3>Files ដែល update:</h3>
+  <table>
+    <tr><th>File</th><th>Changes</th></tr>
+    <tr><td>app/Helpers/cloudinary.php</td><td>Create — lc_cloudinary_upload() function</td></tr>
+    <tr><td>app/Controllers/Home/PostController.php</td><td>Upload posts to Cloudinary + fix safeMediaPath</td></tr>
+    <tr><td>app/Controllers/Profile/editProfileController.php</td><td>Upload avatars/covers to Cloudinary</td></tr>
+  </table>
+  <div class="success">✅ Images stored in Cloudinary CDN → persist across server restarts forever!</div>
+</div>
+
+<!-- ===== STEP 14 ===== -->
+<h2>🐛 ជំហាន ១៤: Bug Fixes — Post Display</h2>
+<div class="step">
+  <h3>Fix 1: Post timestamps show wrong time (7h ago)</h3>
+  <p><strong>មូលហេតុ:</strong> Server stores UTC time, JavaScript interprets as local time (UTC+7)</p>
+  <p><strong>Fix:</strong> Add <code>Z</code> suffix to dates in PostController fetch action:</p>
+  <pre>$post['CreatedAt'] = str_replace(' ', 'T', $post['CreatedAt']) . 'Z';</pre>
+  <div class="success">✅ Posts now show correct "Just now", "5m ago", etc.</div>
+
+  <h3>Fix 2: Images show "Post media" (broken) after server restart</h3>
+  <p><strong>មូលហេតុ:</strong> <code>safeMediaPath()</code> function ប្រើ <code>basename()</code> ដែល strip Cloudinary URL ទៅជា filename ប៉ុណ្ណោះ</p>
+  <p><strong>Fix:</strong> Check if URL starts with https:// before processing:</p>
+  <pre>if (str_starts_with($mediaPath, 'https://') || str_starts_with($mediaPath, 'http://')) {
+    return $mediaPath; // Cloudinary URL — return unchanged
+}</pre>
+
+  <h3>Fix 3: Default avatar 404</h3>
+  <p><strong>Fix:</strong> Update <code>resolveAvatarUrl()</code> in dashboard.js:</p>
+  <pre>if (raw === 'default.png' || raw === 'default-avatar.svg') return FALLBACK_AVATAR;</pre>
+
+  <h3>Fix 4: favicon.ico 404</h3>
+  <p><strong>Fix:</strong> Create <code>public/img/favicon.svg</code> → add link tag in dashboard_shell.php</p>
+</div>
+
+<!-- ===== STEP 15 ===== -->
+<h2>💬 ជំហាន ១៥: Messages Page + Session Fix</h2>
+<div class="step">
+  <h3>Messages redirect to login — Session inconsistency</h3>
+  <div class="warning">⚠️ <strong>Root cause:</strong> Login uses FILE sessions, but message.php loaded db_config FIRST → used DB sessions → empty session → redirect to login!</div>
+  <p><strong>Fix message.php:</strong> Load session_start() BEFORE db_config (consistent with login):</p>
+  <pre>if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . "/../../../config/db_config.php";</pre>
+  <div class="success">✅ Messages page now uses same file session as login → stays logged in!</div>
+
+  <h3>Google avatar double URL in Messages</h3>
+  <p><strong>មូលហេតុ:</strong> message.js prepends <code>imagePath</code> prefix to Google OAuth URLs (already full https://)</p>
+  <p><strong>Fix in message.js:</strong></p>
+  <pre>// Before (wrong):
+`${window.APP_CONFIG.imagePath}${friend.ProfilePic}`
+
+// After (correct):
+friend.ProfilePic.startsWith('http') ? friend.ProfilePic
+    : `${window.APP_CONFIG.imagePath}${friend.ProfilePic}`</pre>
+  <div class="success">✅ Google login user avatars now display correctly in Messages!</div>
+</div>
+
+<!-- ===== FINAL SUMMARY ===== -->
+<h2>🎉 Final Summary — អ្វីទាំងអស់ដែលបានធ្វើ</h2>
+<div class="step">
+  <table>
+    <tr><th>Service</th><th>តួនាទី</th><th>URL/Cost</th></tr>
+    <tr><td>🐳 <strong>Render</strong></td><td>Run PHP + Apache</td><td>Free</td></tr>
+    <tr><td>🗄️ <strong>Clever Cloud</strong></td><td>MySQL Database</td><td>Free (Dev)</td></tr>
+    <tr><td>📧 <strong>Brevo</strong></td><td>Email Verification</td><td>Free (300/day)</td></tr>
+    <tr><td>🌐 <strong>Cloudflare</strong></td><td>CDN + Security + DNS</td><td>Free</td></tr>
+    <tr><td>🔗 <strong>social7.win</strong></td><td>Custom Domain</td><td>$4.18/ឆ្នាំ</td></tr>
+    <tr><td>⚡ <strong>UptimeRobot</strong></td><td>Keep server awake</td><td>Free</td></tr>
+    <tr><td>🖼️ <strong>Cloudinary</strong></td><td>Persistent image storage</td><td>Free (25GB)</td></tr>
+    <tr><td>📦 <strong>GitHub</strong></td><td>Code + Auto-deploy</td><td>Free</td></tr>
+  </table>
+  <div class="success">
+    ✅ Website: <strong>https://social7.win</strong><br>
+    ✅ Email verification ដំណើរការ (Brevo)<br>
+    ✅ Images persist via Cloudinary CDN<br>
+    ✅ Admin can delete users<br>
+    ✅ Post timestamps correct (UTC fixed)<br>
+    ✅ Messages page works<br>
+    ✅ Google/Facebook login + correct avatars<br>
+    ✅ Favicon S7 icon<br>
+    ✅ Server always on (UptimeRobot)<br>
+    ✅ SSL + DDoS protection via Cloudflare
+  </div>
+</div>
+
+<!-- ===== TROUBLESHOOTING ===== -->
+<h2>🔧 Troubleshooting</h2>
+<div class="step">
+  <table>
+    <tr><th>Error</th><th>មូលហេតុ</th><th>Fix</th></tr>
+    <tr><td>404 Not Found</td><td>DocumentRoot ខុស</td><td>ពិនិត្យ Dockerfile — DocRoot = /var/www/html/</td></tr>
+    <tr><td>Connection failed: SQLSTATE</td><td>DB credentials ខុស</td><td>ពិនិត្យ db_config.php</td></tr>
+    <tr><td>Network is unreachable (SMTP)</td><td>Render block SMTP port</td><td>ប្រើ Brevo HTTP API</td></tr>
+    <tr><td>Messages → redirect to login</td><td>Session inconsistency (file vs DB)</td><td>Fix message.php: session_start() BEFORE db_config</td></tr>
+    <tr><td>Post images "Image Not Found"</td><td>safeMediaPath() strips Cloudinary URL</td><td>Check startsWith('https://') before processing</td></tr>
+    <tr><td>Post time shows "7h ago" wrong</td><td>UTC vs local timezone</td><td>Append 'Z' to CreatedAt in PostController fetch</td></tr>
+    <tr><td>Google avatar double path</td><td>JS prepends imagePath to full URL</td><td>Check startsWith('http') before prepending</td></tr>
+    <tr><td>Resend: testing email only</td><td>Resend ត្រូវការ domain</td><td>ប្រើ Brevo ជំនួស</td></tr>
+    <tr><td>favicon.ico 404</td><td>No favicon file</td><td>Create favicon.svg + add link tag</td></tr>
+    <tr><td>default.png 404</td><td>Default avatar file missing</td><td>Return FALLBACK_AVATAR when raw === 'default.png'</td></tr>
+    <tr><td>Unable to post right now</td><td>cloudinary.php calls lc_env() not loaded</td><td>Use getenv() fallback in cloudinary helper</td></tr>
+  </table>
+</div>
+
+<!-- ===== GIT WORKFLOW ===== -->
+<h2>📦 Git Workflow</h2>
+<div class="step">
+  <p>រៀងរាល់ code change → push → Render deploy ដោយស្វ័យប្រវត្តិ:</p>
+  <pre>git add .
+git commit -m "description of change"
+git push</pre>
+  <div class="success">✅ Render detect push → rebuild Docker image → deploy (~3-5 នាទី)</div>
+</div>
+
+<!-- ===== URLS ===== -->
+<h2>🔗 Important URLs</h2>
+<div class="step">
+  <table>
+    <tr><th>Service</th><th>URL</th></tr>
+    <tr><td>Website (Main)</td><td>https://social7.win</td></tr>
+    <tr><td>Website (Render URL)</td><td>https://g7social-networking-project-webapp.onrender.com</td></tr>
+    <tr><td>Render Dashboard</td><td>dashboard.render.com</td></tr>
+    <tr><td>Clever Cloud</td><td>console.clever-cloud.com</td></tr>
+    <tr><td>Brevo Dashboard</td><td>app.brevo.com</td></tr>
+    <tr><td>GitHub Repo</td><td>github.com/try-sothai/G7social_networking_Project_WebApp</td></tr>
+  </table>
+</div>
+
+<div style="text-align:center; margin-top:60px; padding-top:20px; border-top:2px solid #e2e8f0; color:#94a3b8;">
+  <p>Social7 Deployment Guide &nbsp;|&nbsp; G7 Social Networking Project &nbsp;|&nbsp; June 2026 (v2)</p>
+</div>
+
+</body>
+</html>

@@ -1,5 +1,4 @@
 ﻿<?php
-session_start();
 
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 

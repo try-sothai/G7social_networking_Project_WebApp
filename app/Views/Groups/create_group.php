@@ -1,7 +1,6 @@
 ﻿<?php
 // app/Views/Groups/create_group.php
 
-session_start();
 require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';
 require_once dirname(__DIR__, 2) . '/Helpers/functions.php';

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<title>Social7 — Project Presentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.7;
+    background: #fff;
+  }
+
+  /* ===== COVER PAGE ===== */
+  .cover {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    page-break-after: always;
+  }
+  .cover-logo {
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; font-weight: 800; color: white;
+    margin-bottom: 32px;
+    border: 3px solid rgba(255,255,255,0.4);
+  }
+  .cover h1 { font-size: 56px; font-weight: 800; color: white; margin-bottom: 12px; letter-spacing: -1px; }
+  .cover .subtitle { font-size: 22px; color: rgba(255,255,255,0.85); margin-bottom: 40px; }
+  .cover-badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 60px; }
+  .badge { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 18px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+  .cover-info { border-top: 1px solid rgba(255,255,255,0.3); padding-top: 32px; color: rgba(255,255,255,0.7); font-size: 15px; }
+  .cover-info p { margin: 4px 0; }
+
+  /* ===== CONTENT PAGES ===== */
+  .page { max-width: 900px; margin: 0 auto; padding: 60px 50px; }
+  .page-break { page-break-before: always; }
+
+  h1.section-title {
+    font-size: 32px; font-weight: 800; color: #4f46e5;
+    border-bottom: 3px solid #6366f1;
+    padding-bottom: 12px; margin-bottom: 32px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  h2.sub-title {
+    font-size: 20px; font-weight: 700; color: #1e293b;
+    margin: 32px 0 16px;
+    padding: 10px 16px;
+    background: #f1f5f9;
+    border-left: 4px solid #6366f1;
+    border-radius: 0 8px 8px 0;
+  }
+  h3.item-title { font-size: 16px; font-weight: 700; color: #374151; margin: 20px 0 8px; }
+
+  p { color: #374151; margin-bottom: 12px; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+  .card-purple { border-left: 4px solid #6366f1; background: #f5f3ff; }
+  .card-green  { border-left: 4px solid #10b981; background: #f0fdf4; }
+  .card-blue   { border-left: 4px solid #3b82f6; background: #eff6ff; }
+  .card-yellow { border-left: 4px solid #f59e0b; background: #fffbeb; }
+  .card-red    { border-left: 4px solid #ef4444; background: #fef2f2; }
+
+  /* ===== TABLE ===== */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { background: #4f46e5; color: white; padding: 12px 16px; text-align: left; font-size: 14px; }
+  td { padding: 10px 16px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  td strong { color: #4f46e5; }
+
+  /* ===== TECH GRID ===== */
+  .tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+  .tech-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .tech-card .tech-icon { font-size: 36px; margin-bottom: 10px; }
+  .tech-card .tech-name { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  .tech-card .tech-desc { font-size: 12px; color: #64748b; }
+  .tech-card .tech-badge { display: inline-block; background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; border-radius: 12px; padding: 2px 10px; font-size: 11px; font-weight: 600; margin-top: 8px; }
+
+  /* ===== FLOW DIAGRAM ===== */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .flow-box {
+    background: #4f46e5;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+  }
+  .flow-box.green { background: #10b981; }
+  .flow-box.orange { background: #f59e0b; color: #1e293b; }
+  .flow-box.gray { background: #64748b; }
+  .flow-arrow { color: #94a3b8; font-size: 24px; font-weight: bold; }
+
+  /* ===== FEATURE LIST ===== */
+  .feature-list { list-style: none; margin: 12px 0; }
+  .feature-list li { padding: 8px 0; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+  .feature-list li:last-child { border-bottom: none; }
+  .feature-list li .icon { color: #6366f1; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+  /* ===== CODE ===== */
+  pre { background: #1e293b; color: #e2e8f0; padding: 16px 20px; border-radius: 10px; font-size: 13px; overflow-x: auto; margin: 12px 0; line-height: 1.6; }
+  code { background: #f1f5f9; color: #6366f1; padding: 2px 8px; border-radius: 4px; font-size: 13px; font-family: monospace; }
+
+  /* ===== COST TABLE ===== */
+  .cost-total { background: #4f46e5; color: white; }
+  .cost-total td { color: white; font-weight: 700; font-size: 15px; }
+
+  /* ===== SUCCESS/WARNING ===== */
+  .success { background: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 6px; margin: 12px 0; font-size: 14px; color: #065f46; }
+  .warning { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; margin: 12px 0; font-size: 14px; color: #92400e; }
+
+  /* ===== PAGE HEADER ===== */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+  .page-header .logo { font-size: 18px; font-weight: 800; color: #6366f1; }
+  .page-header .page-num { font-size: 13px; color: #94a3b8; }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cover { min-height: auto; padding: 80px 40px; }
+    .page { padding: 40px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER PAGE ===================== -->
+<div class="cover">
+  <div class="cover-logo">S7</div>
+  <h1>Social7</h1>
+  <p class="subtitle">Social Networking Web Application<br>Deployment & Technology Documentation</p>
+  <div class="cover-badges">
+    <span class="badge">PHP 8.2</span>
+    <span class="badge">MySQL</span>
+    <span class="badge">Docker</span>
+    <span class="badge">Cloudflare CDN</span>
+    <span class="badge">Cloudinary</span>
+    <span class="badge">Brevo Email</span>
+  </div>
+  <div class="cover-info">
+    <p><strong style="color:white">Project:</strong> G7 Social Networking Web App</p>
+    <p><strong style="color:white">Website:</strong> https://social7.win</p>
+    <p><strong style="color:white">Developer:</strong> Try Sothai</p>
+    <p><strong style="color:white">Version:</strong> 1.0 &nbsp;|&nbsp; June 2026</p>
+  </div>
+</div>
+
+<!-- ===================== PAGE 1: OVERVIEW ===================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <span class="logo">Social7</span>
+    <span class="page-num">Overview</span>
+  </div>
+
+  <h1 class="section-title">📋 Project Overview</h1>
+
+  <div class="card card-purple">
+    <h3 class="item-title">Social7 ជាអ្វី?</h3>
+    <p>Social7 ជា <strong>Social Networking Platform</strong> ដែលសរសេរដោយ <strong>PHP</strong> ដំណើរការដូច Facebook — អ្នកប្រើអាច share posts, chat, call, create groups, events ហើយ Admin អាច manage users ទាំងអស់។</p>
+  </div>
+
+  <h2 class="sub-title">🌐 Architecture Overview</h2>
+
+  <div class="flow">
+    <div class="flow-box orange">👤 User<br><small>Browser</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">🌐 Cloudflare<br><small>CDN + Security</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box green">🐳 Render<br><small>PHP Server</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box gray">🗄️ Clever Cloud<br><small>MySQL DB</small></div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-box green">🐳 Render<br><small>PHP Server</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box orange">🖼️ Cloudinary<br><small>Image Storage</small></div>
+  </div>
+  <div class="flow">
+    <div class="flow-box green">🐳 Render<br><small>PHP Server</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="background:#0ea5e9">📧 Brevo<br><small>Email API</small></div>
+  </div>
+  <div class="flow">
+    <div class="flow-box" style="background:#10b981">⚡ UptimeRobot<br><small>Ping every 5min</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box orange">🌐 social7.win<br><small>Keep Alive</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box green">🐳 Render<br><small>Never sleeps</small></div>
+  </div>
+
+  <h2 class="sub-title">✨ Features សំខាន់ៗ</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+      <h3 class="item-title">👥 Social Features</h3>
+      <ul class="feature-list">
+        <li><span class="icon">✅</span> Post images/videos + reactions</li>
+        <li><span class="icon">✅</span> Stories (24h)</li>
+        <li><span class="icon">✅</span> Friends + Friend requests</li>
+        <li><span class="icon">✅</span> Groups + Events</li>
+        <li><span class="icon">✅</span> Explore page</li>
+        <li><span class="icon">✅</span> Report system</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="item-title">💬 Communication</h3>
+      <ul class="feature-list">
+        <li><span class="icon">✅</span> Real-time Chat (AJAX polling)</li>
+        <li><span class="icon">✅</span> Audio/Video Call (PeerJS WebRTC)</li>
+        <li><span class="icon">✅</span> File sharing in chat</li>
+        <li><span class="icon">✅</span> Notifications</li>
+        <li><span class="icon">✅</span> Online/Offline status</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="item-title">🔐 Authentication</h3>
+      <ul class="feature-list">
+        <li><span class="icon">✅</span> Email + Password login</li>
+        <li><span class="icon">✅</span> Google OAuth login</li>
+        <li><span class="icon">✅</span> Facebook OAuth login</li>
+        <li><span class="icon">✅</span> Email verification (Brevo)</li>
+        <li><span class="icon">✅</span> Phone number login (OTP)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="item-title">🛡️ Admin Panel</h3>
+      <ul class="feature-list">
+        <li><span class="icon">✅</span> User management (role/status)</li>
+        <li><span class="icon">✅</span> Delete user accounts</li>
+        <li><span class="icon">✅</span> Report review system</li>
+        <li><span class="icon">✅</span> Delete posts</li>
+        <li><span class="icon">✅</span> Analytics dashboard</li>
+        <li><span class="icon">✅</span> Export CSV/PDF/Excel</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE 2: TECHNOLOGIES ===================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <span class="logo">Social7</span>
+    <span class="page-num">Technologies</span>
+  </div>
+
+  <h1 class="section-title">💻 Technologies Used</h1>
+
+  <h2 class="sub-title">Backend Technologies</h2>
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon">🐘</div>
+      <div class="tech-name">PHP 8.2</div>
+      <div class="tech-desc">Server-side language — handles all business logic, routing, database queries</div>
+      <span class="tech-badge">Core Language</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🗄️</div>
+      <div class="tech-name">MySQL</div>
+      <div class="tech-desc">Relational database — stores users, posts, messages, friendships, events</div>
+      <span class="tech-badge">Database</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🐳</div>
+      <div class="tech-name">Docker</div>
+      <div class="tech-desc">Containerization — packages PHP + Apache into a portable container for Render</div>
+      <span class="tech-badge">Container</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🌐</div>
+      <div class="tech-name">Apache</div>
+      <div class="tech-desc">Web server — serves PHP files, handles URL routing via .htaccess</div>
+      <span class="tech-badge">Web Server</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📦</div>
+      <div class="tech-name">PDO</div>
+      <div class="tech-desc">PHP Database Objects — secure database connection with prepared statements</div>
+      <span class="tech-badge">DB Driver</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📧</div>
+      <div class="tech-name">PHPMailer</div>
+      <div class="tech-desc">Email library — used for SMTP email sending (now replaced by Brevo API)</div>
+      <span class="tech-badge">Library</span>
+    </div>
+  </div>
+
+  <h2 class="sub-title">Frontend Technologies</h2>
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon">🎨</div>
+      <div class="tech-name">CSS3</div>
+      <div class="tech-desc">Dark mode, responsive design, animations, CSS variables for theming</div>
+      <span class="tech-badge">Styling</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">⚡</div>
+      <div class="tech-name">JavaScript ES6+</div>
+      <div class="tech-desc">Dynamic UI — post feed, real-time chat, notifications, call interface</div>
+      <span class="tech-badge">Frontend Logic</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📡</div>
+      <div class="tech-name">AJAX / Fetch API</div>
+      <div class="tech-desc">Async communication — loads posts, sends messages without page reload</div>
+      <span class="tech-badge">API Calls</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📞</div>
+      <div class="tech-name">PeerJS / WebRTC</div>
+      <div class="tech-desc">P2P audio/video calls — direct browser-to-browser communication</div>
+      <span class="tech-badge">Real-time</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🔣</div>
+      <div class="tech-name">Font Awesome 6</div>
+      <div class="tech-desc">Icon library — 2000+ icons for UI elements, navigation, actions</div>
+      <span class="tech-badge">Icons</span>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📄</div>
+      <div class="tech-name">jsPDF + AutoTable</div>
+      <div class="tech-desc">Client-side PDF generation — export admin reports to PDF</div>
+      <span class="tech-badge">Export</span>
+    </div>
+  </div>
+
+  <h2 class="sub-title">Project Architecture Pattern</h2>
+  <div class="card card-blue">
+    <table>
+      <tr><th>Layer</th><th>Location</th><th>ធ្វើអ្វី</th></tr>
+      <tr><td><strong>Views</strong></td><td><code>app/Views/</code></td><td>HTML + PHP templates ដែលបង្ហាញដល់ user</td></tr>
+      <tr><td><strong>Controllers</strong></td><td><code>app/Controllers/</code></td><td>Handle HTTP requests, validate input, call Models</td></tr>
+      <tr><td><strong>Models</strong></td><td><code>app/Models/</code></td><td>Database queries (PDO) — CRUD operations</td></tr>
+      <tr><td><strong>Helpers</strong></td><td><code>app/Helpers/</code></td><td>Utility functions: email, cloudinary, admin checks</td></tr>
+      <tr><td><strong>Config</strong></td><td><code>config/</code></td><td>DB connection, session handler, env variables</td></tr>
+      <tr><td><strong>Public</strong></td><td><code>public/</code></td><td>CSS, JS, images — accessible via browser</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== PAGE 3: HOSTING SERVICES ===================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <span class="logo">Social7</span>
+    <span class="page-num">Hosting Services</span>
+  </div>
+
+  <h1 class="section-title">☁️ Hosting Services</h1>
+
+  <!-- RENDER -->
+  <div class="card card-purple">
+    <h3 class="item-title">🐳 Render — PHP Application Server</h3>
+    <p><strong>URL:</strong> dashboard.render.com &nbsp;|&nbsp; <strong>Plan:</strong> Free Tier</p>
+    <p><strong>តួនាទី:</strong> Run PHP 8.2 + Apache web server inside Docker container</p>
+    <table>
+      <tr><th>Spec</th><th>Value</th></tr>
+      <tr><td>CPU</td><td>0.1 CPU (shared)</td></tr>
+      <tr><td>RAM</td><td>512 MB</td></tr>
+      <tr><td>Runtime</td><td>Docker (php:8.2-apache)</td></tr>
+      <tr><td>Auto-deploy</td><td>✅ Push to GitHub → auto deploy</td></tr>
+      <tr><td>Sleep</td><td>Spins down after 15 min inactive (fixed by UptimeRobot)</td></tr>
+    </table>
+    <div class="warning">⚠️ Free tier filesystem ephemeral — images uploaded to server ត្រូវប្រើ Cloudinary ជំនួស</div>
+  </div>
+
+  <!-- CLEVER CLOUD -->
+  <div class="card card-blue">
+    <h3 class="item-title">🗄️ Clever Cloud — MySQL Database</h3>
+    <p><strong>URL:</strong> console.clever-cloud.com &nbsp;|&nbsp; <strong>Plan:</strong> Dev (Free)</p>
+    <p><strong>តួនាទី:</strong> Host MySQL database — stores all application data</p>
+    <table>
+      <tr><th>Database Info</th><th>Value</th></tr>
+      <tr><td>Database Engine</td><td>MySQL 8.x</td></tr>
+      <tr><td>Storage</td><td>256 MB (free)</td></tr>
+      <tr><td>Connection</td><td>PDO (PHP Data Objects)</td></tr>
+      <tr><td>Tables</td><td>users, posts, messages, friendships, groups, events, notifications...</td></tr>
+      <tr><td>Sessions</td><td>php_sessions table (persistent across restarts)</td></tr>
+    </table>
+  </div>
+
+  <!-- CLOUDFLARE -->
+  <div class="card card-yellow">
+    <h3 class="item-title">🌐 Cloudflare — CDN + Security + DNS</h3>
+    <p><strong>URL:</strong> dash.cloudflare.com &nbsp;|&nbsp; <strong>Plan:</strong> Free</p>
+    <p><strong>តួនាទី:</strong> Proxy traffic, cache static files, DDoS protection, SSL certificate</p>
+    <table>
+      <tr><th>Feature</th><th>Description</th></tr>
+      <tr><td>CDN</td><td>Cache CSS/JS/images ជុំវិញពិភពលោក → website load fast</td></tr>
+      <tr><td>SSL/HTTPS</td><td>Free SSL certificate → social7.win secure</td></tr>
+      <tr><td>DDoS Protection</td><td>Block malicious traffic automatically</td></tr>
+      <tr><td>DNS</td><td>CNAME record → point social7.win to Render</td></tr>
+      <tr><td>Domain</td><td>social7.win (purchased via Cloudflare Registrar — $4.18/year)</td></tr>
+    </table>
+  </div>
+
+  <!-- CLOUDINARY -->
+  <div class="card card-green">
+    <h3 class="item-title">🖼️ Cloudinary — Image & Video Storage</h3>
+    <p><strong>URL:</strong> cloudinary.com &nbsp;|&nbsp; <strong>Plan:</strong> Free (25GB)</p>
+    <p><strong>តួនាទី:</strong> Store and serve images/videos uploaded by users — persists forever</p>
+    <table>
+      <tr><th>Feature</th><th>Value</th></tr>
+      <tr><td>Storage</td><td>25 GB free</td></tr>
+      <tr><td>Bandwidth</td><td>25 GB/month free</td></tr>
+      <tr><td>Upload API</td><td>HTTPS REST API (PHP curl)</td></tr>
+      <tr><td>Folders</td><td>social7/posts/, social7/avatars/, social7/covers/</td></tr>
+      <tr><td>Integration</td><td>PHP signs upload request → Cloudinary stores → returns CDN URL</td></tr>
+    </table>
+    <div class="success">✅ Images survive server restarts — stored in cloud permanently!</div>
+  </div>
+</div>
+
+<!-- ===================== PAGE 4: EMAIL + AUTH ===================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <span class="logo">Social7</span>
+    <span class="page-num">Email & Authentication</span>
+  </div>
+
+  <h1 class="section-title">🔐 Email & Authentication Services</h1>
+
+  <!-- BREVO -->
+  <div class="card card-blue">
+    <h3 class="item-title">📧 Brevo (Sendinblue) — Transactional Email</h3>
+    <p><strong>URL:</strong> app.brevo.com &nbsp;|&nbsp; <strong>Plan:</strong> Free (300 emails/day)</p>
+    <p><strong>ហេតុអ្វីប្រើ Brevo?</strong> Render free tier block outbound SMTP ports (587, 465) ទាំងស្រុង! Brevo ប្រើ HTTPS API (port 443) ដែលមិន block។</p>
+    <table>
+      <tr><th>Feature</th><th>Value</th></tr>
+      <tr><td>Email/day</td><td>300 free</td></tr>
+      <tr><td>Protocol</td><td>HTTPS REST API (port 443)</td></tr>
+      <tr><td>Sender</td><td>shy784162@gmail.com (verified)</td></tr>
+      <tr><td>Use case</td><td>Email verification, OTP codes</td></tr>
+    </table>
+    <pre>// PHP sends email via Brevo API
+curl_init('https://api.brevo.com/v3/smtp/email')
+Header: api-key: BREVO_API_KEY
+Body: { from, to, subject, html }</pre>
+  </div>
+
+  <!-- GOOGLE OAUTH -->
+  <div class="card card-red">
+    <h3 class="item-title">🔑 Google OAuth 2.0</h3>
+    <p><strong>Console:</strong> console.cloud.google.com &nbsp;|&nbsp; <strong>Cost:</strong> Free</p>
+    <p><strong>តួនាទី:</strong> ឱ្យ users login ដោយ Google account — គ្មាន password ចាំបាច់</p>
+    <p><strong>Flow:</strong></p>
+    <div class="flow" style="font-size:13px;">
+      <div class="flow-box" style="background:#4285f4;font-size:12px">User click<br>"Login with Google"</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="background:#34a853;font-size:12px">Google OAuth<br>consent screen</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="background:#ea4335;font-size:12px">Google sends<br>auth code</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="background:#6366f1;font-size:12px">PHP exchanges<br>code for token</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green" style="font-size:12px">User logged in<br>✅</div>
+    </div>
+    <table>
+      <tr><th>Config</th><th>Value</th></tr>
+      <tr><td>GOOGLE_CLIENT_ID</td><td>Set in Render Environment Variables</td></tr>
+      <tr><td>GOOGLE_CLIENT_SECRET</td><td>Set in Render Environment Variables</td></tr>
+      <tr><td>Redirect URI</td><td>https://social7.win/app/Controllers/Auth/google_auth.php</td></tr>
+    </table>
+  </div>
+
+  <!-- UPTIMEROBOT -->
+  <div class="card card-green">
+    <h3 class="item-title">⚡ UptimeRobot — Server Monitor & Keep-Alive</h3>
+    <p><strong>URL:</strong> uptimerobot.com &nbsp;|&nbsp; <strong>Plan:</strong> Free (50 monitors)</p>
+    <p><strong>តួនាទី:</strong> Ping website រៀងរាល់ 5 នាទី → Render server មិន spin down → website always fast!</p>
+    <table>
+      <tr><th>Config</th><th>Value</th></tr>
+      <tr><td>Monitor Type</td><td>HTTP/HTTPS</td></tr>
+      <tr><td>URL</td><td>https://social7.win</td></tr>
+      <tr><td>Interval</td><td>5 minutes</td></tr>
+      <tr><td>Current Status</td><td>🟢 Up — 100% uptime</td></tr>
+    </table>
+  </div>
+
+  <!-- GITHUB -->
+  <div class="card">
+    <h3 class="item-title">📦 GitHub — Source Code & Auto-Deploy</h3>
+    <p><strong>Repo:</strong> github.com/try-sothai/G7social_networking_Project_WebApp</p>
+    <p><strong>Flow:</strong> Developer pushes code → Render detects change → builds Docker image → deploys automatically (~3-5 minutes)</p>
+    <pre>git add .
+git commit -m "feature/fix description"
+git push   # → Render auto-deploys!</pre>
+  </div>
+</div>
+
+<!-- ===================== PAGE 5: ENVIRONMENT VARIABLES ===================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <span class="logo">Social7</span>
+    <span class="page-num">Configuration</span>
+  </div>
+
+  <h1 class="section-title">⚙️ Environment Variables & Configuration</h1>
+
+  <div class="card card-yellow">
+    <h3 class="item-title">🔒 Render Environment Variables (Secrets)</h3>
+    <p>ព័ត៌មានសម្ងាត់ទាំងនេះ store ក្នុង Render Dashboard — មិន commit ទៅ GitHub ទេ (security)</p>
+    <table>
+      <tr><th>Variable</th><th>Value</th><th>ប្រើសម្រាប់</th></tr>
+      <tr><td><code>BREVO_API_KEY</code></td><td>xkeysib-xxx</td><td>Send verification emails</td></tr>
+      <tr><td><code>SMTP_FROM_EMAIL</code></td><td>shy784162@gmail.com</td><td>Email sender address</td></tr>
+      <tr><td><code>SMTP_FROM_NAME</code></td><td>Social7</td><td>Email sender name</td></tr>
+      <tr><td><code>CLOUDINARY_CLOUD_NAME</code></td><td>dslpnudau</td><td>Cloudinary account</td></tr>
+      <tr><td><code>CLOUDINARY_API_KEY</code></td><td>332114281997354</td><td>Cloudinary upload auth</td></tr>
+      <tr><td><code>CLOUDINARY_API_SECRET</code></td><td>***secret***</td><td>Cloudinary signature</td></tr>
+      <tr><td><code>GOOGLE_CLIENT_ID</code></td><td>373812776585-xxx</td><td>Google OAuth login</td></tr>
+      <tr><td><code>GOOGLE_CLIENT_SECRET</code></td><td>GOCSPX-xxx</td><td>Google OAuth secret</td></tr>
+      <tr><td><code>FACEBOOK_APP_ID</code></td><td>1410977581048400</td><td>Facebook login</td></tr>
+      <tr><td><code>FACEBOOK_APP_SECRET</code></td><td>***secret***</td><td>Facebook login secret</td></tr>
+      <tr><td><code>FACEBOOK_REDIRECT_URI</code></td><td>https://social7.win/...</td><td>Facebook callback URL</td></tr>
+    </table>
+  </div>
+
+  <h2 class="sub-title">📁 Key Configuration Files</h2>
+  <table>
+    <tr><th>File</th><th>Purpose</th></tr>
+    <tr><td><code>Dockerfile</code></td><td>Build PHP 8.2 + Apache container for Render</td></tr>
+    <tr><td><code>.htaccess</code></td><td>Apache config — URL routing, upload limits</td></tr>
+    <tr><td><code>config/db_config.php</code></td><td>MySQL connection + BASE_URL + session init</td></tr>
+    <tr><td><code>config/session_handler.php</code></td><td>Custom session handler → store in MySQL DB</td></tr>
+    <tr><td><code>config/env.php</code></td><td>Read environment variables from .env or system</td></tr>
+    <tr><td><code>app/Helpers/cloudinary.php</code></td><td>Upload files to Cloudinary via REST API</td></tr>
+    <tr><td><code>app/Helpers/mailer.php</code></td><td>Send emails via Brevo API</td></tr>
+  </table>
+
+  <h2 class="sub-title">🐳 Dockerfile</h2>
+  <pre>FROM php:8.2-apache
+
+RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN a2enmod rewrite && \
+    sed -i 's|AllowOverride None|AllowOverride All|g' /etc/apache2/apache2.conf
+
+RUN echo 'output_buffering = On' > /usr/local/etc/php/conf.d/custom.ini
+
+COPY . /var/www/html/
+
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+EXPOSE 80</pre>
+</div>
+
+<!-- ===================== PAGE 6: COST + SUMMARY ===================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <span class="logo">Social7</span>
+    <span class="page-num">Cost & Summary</span>
+  </div>
+
+  <h1 class="section-title">💰 Cost Analysis</h1>
+
+  <table>
+    <tr><th>Service</th><th>Plan</th><th>Cost/Month</th><th>Cost/Year</th></tr>
+    <tr><td>🐳 <strong>Render</strong></td><td>Free</td><td>$0</td><td>$0</td></tr>
+    <tr><td>🗄️ <strong>Clever Cloud MySQL</strong></td><td>Dev (Free)</td><td>$0</td><td>$0</td></tr>
+    <tr><td>🌐 <strong>Cloudflare CDN</strong></td><td>Free</td><td>$0</td><td>$0</td></tr>
+    <tr><td>🖼️ <strong>Cloudinary</strong></td><td>Free (25GB)</td><td>$0</td><td>$0</td></tr>
+    <tr><td>📧 <strong>Brevo Email</strong></td><td>Free (300/day)</td><td>$0</td><td>$0</td></tr>
+    <tr><td>⚡ <strong>UptimeRobot</strong></td><td>Free</td><td>$0</td><td>$0</td></tr>
+    <tr><td>📦 <strong>GitHub</strong></td><td>Free</td><td>$0</td><td>$0</td></tr>
+    <tr><td>🔗 <strong>social7.win Domain</strong></td><td>Paid</td><td>~$0.35</td><td>$4.18</td></tr>
+    <tr class="cost-total"><td colspan="2"><strong>💵 Total Cost</strong></td><td><strong>~$0.35/month</strong></td><td><strong>$4.18/year</strong></td></tr>
+  </table>
+
+  <div class="success">✅ Full production social network running for only <strong>$4.18/year</strong>!</div>
+
+  <h2 class="sub-title">📊 Complete Services Summary</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+    <div class="card card-purple">
+      <h3 class="item-title">🏗️ Infrastructure</h3>
+      <ul class="feature-list">
+        <li><span class="icon">✅</span> Render — PHP hosting (Docker)</li>
+        <li><span class="icon">✅</span> Clever Cloud — MySQL database</li>
+        <li><span class="icon">✅</span> Cloudflare — CDN + security</li>
+        <li><span class="icon">✅</span> GitHub — code + CI/CD</li>
+        <li><span class="icon">✅</span> social7.win — custom domain</li>
+      </ul>
+    </div>
+    <div class="card card-green">
+      <h3 class="item-title">🔧 Third-party APIs</h3>
+      <ul class="feature-list">
+        <li><span class="icon">✅</span> Cloudinary — image/video storage</li>
+        <li><span class="icon">✅</span> Brevo — transactional emails</li>
+        <li><span class="icon">✅</span> Google OAuth — login with Google</li>
+        <li><span class="icon">✅</span> Facebook OAuth — login with Facebook</li>
+        <li><span class="icon">✅</span> PeerJS — WebRTC video/audio calls</li>
+        <li><span class="icon">✅</span> UptimeRobot — keep server awake</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sub-title">🌐 Important URLs</h2>
+  <table>
+    <tr><th>Service</th><th>URL</th></tr>
+    <tr><td>🌐 Website (Main)</td><td><strong>https://social7.win</strong></td></tr>
+    <tr><td>🌐 Website (Render)</td><td>https://g7social-networking-project-webapp.onrender.com</td></tr>
+    <tr><td>🐳 Render Dashboard</td><td>dashboard.render.com</td></tr>
+    <tr><td>🗄️ Clever Cloud</td><td>console.clever-cloud.com</td></tr>
+    <tr><td>☁️ Cloudflare</td><td>dash.cloudflare.com</td></tr>
+    <tr><td>🖼️ Cloudinary</td><td>console.cloudinary.com</td></tr>
+    <tr><td>📧 Brevo</td><td>app.brevo.com</td></tr>
+    <tr><td>⚡ UptimeRobot</td><td>dashboard.uptimerobot.com</td></tr>
+    <tr><td>📦 GitHub Repo</td><td>github.com/try-sothai/G7social_networking_Project_WebApp</td></tr>
+  </table>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;margin-top:60px;padding-top:24px;border-top:2px solid #e2e8f0;color:#94a3b8;">
+    <div style="font-size:28px;font-weight:800;color:#6366f1;margin-bottom:8px;">S7 Social7</div>
+    <p style="font-size:14px;">G7 Social Networking Web App &nbsp;|&nbsp; Developer: Try Sothai &nbsp;|&nbsp; June 2026</p>
+    <p style="font-size:13px;margin-top:4px;">https://social7.win</p>
+  </div>
+</div>
+
+</body>
+</html>

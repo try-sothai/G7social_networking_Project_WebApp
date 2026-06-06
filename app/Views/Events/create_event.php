@@ -1,5 +1,4 @@
 ﻿<?php
-session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/functions.php';
 require_once __DIR__ . '/../Component/dashboard_shell.php';

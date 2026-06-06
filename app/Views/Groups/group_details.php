@@ -1,5 +1,4 @@
 ﻿<?php
-session_start();
 require_once dirname(__DIR__, 3) . '/config/db_config.php';
 require_once dirname(__DIR__, 2) . '/Helpers/functions.php';
 require_once dirname(__DIR__, 2) . '/Controllers/Groups/GroupController.php';

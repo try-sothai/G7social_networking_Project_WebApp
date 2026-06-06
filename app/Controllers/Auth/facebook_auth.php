@@ -1,6 +1,5 @@
 
 <?php
-session_start();
 require_once '../../../config/db_config.php';
 require_once '../../Helpers/admin.php';
 require_once '../../../config/env.php';
